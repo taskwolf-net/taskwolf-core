@@ -1,5 +1,22 @@
+plugins {
+  id("maven-publish")
+}
+
 group "de.flexpedite"
 version "1.0.0-SNAPSHOT"
+
+publishing {
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = uri("https://maven.pkg.github.com/Flexpedite/flexpedite")
+      credentials {
+        username = System.getenv("GITHUB_USERNAME")
+        password = System.getenv("GITHUB_ACCESS_TOKEN")
+      }
+    }
+  }
+}
 
 tasks.register("build") {
   dependsOn(gradle.includedBuild("core").task(":build"))
