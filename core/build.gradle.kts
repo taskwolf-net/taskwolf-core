@@ -1,26 +1,50 @@
 plugins {
   id("java")
+  id("maven-publish")
 }
 
 group = "de.flexpedite"
 version = "1.0.0-SNAPSHOT"
+
+publishing {
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = uri("https://maven.pkg.github.com/Flexpedite/flexpedite")
+      credentials {
+        username = System.getenv("GITHUB_USERNAME")
+        password = System.getenv("GITHUB_ACCESS_TOKEN")
+      }
+    }
+  }
+  publications {
+    register<MavenPublication>("gpr") {
+      from(components["java"])
+    }
+  }
+}
 
 repositories {
   mavenCentral()
 }
 
 dependencies {
-  testCompileOnly(platform("org.junit:junit-bom:5.10.0"))
-  testCompileOnly("org.junit.jupiter:junit-jupiter:5.10.0")
+  testImplementation(platform("org.junit:junit-bom:5.10.0"))
+  testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
 
-  compileOnly("com.google.inject:guice:7.0.0")
+  implementation("com.google.inject:guice:7.0.0")
 
-  compileOnly("com.google.guava:guava:32.1.2-jre")
+  implementation("com.google.guava:guava:32.1.2-jre")
 
-  compileOnly("org.projectlombok:lombok:1.18.30")
+  implementation("org.projectlombok:lombok:1.18.30")
   annotationProcessor("org.projectlombok:lombok:1.18.30")
-  testCompileOnly("org.projectlombok:lombok:1.18.30")
+  testImplementation("org.projectlombok:lombok:1.18.30")
   testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+
+  implementation("com.datastax.cassandra:cassandra-driver-core:4.0.0")
+
+  implementation("org.json:json:20230618")
+  implementation("commons-io:commons-io:2.14.0")
 }
 
 tasks.test {
