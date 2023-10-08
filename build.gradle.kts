@@ -11,8 +11,8 @@ publishing {
       name = "GitHubPackages"
       url = uri("https://maven.pkg.github.com/Flexpedite/flexpedite")
       credentials {
-        username = System.getenv("GITHUB_ACTOR")
-        password = System.getenv("GITHUB_TOKEN")
+        username = System.getenv("JAVA_ACTOR")
+        password = System.getenv("JAVA_TOKEN")
       }
     }
   }
