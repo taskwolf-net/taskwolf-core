@@ -5,6 +5,8 @@ plugins {
 
 group = "de.flexpedite"
 version = "1.0.0-SNAPSHOT"
+java.sourceCompatibility = JavaVersion.VERSION_20
+java.targetCompatibility = JavaVersion.VERSION_20
 
 publishing {
   repositories {
@@ -12,8 +14,8 @@ publishing {
       name = "GitHubPackages"
       url = uri("https://maven.pkg.github.com/Flexpedite/flexpedite")
       credentials {
-        username = System.getenv("GITHUB_USERNAME")
-        password = System.getenv("GITHUB_ACCESS_TOKEN")
+        username = System.getenv("GITHUB_USERNAME") ?: providers.gradleProperty("githubUsername").get()
+        password = System.getenv("GITHUB_ACCESS_TOKEN") ?: providers.gradleProperty("githubAccessToken").get()
       }
     }
   }
