@@ -93,7 +93,7 @@ public class DatabaseTable {
 
   public CompletableFuture<DatabaseRow> selectRow(String condition) {
     CompletableFuture<DatabaseRow> futureResponse = new CompletableFuture<>();
-    selectRows(condition).thenAccept(rows -> futureResponse.complete(rows.getFirst()));
+    selectRows(condition).thenAccept(rows -> futureResponse.complete(rows.get(0)));
     return futureResponse;
   }
 
