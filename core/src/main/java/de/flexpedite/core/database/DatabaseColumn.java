@@ -1,15 +1,22 @@
 package de.flexpedite.core.database;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 @Getter
 @Accessors(fluent = true)
-@RequiredArgsConstructor(staticName = "create")
-public final class DatabaseColumn {
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+public class DatabaseColumn {
   public static DatabaseColumn create(String name, DatabaseDataType dataType) {
     return create(name, dataType, Type.REGULAR);
+  }
+
+  public static DatabaseColumn create(
+    String name, DatabaseDataType dataType, Type type
+  ) {
+    return new DatabaseColumn(name, dataType, type);
   }
 
   public enum Type {

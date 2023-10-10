@@ -13,6 +13,7 @@ public enum DatabaseDataType {
   FLOAT,
   INET,
   INT,
+  LIST,
   SMALLINT,
   TEXT,
   TIME,

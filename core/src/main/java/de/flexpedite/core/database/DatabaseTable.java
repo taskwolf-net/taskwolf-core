@@ -33,7 +33,6 @@ public class DatabaseTable {
     query.append(" (");
     query.append(columnCompilation());
     query.append(");");
-    System.out.println(query.toString());
     connection.session().executeAsync(query.toString());
   }
 
@@ -68,7 +67,7 @@ public class DatabaseTable {
     connection.session().executeAsync(query.toString());
   }
 
-  public void insert(DatabaseRow row) {
+  protected void insert(DatabaseRow row) {
     StringBuilder query = new StringBuilder("INSERT INTO ");
     query.append(fullName());
     query.append(" (");
@@ -80,7 +79,7 @@ public class DatabaseTable {
     cache.put(columns.indexOf(findPrimaryKeyColumn()), row);
   }
 
-  public CompletableFuture<DatabaseRow> selectRow(DatabaseCell primaryKeyCell) {
+  protected CompletableFuture<DatabaseRow> selectRow(DatabaseCell primaryKeyCell) {
     if (cache.containsKey(primaryKeyCell.value())) {
       return CompletableFuture.completedFuture(cache.get(primaryKeyCell.value()));
     }
@@ -91,13 +90,13 @@ public class DatabaseTable {
     return futureResponse;
   }
 
-  public CompletableFuture<DatabaseRow> selectRow(String condition) {
+  protected CompletableFuture<DatabaseRow> selectRow(String condition) {
     CompletableFuture<DatabaseRow> futureResponse = new CompletableFuture<>();
     selectRows(condition).thenAccept(rows -> futureResponse.complete(rows.get(0)));
     return futureResponse;
   }
 
-  public CompletableFuture<List<DatabaseRow>> selectRows(String condition) {
+  protected CompletableFuture<List<DatabaseRow>> selectRows(String condition) {
     StringBuilder query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
     query.append(" FROM ");
@@ -124,11 +123,11 @@ public class DatabaseTable {
     return compilation.toString();
   }
 
-  public void delete(DatabaseCell primaryKeyCell) {
+  protected void delete(DatabaseCell primaryKeyCell) {
     delete(primaryKeyCondition(primaryKeyCell));
   }
 
-  public void delete(String condition) {
+  protected void delete(String condition) {
     StringBuilder query = new StringBuilder("DELETE FROM ");
     query.append(fullName());
     query.append(" ");
