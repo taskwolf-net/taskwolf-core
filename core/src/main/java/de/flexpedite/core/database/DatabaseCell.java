@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.util.List;
 import java.util.UUID;
 
 @Accessors(fluent = true)
@@ -38,5 +39,12 @@ public final class DatabaseCell {
       return null;
     }
     return (UUID) value;
+  }
+
+  public <T> List<T> listValue() {
+    if (!(value instanceof List<?>)) {
+      return null;
+    }
+    return (List<T>) value;
   }
 }
