@@ -79,6 +79,12 @@ public class DatabaseTable {
     cache.put(columns.indexOf(findPrimaryKeyColumn()), row);
   }
 
+  protected CompletableFuture<Boolean> exists(String condition) {
+    CompletableFuture<Boolean> futureResponse = new CompletableFuture<>();
+    selectRows(condition).thenAccept(rows -> futureResponse.complete(!rows.isEmpty()));
+    return futureResponse;
+  }
+
   protected CompletableFuture<DatabaseRow> selectRow(DatabaseCell primaryKeyCell) {
     if (cache.containsKey(primaryKeyCell.value())) {
       return CompletableFuture.completedFuture(cache.get(primaryKeyCell.value()));
