@@ -81,9 +81,13 @@ public class DatabaseTable {
 
   protected void update(String condition, DatabaseRow row) {
     StringBuilder query = new StringBuilder("UPDATE ");
+    int primaryKeyIndex = columns.indexOf(findPrimaryKeyColumn());
     query.append(fullName());
     query.append(" SET ");
     for (int i = 0; i < columns.size(); i++) {
+      if (i == primaryKeyIndex) {
+        continue;
+      }
       query.append(columns.get(i).name());
       query.append(" = ");
       query.append(row.findCell(i).databaseValue());
@@ -112,7 +116,7 @@ public class DatabaseTable {
     CompletionStage<AsyncResultSet> result = connection.session()
       .executeAsync(query.toString());
     CompletableFuture<Boolean> futureResponse = new CompletableFuture<>();
-    result.thenAccept(resultSet -> futureResponse.complete(resultSet.hasMorePages()));
+    result.thenAccept(resultSet -> futureResponse.complete(resultSet.remaining() > 0));
     return futureResponse;
   }
 
