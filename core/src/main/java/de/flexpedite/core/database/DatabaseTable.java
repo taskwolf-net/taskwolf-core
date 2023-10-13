@@ -1,12 +1,10 @@
 package de.flexpedite.core.database;
 
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
-import com.google.common.collect.Maps;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -16,7 +14,6 @@ public class DatabaseTable {
   private final DatabaseKeyspace keyspace;
   private final String name;
   private final List<DatabaseColumn> columns;
-  private final Map<Object, DatabaseRow> cache = Maps.newHashMap();
 
   public void create() {
     create("");
@@ -76,24 +73,51 @@ public class DatabaseTable {
     query.append(row.valuesCompilation());
     query.append(");");
     connection.session().executeAsync(query.toString());
-    cache.put(columns.indexOf(findPrimaryKeyColumn()), row);
+  }
+
+  protected void update(DatabaseCell primaryKeyCell, DatabaseRow row) {
+    update(primaryKeyCondition(primaryKeyCell), row);
+  }
+
+  protected void update(String condition, DatabaseRow row) {
+    StringBuilder query = new StringBuilder("UPDATE ");
+    query.append(fullName());
+    query.append(" SET ");
+    for (int i = 0; i < columns.size(); i++) {
+      query.append(columns.get(i).name());
+      query.append(" = ");
+      query.append(row.findCell(i).databaseValue());
+      if (i < columns.size() - 1) {
+        query.append(", ");
+      }
+    }
+    query.append(" ");
+    query.append(condition);
+    query.append(";");
+    connection.session().executeAsync(query.toString());
+  }
+
+  protected CompletableFuture<Boolean> exists(DatabaseCell primaryKeyCell) {
+    return exists(primaryKeyCondition(primaryKeyCell));
   }
 
   protected CompletableFuture<Boolean> exists(String condition) {
+    StringBuilder query = new StringBuilder("SELECT ");
+    query.append(columnNameCompilation());
+    query.append(" FROM ");
+    query.append(fullName());
+    query.append(" ");
+    query.append(condition);
+    query.append(";");
+    CompletionStage<AsyncResultSet> result = connection.session()
+      .executeAsync(query.toString());
     CompletableFuture<Boolean> futureResponse = new CompletableFuture<>();
-    selectRows(condition).thenAccept(rows -> futureResponse.complete(!rows.isEmpty()));
+    result.thenAccept(resultSet -> futureResponse.complete(resultSet.hasMorePages()));
     return futureResponse;
   }
 
   protected CompletableFuture<DatabaseRow> selectRow(DatabaseCell primaryKeyCell) {
-    if (cache.containsKey(primaryKeyCell.value())) {
-      return CompletableFuture.completedFuture(cache.get(primaryKeyCell.value()));
-    }
-    CompletableFuture<DatabaseRow> futureResponse =
-      selectRow(primaryKeyCondition(primaryKeyCell));
-    futureResponse.thenAccept(row -> cache.put(columns.indexOf(
-      findPrimaryKeyColumn()), row));
-    return futureResponse;
+    return selectRow(primaryKeyCondition(primaryKeyCell));
   }
 
   protected CompletableFuture<DatabaseRow> selectRow(String condition) {
