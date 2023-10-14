@@ -28,6 +28,10 @@ public final class ModuleLoader {
       findModule(moduleFile, coreModule);
     }
     modules.sort(Comparator.comparingInt(module -> module.priority().value()));
+    Collections.reverse(modules);
+    for (RegisteredModule module : modules) {
+      module.module().enable();
+    }
   }
 
   private List<File> jarsInDirectory() {
