@@ -1,12 +1,10 @@
 package de.flexpedite.core.database;
 
-import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class DatabaseTable {
@@ -95,7 +93,7 @@ public class DatabaseTable {
         query.append(", ");
       }
     }
-    query.append(" ");
+    query.append(" WHERE ");
     query.append(condition);
     query.append(";");
     connection.session().executeAsync(query.toString());
@@ -110,7 +108,7 @@ public class DatabaseTable {
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
-    query.append(" ");
+    query.append(" WHERE ");
     query.append(condition);
     query.append(";");
     var result = connection.session().executeAsync(query.toString());
@@ -134,7 +132,7 @@ public class DatabaseTable {
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
-    query.append(" ");
+    query.append(" WHERE ");
     query.append(condition);
     query.append(";");
     var result = connection.session().executeAsync(query.toString());
@@ -162,7 +160,7 @@ public class DatabaseTable {
   protected void delete(String condition) {
     var query = new StringBuilder("DELETE FROM ");
     query.append(fullName());
-    query.append(" ");
+    query.append(" WHERE ");
     query.append(condition);
     query.append(";");
     connection.session().executeAsync(query.toString());
@@ -185,8 +183,7 @@ public class DatabaseTable {
   }
 
   private String primaryKeyCondition(DatabaseCell primaryKeyCell) {
-    var condition = new StringBuilder("WHERE ");
-    condition.append(findPrimaryKeyColumn().name());
+    var condition = new StringBuilder(findPrimaryKeyColumn().name());
     condition.append(" = ");
     condition.append(primaryKeyCell.databaseValue());
     return condition.toString();
