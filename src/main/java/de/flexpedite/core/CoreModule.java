@@ -7,11 +7,13 @@ import de.flexpedite.core.database.DatabaseKeyspace;
 import de.flexpedite.core.module.ModuleLoader;
 import de.flexpedite.core.trigger.Trigger;
 import de.flexpedite.core.trigger.TriggerDatabaseTable;
+import de.flexpedite.core.user.UserDatabaseTable;
 import de.flexpedite.core.workflow.Workflow;
 import de.flexpedite.core.workflow.WorkflowDatabaseTable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import org.springframework.boot.SpringApplication;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,11 +23,15 @@ import java.util.stream.Collectors;
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public class CoreModule {
+  @Getter
+  private final SpringApplication springApplication;
   private final ModuleLoader moduleLoader;
   @Getter
   private final DatabaseConnection databaseConnection;
   @Getter
   private final DatabaseKeyspace databaseKeyspace;
+  @Getter
+  private final UserDatabaseTable userDatabaseTable;
   @Getter
   private final TriggerDatabaseTable triggerDatabaseTable;
   @Getter

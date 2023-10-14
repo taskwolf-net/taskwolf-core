@@ -2,13 +2,10 @@ package de.flexpedite.core.module;
 
 import com.google.common.collect.Lists;
 import de.flexpedite.core.CoreModule;
-import de.flexpedite.core.action.ActionDatabaseTable;
-import de.flexpedite.core.trigger.TriggerDatabaseTable;
 import lombok.RequiredArgsConstructor;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -32,13 +29,6 @@ public final class ModuleLoader {
     for (var module : modules) {
       module.module().enable();
     }
-  }
-
-  private List<File> jarsInDirectory() {
-    return Arrays.stream(new File(directory).listFiles())
-      .filter(file -> !file.isDirectory())
-      .filter(file -> file.getName().endsWith(".jar"))
-      .collect(Collectors.toList());
   }
 
   public void reloadModule(String name, CoreModule coreModule) throws Exception {
@@ -160,8 +150,14 @@ public final class ModuleLoader {
   }
 
   public URL[] moduleFileUrls() {
-    return modules.stream().map(RegisteredModule::file)
-      .map(this::findUrl).toArray(URL[]::new);
+    return jarsInDirectory().stream().map(this::findUrl).toArray(URL[]::new);
+  }
+
+  private List<File> jarsInDirectory() {
+    return Arrays.stream(new File(directory).listFiles())
+      .filter(file -> !file.isDirectory())
+      .filter(file -> file.getName().endsWith(".jar"))
+      .collect(Collectors.toList());
   }
 
   private URL findUrl(File file) {
