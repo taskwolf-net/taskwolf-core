@@ -14,7 +14,7 @@ public final class ActionDatabaseTable extends DatabaseTable {
   public static ActionDatabaseTable create(
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
-    List<DatabaseColumn> columns = Lists.newArrayList();
+    var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID));

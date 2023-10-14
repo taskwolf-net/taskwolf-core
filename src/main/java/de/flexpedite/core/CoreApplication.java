@@ -15,27 +15,23 @@ import java.net.URLClassLoader;
 @SpringBootApplication(scanBasePackages = {"de.flexpedite"})
 public class CoreApplication {
   public static void main(String[] args) throws Exception {
-    DatabaseConnection connection = DatabaseConnection.create();
+    var connection = DatabaseConnection.create();
     connection.connect();
-    DatabaseKeyspace keyspace = DatabaseKeyspace.create(connection, "flexpedite",
+    var keyspace = DatabaseKeyspace.create(connection, "flexpedite",
       "SimpleStrategy", 1);
     keyspace.use();
-    TriggerDatabaseTable triggerDatabaseTable =
-      TriggerDatabaseTable.create(connection, keyspace);
+    var triggerDatabaseTable = TriggerDatabaseTable.create(connection, keyspace);
     triggerDatabaseTable.createIfNotExists();
-    ActionDatabaseTable actionDatabaseTable =
-      ActionDatabaseTable.create(connection, keyspace);
+    var actionDatabaseTable = ActionDatabaseTable.create(connection, keyspace);
     triggerDatabaseTable.createIfNotExists();
-    WorkflowDatabaseTable workflowDatabaseTable =
-      WorkflowDatabaseTable.create(connection, keyspace);
+    var workflowDatabaseTable = WorkflowDatabaseTable.create(connection, keyspace);
     triggerDatabaseTable.createIfNotExists();
-    ModuleLoader moduleLoader = ModuleLoader.create(
-      System.getProperty("user.dir") + "/modules/");
-    CoreModule coreModule = CoreModule.create(moduleLoader, connection, keyspace,
+    var moduleLoader = ModuleLoader.create(System.getProperty("user.dir") + "/modules/");
+    var coreModule = CoreModule.create(moduleLoader, connection, keyspace,
       triggerDatabaseTable, actionDatabaseTable, workflowDatabaseTable);
     coreModule.initialize();
-    SpringApplication application = new SpringApplication(CoreApplication.class);
-    URLClassLoader classLoader = new URLClassLoader(moduleLoader.moduleFileUrls(),
+    var application = new SpringApplication(CoreApplication.class);
+    var classLoader = new URLClassLoader(moduleLoader.moduleFileUrls(),
       application.getClassLoader());
     application.setResourceLoader(new DefaultResourceLoader(classLoader));
     application.run(args);

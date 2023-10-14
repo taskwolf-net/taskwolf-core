@@ -37,7 +37,7 @@ public class DatabaseColumn {
   private final Type type;
 
   public String databaseEntry() {
-    StringBuilder entry = new StringBuilder();
+    var entry = new StringBuilder();
     entry.append(name);
     entry.append(" ");
     entry.append(dataType);

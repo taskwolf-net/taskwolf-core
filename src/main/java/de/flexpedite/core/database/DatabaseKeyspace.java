@@ -22,7 +22,7 @@ public final class DatabaseKeyspace {
   }
 
   private void create(String addition) {
-    StringBuilder query = new StringBuilder("CREATE TABLE ");
+    var query = new StringBuilder("CREATE TABLE ");
     query.append(addition);
     query.append(name);
     query.append("WITH REPLICATION = {\'class\' : \'");
@@ -42,7 +42,7 @@ public final class DatabaseKeyspace {
   }
 
   private void drop(String addition) {
-    StringBuilder query = new StringBuilder("DROP KEYSPACE ");
+    var query = new StringBuilder("DROP KEYSPACE ");
     query.append(addition);
     query.append(name);
     query.append(";");
@@ -50,7 +50,7 @@ public final class DatabaseKeyspace {
   }
 
   public void use() {
-    StringBuilder query = new StringBuilder("USE ");
+    var query = new StringBuilder("USE ");
     query.append(name);
     query.append(";");
     connection.session().executeAsync(query.toString());

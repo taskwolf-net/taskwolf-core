@@ -23,13 +23,13 @@ public final class ModuleLoader {
   private final List<RegisteredModule> modules = Lists.newArrayList();
 
   public void loadModules(CoreModule coreModule) throws Exception {
-    List<File> files = jarsInDirectory();
-    for (File moduleFile : files) {
+    var files = jarsInDirectory();
+    for (var moduleFile : files) {
       findModule(moduleFile, coreModule);
     }
     modules.sort(Comparator.comparingInt(module -> module.priority().value()));
     Collections.reverse(modules);
-    for (RegisteredModule module : modules) {
+    for (var module : modules) {
       module.module().enable();
     }
   }
@@ -42,29 +42,29 @@ public final class ModuleLoader {
   }
 
   public void reloadModule(String name, CoreModule coreModule) throws Exception {
-    Optional<RegisteredModule> moduleOptional = modules.stream()
+    var moduleOptional = modules.stream()
       .filter(module -> module.name().equals(name))
       .findFirst();
     if (moduleOptional.isEmpty()) {
       return;
     }
-    RegisteredModule registeredModule = moduleOptional.get();
+    var registeredModule = moduleOptional.get();
     unloadModule(registeredModule);
     findModule(registeredModule.file(), coreModule).module().enable();
   }
 
   private RegisteredModule findModule(File file, CoreModule coreModule) throws Exception {
-    JarFile jarFile = new JarFile(file);
-    URLClassLoader classLoader = new URLClassLoader(new URL[] {file.toURI().toURL()},
+    var jarFile = new JarFile(file);
+    var classLoader = new URLClassLoader(new URL[] {file.toURI().toURL()},
       this.getClass().getClassLoader());
-    Enumeration<JarEntry> entries = jarFile.entries();
+    var entries = jarFile.entries();
     while (entries.hasMoreElements()) {
-      JarEntry entry = entries.nextElement();
-      Optional<Class<?>> optionalModuleClass = findModuleClass(entry, classLoader);
+      var entry = entries.nextElement();
+      var optionalModuleClass = findModuleClass(entry, classLoader);
       if (optionalModuleClass.isEmpty()) {
         continue;
       }
-      RegisteredModule registeredModule = createRegisteredModule(
+      var registeredModule = createRegisteredModule(
         optionalModuleClass.get(), coreModule, file);
       modules.add(registeredModule);
       return registeredModule;
@@ -75,8 +75,8 @@ public final class ModuleLoader {
   private RegisteredModule createRegisteredModule(
     Class<?> moduleClass, CoreModule coreModule, File file
   ) throws Exception {
-    Module module = createModule(moduleClass, coreModule);
-    Annotation annotation = findModuleAnnotation(moduleClass).get();
+    var module = createModule(moduleClass, coreModule);
+    var annotation = findModuleAnnotation(moduleClass).get();
     return RegisteredModule.create(module, findAnnotationField(annotation, "name"),
       findAnnotationField(annotation, "version"),
       findAnnotationField(annotation, "priority"), file);
@@ -92,14 +92,14 @@ public final class ModuleLoader {
   private Optional<Class<?>> findModuleClass(
     JarEntry entry, URLClassLoader classLoader
   ) throws Exception {
-    String entryName = entry.getName();
+    var entryName = entry.getName();
     if (entry.isDirectory() || !entryName.endsWith(".class") ||
       !entryName.startsWith("de/flexpedite")
     ) {
       return Optional.empty();
     }
-    String className = entryName.replace('/', '.').substring(0, entryName.length() - 6);
-    Class<?> entryClass = Class.forName(className, true, classLoader);
+    var className = entryName.replace('/', '.').substring(0, entryName.length() - 6);
+    var entryClass = Class.forName(className, true, classLoader);
     if (!isDescendedOfModule(entryClass)) {
       return Optional.empty();
     }
@@ -119,7 +119,7 @@ public final class ModuleLoader {
   private <T> T findAnnotationField(
     Annotation annotation, String fieldName
   ) throws Exception {
-    Method method = Arrays.stream(annotation.annotationType().getDeclaredMethods())
+    var method = Arrays.stream(annotation.annotationType().getDeclaredMethods())
       .filter(declaredMethod -> declaredMethod.getName().equals(fieldName))
       .findFirst().get();
     return (T) method.invoke(annotation, (Object[])null);
@@ -132,13 +132,13 @@ public final class ModuleLoader {
   }
 
   public void unloadModule(String name) throws Exception {
-    Optional<RegisteredModule> moduleOptional = modules.stream()
+    var moduleOptional = modules.stream()
       .filter(module -> module.name().equals(name))
       .findFirst();
     if (moduleOptional.isEmpty()) {
       return;
     }
-    RegisteredModule registeredModule = moduleOptional.get();
+    var registeredModule = moduleOptional.get();
     registeredModule.module().disable();
     unloadModule(registeredModule);
   }

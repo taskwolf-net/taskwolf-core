@@ -37,7 +37,7 @@ public class CoreModule {
   }
 
   public CompletableFuture<Workflow> createWorkflow(UUID triggerId) {
-    CompletableFuture<Workflow> futureResponse = new CompletableFuture<>();
+    var futureResponse = new CompletableFuture<Workflow>();
     workflowDatabaseTable.findWorkflowByTrigger(triggerId).thenAccept(workflowEntry ->
       createActions(workflowEntry.id()).thenApply(actions ->
         futureResponse.complete(Workflow.create(actions))));

@@ -11,7 +11,7 @@ public final class Workflow {
   private final List<Action> actions;
 
   public void trigger(Map<String, Object> information) {
-    for (Action action : actions) {
+    for (var action : actions) {
       information.putAll(action.execute(information));
     }
   }

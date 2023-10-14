@@ -17,16 +17,16 @@ public final class DatabaseRow {
   }
 
   public static DatabaseRow of(Row row, int columnsLength) {
-    DatabaseCell[] cells = new DatabaseCell[columnsLength];
-    for (int i = 0; i < columnsLength; i++) {
+    var cells = new DatabaseCell[columnsLength];
+    for (var i = 0; i < columnsLength; i++) {
       cells[i] = DatabaseCell.create(row.getObject(i));
     }
     return create(cells);
   }
 
   public static DatabaseRow of(Object... values) {
-    DatabaseCell[] cells = new DatabaseCell[values.length];
-    for (int i = 0; i < values.length; i++) {
+    var cells = new DatabaseCell[values.length];
+    for (var i = 0; i < values.length; i++) {
       cells[i] = DatabaseCell.create(values[i]);
     }
     return create(cells);
@@ -35,8 +35,8 @@ public final class DatabaseRow {
   private final DatabaseCell[] cells;
 
   public String valuesCompilation() {
-    StringBuilder compilation = new StringBuilder();
-    for (int i = 0; i < cells.length; i++) {
+    var compilation = new StringBuilder();
+    for (var i = 0; i < cells.length; i++) {
       compilation.append(cells[i].databaseValue());
       if (i < cells.length - 1) {
         compilation.append(", ");

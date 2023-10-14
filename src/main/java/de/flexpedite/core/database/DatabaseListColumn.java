@@ -20,7 +20,7 @@ public class DatabaseListColumn extends DatabaseColumn {
 
   @Override
   public String databaseEntry() {
-    StringBuilder entry = new StringBuilder();
+    var entry = new StringBuilder();
     entry.append(name());
     entry.append(" ");
     entry.append(dataType());

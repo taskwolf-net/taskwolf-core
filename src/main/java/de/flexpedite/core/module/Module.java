@@ -1,5 +1,6 @@
 package de.flexpedite.core.module;
 
+import com.google.common.collect.Lists;
 import de.flexpedite.core.CoreModule;
 import de.flexpedite.core.action.ActionDatabaseTable;
 import de.flexpedite.core.action.ActionFactory;
@@ -23,11 +24,24 @@ public abstract class Module {
   private final CoreModule coreModule;
 
   public abstract void enable() throws Exception;
+
   public abstract void disable() throws Exception;
-  public abstract TriggerFactory triggerFactory();
-  public abstract ActionFactory actionFactory();
-  public abstract List<TriggerInformation> triggerInformation();
-  public abstract List<ActionInformation> actionInformation();
+
+  public TriggerFactory triggerFactory() {
+    return null;
+  }
+
+  public ActionFactory actionFactory() {
+    return null;
+  }
+
+  public List<TriggerInformation> triggerInformation() {
+    return Lists.newArrayList();
+  }
+
+  public List<ActionInformation> actionInformation() {
+    return Lists.newArrayList();
+  }
 
   protected DatabaseConnection databaseConnection() {
     return coreModule.databaseConnection();

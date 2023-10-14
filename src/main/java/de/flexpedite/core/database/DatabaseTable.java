@@ -24,7 +24,7 @@ public class DatabaseTable {
   }
 
   private void create(String addition) {
-    StringBuilder query = new StringBuilder("CREATE TABLE ");
+    var query = new StringBuilder("CREATE TABLE ");
     query.append(addition);
     query.append(fullName());
     query.append(" (");
@@ -34,8 +34,8 @@ public class DatabaseTable {
   }
 
   private String columnCompilation() {
-    StringBuilder compilation = new StringBuilder();
-    for (int i = 0; i < columns.size(); i++) {
+    var compilation = new StringBuilder();
+    for (var i = 0; i < columns.size(); i++) {
       compilation.append(columns.get(i).databaseEntry());
       if (i < columns.size() - 1) {
         compilation.append(", ");
@@ -45,7 +45,7 @@ public class DatabaseTable {
   }
 
   public void addColumn(DatabaseColumn column) {
-    StringBuilder query = new StringBuilder("ALTER TABLE ");
+    var query = new StringBuilder("ALTER TABLE ");
     query.append(fullName());
     query.append(" ADD ");
     query.append(column.name());
@@ -56,7 +56,7 @@ public class DatabaseTable {
   }
 
   public void dropColumn(String columnName) {
-    StringBuilder query = new StringBuilder("ALTER TABLE ");
+    var query = new StringBuilder("ALTER TABLE ");
     query.append(fullName());
     query.append(" DROP ");
     query.append(columnName);
@@ -65,7 +65,7 @@ public class DatabaseTable {
   }
 
   protected void insert(DatabaseRow row) {
-    StringBuilder query = new StringBuilder("INSERT INTO ");
+    var query = new StringBuilder("INSERT INTO ");
     query.append(fullName());
     query.append(" (");
     query.append(columnNameCompilation());
@@ -80,11 +80,11 @@ public class DatabaseTable {
   }
 
   protected void update(String condition, DatabaseRow row) {
-    StringBuilder query = new StringBuilder("UPDATE ");
-    int primaryKeyIndex = columns.indexOf(findPrimaryKeyColumn());
+    var query = new StringBuilder("UPDATE ");
+    var primaryKeyIndex = columns.indexOf(findPrimaryKeyColumn());
     query.append(fullName());
     query.append(" SET ");
-    for (int i = 0; i < columns.size(); i++) {
+    for (var i = 0; i < columns.size(); i++) {
       if (i == primaryKeyIndex) {
         continue;
       }
@@ -106,16 +106,15 @@ public class DatabaseTable {
   }
 
   protected CompletableFuture<Boolean> exists(String condition) {
-    StringBuilder query = new StringBuilder("SELECT ");
+    var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
     query.append(" ");
     query.append(condition);
     query.append(";");
-    CompletionStage<AsyncResultSet> result = connection.session()
-      .executeAsync(query.toString());
-    CompletableFuture<Boolean> futureResponse = new CompletableFuture<>();
+    var result = connection.session().executeAsync(query.toString());
+    var futureResponse = new CompletableFuture<Boolean>();
     result.thenAccept(resultSet -> futureResponse.complete(resultSet.remaining() > 0));
     return futureResponse;
   }
@@ -125,30 +124,29 @@ public class DatabaseTable {
   }
 
   protected CompletableFuture<DatabaseRow> selectRow(String condition) {
-    CompletableFuture<DatabaseRow> futureResponse = new CompletableFuture<>();
+    var futureResponse = new CompletableFuture<DatabaseRow>();
     selectRows(condition).thenAccept(rows -> futureResponse.complete(rows.get(0)));
     return futureResponse;
   }
 
   protected CompletableFuture<List<DatabaseRow>> selectRows(String condition) {
-    StringBuilder query = new StringBuilder("SELECT ");
+    var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
     query.append(" ");
     query.append(condition);
     query.append(";");
-    CompletionStage<AsyncResultSet> result = connection.session()
-      .executeAsync(query.toString());
-    CompletableFuture<List<DatabaseRow>> futureResponse = new CompletableFuture<>();
+    var result = connection.session().executeAsync(query.toString());
+    var futureResponse = new CompletableFuture<List<DatabaseRow>>();
     result.thenAccept(resultSet -> futureResponse.complete(
       DatabaseRow.multiple(resultSet.currentPage(), columns.size())));
     return futureResponse;
   }
 
   private String columnNameCompilation() {
-    StringBuilder compilation = new StringBuilder();
-    for (int i = 0; i < columns.size(); i++) {
+    var compilation = new StringBuilder();
+    for (var i = 0; i < columns.size(); i++) {
       compilation.append(columns.get(i).name());
       if (i < columns.size() - 1) {
         compilation.append(", ");
@@ -162,7 +160,7 @@ public class DatabaseTable {
   }
 
   protected void delete(String condition) {
-    StringBuilder query = new StringBuilder("DELETE FROM ");
+    var query = new StringBuilder("DELETE FROM ");
     query.append(fullName());
     query.append(" ");
     query.append(condition);
@@ -179,7 +177,7 @@ public class DatabaseTable {
   }
 
   private void drop(String addition) {
-    StringBuilder query = new StringBuilder("DROP TABLE ");
+    var query = new StringBuilder("DROP TABLE ");
     query.append(addition);
     query.append(fullName());
     query.append(";");
@@ -187,7 +185,7 @@ public class DatabaseTable {
   }
 
   private String primaryKeyCondition(DatabaseCell primaryKeyCell) {
-    StringBuilder condition = new StringBuilder("WHERE ");
+    var condition = new StringBuilder("WHERE ");
     condition.append(findPrimaryKeyColumn().name());
     condition.append(" = ");
     condition.append(primaryKeyCell.databaseValue());
@@ -195,7 +193,7 @@ public class DatabaseTable {
   }
 
   private DatabaseColumn findPrimaryKeyColumn() {
-    for (DatabaseColumn column : columns) {
+    for (var column : columns) {
       if (column.type() == DatabaseColumn.Type.PRIMARY_KEY) {
         return column;
       }
