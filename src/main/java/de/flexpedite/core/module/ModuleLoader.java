@@ -2,18 +2,17 @@ package de.flexpedite.core.module;
 
 import com.google.common.collect.Lists;
 import de.flexpedite.core.CoreModule;
+import de.flexpedite.core.action.ActionDatabaseTable;
+import de.flexpedite.core.trigger.TriggerDatabaseTable;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.C;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -26,8 +25,9 @@ public final class ModuleLoader {
   public void loadModules(CoreModule coreModule) throws Exception {
     List<File> files = jarsInDirectory();
     for (File moduleFile : files) {
-      loadModule(moduleFile, coreModule);
+      findModule(moduleFile, coreModule);
     }
+    modules.sort(Comparator.comparingInt(module -> module.priority().value()));
   }
 
   private List<File> jarsInDirectory() {
@@ -46,10 +46,10 @@ public final class ModuleLoader {
     }
     RegisteredModule registeredModule = moduleOptional.get();
     unloadModule(registeredModule);
-    loadModule(registeredModule.file(), coreModule);
+    findModule(registeredModule.file(), coreModule).module().enable();
   }
 
-  private void loadModule(File file, CoreModule coreModule) throws Exception {
+  private RegisteredModule findModule(File file, CoreModule coreModule) throws Exception {
     JarFile jarFile = new JarFile(file);
     URLClassLoader classLoader = new URLClassLoader(new URL[] {file.toURI().toURL()},
       this.getClass().getClassLoader());
@@ -60,11 +60,22 @@ public final class ModuleLoader {
       if (optionalModuleClass.isEmpty()) {
         continue;
       }
-      Module module = createModule(optionalModuleClass.get(), coreModule);
-      Annotation annotation = findModuleAnnotation(optionalModuleClass.get()).get();
-      modules.add(RegisteredModule.create(module, findAnnotationField(annotation, "name"),
-        findAnnotationField(annotation, "version"), file));
+      RegisteredModule registeredModule = createRegisteredModule(
+        optionalModuleClass.get(), coreModule, file);
+      modules.add(registeredModule);
+      return registeredModule;
     }
+    return null;
+  }
+
+  private RegisteredModule createRegisteredModule(
+    Class<?> moduleClass, CoreModule coreModule, File file
+  ) throws Exception {
+    Module module = createModule(moduleClass, coreModule);
+    Annotation annotation = findModuleAnnotation(moduleClass).get();
+    return RegisteredModule.create(module, findAnnotationField(annotation, "name"),
+      findAnnotationField(annotation, "version"),
+      findAnnotationField(annotation, "priority"), file);
   }
 
   private Module createModule(
@@ -78,7 +89,9 @@ public final class ModuleLoader {
     JarEntry entry, URLClassLoader classLoader
   ) throws Exception {
     String entryName = entry.getName();
-    if (entry.isDirectory() || !entryName.endsWith(".class")) {
+    if (entry.isDirectory() || !entryName.endsWith(".class") ||
+      !entryName.startsWith("de/flexpedite")
+    ) {
       return Optional.empty();
     }
     String className = entryName.replace('/', '.').substring(0, entryName.length() - 6);
@@ -99,11 +112,13 @@ public final class ModuleLoader {
       return suspect.getSuperclass().equals(Module.class);
   }
 
-  private String findAnnotationField(Annotation annotation, String fieldName) throws Exception {
+  private <T> T findAnnotationField(
+    Annotation annotation, String fieldName
+  ) throws Exception {
     Method method = Arrays.stream(annotation.annotationType().getDeclaredMethods())
       .filter(declaredMethod -> declaredMethod.getName().equals(fieldName))
       .findFirst().get();
-    return (String) method.invoke(annotation, (Object[])null);
+    return (T) method.invoke(annotation, (Object[])null);
   }
 
   private Optional<Annotation> findModuleAnnotation(Class<?> suspect) {
@@ -112,7 +127,7 @@ public final class ModuleLoader {
         .equals(ModuleDescription.class)).findFirst();
   }
 
-  public void unloadModule(String name) {
+  public void unloadModule(String name) throws Exception {
     Optional<RegisteredModule> moduleOptional = modules.stream()
       .filter(module -> module.name().equals(name))
       .findFirst();
@@ -124,7 +139,7 @@ public final class ModuleLoader {
     unloadModule(registeredModule);
   }
 
-  public void unloadModule(RegisteredModule registeredModule) {
+  public void unloadModule(RegisteredModule registeredModule) throws Exception {
     registeredModule.module().disable();
     modules.remove(registeredModule);
   }
@@ -138,6 +153,19 @@ public final class ModuleLoader {
 
   public List<RegisteredModule> allRegisteredModules() {
     return List.copyOf(modules);
+  }
+
+  public URL[] moduleFileUrls() {
+    return modules.stream().map(RegisteredModule::file)
+      .map(this::findUrl).toArray(URL[]::new);
+  }
+
+  private URL findUrl(File file) {
+    try {
+      return file.toURI().toURL();
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public List<Module> allModules() {

@@ -13,5 +13,6 @@ public final class RegisteredModule {
   private final Module module;
   private final String name;
   private final String version;
+  private final ModuleLoadPriority priority;
   private final File file;
 }

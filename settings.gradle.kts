@@ -1,3 +1,1 @@
-rootProject.name = "flexpedite"
-includeBuild("core")
-includeBuild("access")
+rootProject.name = "core"
