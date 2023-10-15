@@ -2,8 +2,10 @@ package de.flexpedite.core;
 
 import de.flexpedite.core.action.Action;
 import de.flexpedite.core.action.ActionDatabaseTable;
+import de.flexpedite.core.command.CommandRegistry;
 import de.flexpedite.core.database.DatabaseConnection;
 import de.flexpedite.core.database.DatabaseKeyspace;
+import de.flexpedite.core.log.Log;
 import de.flexpedite.core.module.ModuleLoader;
 import de.flexpedite.core.trigger.Trigger;
 import de.flexpedite.core.trigger.TriggerDatabaseTable;
@@ -20,23 +22,20 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+@Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public class CoreModule {
-  @Getter
+  private final Log log;
   private final SpringApplication springApplication;
   private final ModuleLoader moduleLoader;
-  @Getter
   private final DatabaseConnection databaseConnection;
-  @Getter
   private final DatabaseKeyspace databaseKeyspace;
-  @Getter
   private final UserDatabaseTable userDatabaseTable;
-  @Getter
   private final TriggerDatabaseTable triggerDatabaseTable;
-  @Getter
   private final ActionDatabaseTable actionDatabaseTable;
   private final WorkflowDatabaseTable workflowDatabaseTable;
+  private final CommandRegistry commandRegistry;
 
   void initialize() throws Exception {
     moduleLoader.loadModules(this);

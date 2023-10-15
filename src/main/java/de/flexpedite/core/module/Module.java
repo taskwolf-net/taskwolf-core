@@ -5,12 +5,15 @@ import de.flexpedite.core.CoreModule;
 import de.flexpedite.core.action.ActionDatabaseTable;
 import de.flexpedite.core.action.ActionFactory;
 import de.flexpedite.core.action.ActionInformation;
+import de.flexpedite.core.command.Command;
 import de.flexpedite.core.database.DatabaseConnection;
 import de.flexpedite.core.database.DatabaseKeyspace;
+import de.flexpedite.core.log.Log;
 import de.flexpedite.core.trigger.TriggerDatabaseTable;
 import de.flexpedite.core.trigger.TriggerFactory;
 import de.flexpedite.core.trigger.TriggerInformation;
 import de.flexpedite.core.user.UserDatabaseTable;
+import de.flexpedite.core.workflow.WorkflowDatabaseTable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +38,18 @@ public abstract class Module {
 
   public ActionFactory actionFactory() {
     return null;
+  }
+
+  public void registerCommand(Command command) {
+    coreModule.commandRegistry().register(command);
+  }
+
+  public void unregisterCommand(Command command) {
+    coreModule.commandRegistry().unregister(command);
+  }
+
+  public Log log() {
+    return coreModule.log();
   }
 
   public List<TriggerInformation> triggerInformation() {
@@ -67,5 +82,9 @@ public abstract class Module {
 
   protected ActionDatabaseTable actionDatabaseTable() {
     return coreModule.actionDatabaseTable();
+  }
+
+  protected WorkflowDatabaseTable workflowDatabaseTable() {
+    return coreModule.workflowDatabaseTable();
   }
 }
