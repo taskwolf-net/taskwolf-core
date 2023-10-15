@@ -19,6 +19,7 @@ public final class UserDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("email", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("password", DatabaseDataType.TEXT));
+    columns.add(DatabaseListColumn.create("organizations", DatabaseDataType.UUID));
     return new UserDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -30,13 +31,24 @@ public final class UserDatabaseTable extends DatabaseTable {
   }
 
   public void insertUser(User user) {
-    insertUser(user.id(), user.name(), user.email(), user.passwordHash());
+    insertUser(user.id(), user.name(), user.email(), user.passwordHash(),
+      user.organizations());
   }
 
   public void insertUser(
-    UUID id, String name, String email, String passwordHash
+    UUID id, String name, String email, String passwordHash,
+    List<UUID> organizations
   ) {
-    insert(DatabaseRow.of(id, name, email, passwordHash));
+    insert(DatabaseRow.of(id, name, email, passwordHash, organizations));
+  }
+
+  public CompletableFuture<UUID> generateAvailableUserId() {
+    var futureResponse = new CompletableFuture<UUID>();
+    var id = UUID.randomUUID();
+    userExists(id).thenApply(exists -> exists ?
+      generateAvailableUserId().thenApply(futureResponse::complete) :
+      CompletableFuture.completedFuture(futureResponse.complete(id)));
+    return futureResponse;
   }
 
   public CompletableFuture<Boolean> userExists(UUID userId) {

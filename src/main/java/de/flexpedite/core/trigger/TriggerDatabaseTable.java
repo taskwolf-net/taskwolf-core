@@ -17,11 +17,12 @@ public final class TriggerDatabaseTable extends DatabaseTable {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
-    columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("workflow", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("module", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("state", DatabaseDataType.TEXT));
     return new TriggerDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -33,19 +34,32 @@ public final class TriggerDatabaseTable extends DatabaseTable {
   }
 
   public void insertTrigger(TriggerEntry entry) {
-    insertTrigger(entry.id(), entry.userId(), entry.workflowId(),
-      entry.module(), entry.type(), entry.content());
+    insertTrigger(entry.id(), entry.ownerId(), entry.workflowId(),
+      entry.module(), entry.type(), entry.content(), entry.state().toString());
   }
 
   public void insertTrigger(
-    UUID id, UUID userId, UUID workflowId, String module, String type,
-    String content
+    UUID id, UUID ownerId, UUID workflowId, String module, String type,
+    String content, String state
   ) {
-    insert(DatabaseRow.of(id, userId, workflowId, module, type, content));
+    insert(DatabaseRow.of(id, ownerId, workflowId, module, type, content, state));
   }
 
   public void deleteTrigger(UUID triggerId) {
     delete(DatabaseCell.create(triggerId));
+  }
+
+  public CompletableFuture<UUID> generateAvailableTriggerId() {
+    var futureResponse = new CompletableFuture<UUID>();
+    var id = UUID.randomUUID();
+    triggerExists(id).thenApply(exists -> exists ?
+      generateAvailableTriggerId().thenApply(futureResponse::complete) :
+      CompletableFuture.completedFuture(futureResponse.complete(id)));
+    return futureResponse;
+  }
+
+  public CompletableFuture<Boolean> triggerExists(UUID triggerId) {
+    return exists(DatabaseCell.create(triggerId));
   }
 
   public CompletableFuture<TriggerEntry> findTrigger(UUID triggerId) {
@@ -53,7 +67,7 @@ public final class TriggerDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<TriggerEntry> findTriggerByWorkflow(UUID workflowId) {
-    return selectRow("workflow='" + workflowId + "'").thenApply(TriggerEntry::of);
+    return selectRow("workflow=" + workflowId).thenApply(TriggerEntry::of);
   }
 
   public CompletableFuture<List<TriggerEntry>> findTriggersByModuleAndType(

@@ -17,7 +17,7 @@ public final class ActionDatabaseTable extends DatabaseTable {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
-    columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("workflow", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("module", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
@@ -33,19 +33,32 @@ public final class ActionDatabaseTable extends DatabaseTable {
   }
 
   public void insertAction(ActionEntry entry) {
-    insertAction(entry.id(), entry.userId(), entry.workflowId(),
+    insertAction(entry.id(), entry.ownerId(), entry.workflowId(),
       entry.module(), entry.type(), entry.content());
   }
 
   public void insertAction(
-    UUID id, UUID userId, UUID workflowId, String module, String type,
+    UUID id, UUID ownerId, UUID workflowId, String module, String type,
     String content
   ) {
-    insert(DatabaseRow.of(id, userId, workflowId, module, type, content));
+    insert(DatabaseRow.of(id, ownerId, workflowId, module, type, content));
   }
 
   public void deleteAction(UUID actionId) {
     delete(DatabaseCell.create(actionId));
+  }
+
+  public CompletableFuture<UUID> generateAvailableActionId() {
+    var futureResponse = new CompletableFuture<UUID>();
+    var id = UUID.randomUUID();
+    actionExists(id).thenApply(exists -> exists ?
+      generateAvailableActionId().thenApply(futureResponse::complete) :
+      CompletableFuture.completedFuture(futureResponse.complete(id)));
+    return futureResponse;
+  }
+
+  public CompletableFuture<Boolean> actionExists(UUID actionId) {
+    return exists(DatabaseCell.create(actionId));
   }
 
   public CompletableFuture<ActionEntry> findAction(UUID actionId) {
@@ -55,7 +68,7 @@ public final class ActionDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<ActionEntry>> findActionsByWorkflow(
     UUID workflowId
   ) {
-    return selectRows("workflow='" + workflowId + "'")
+    return selectRows("workflow=" + workflowId)
       .thenApply(rows -> rows.stream().map(ActionEntry::of)
         .collect(Collectors.toList()));
   }

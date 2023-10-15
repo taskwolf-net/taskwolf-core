@@ -14,13 +14,15 @@ public final class TriggerEntry {
   public static TriggerEntry of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
       row.findCell(2).uuidValue(), row.findCell(3).stringValue(),
-      row.findCell(4).stringValue(), row.findCell(5).stringValue());
+      row.findCell(4).stringValue(), row.findCell(5).stringValue(),
+      TriggerState.valueOf(row.findCell(6).stringValue()));
   }
 
   private final UUID id;
-  private final UUID userId;
+  private final UUID ownerId;
   private final UUID workflowId;
   private final String module;
   private final String type;
   private final String content;
+  private final TriggerState state;
 }

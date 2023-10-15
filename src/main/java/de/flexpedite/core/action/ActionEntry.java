@@ -18,7 +18,7 @@ public final class ActionEntry {
   }
 
   private final UUID id;
-  private final UUID userId;
+  private final UUID ownerId;
   private final UUID workflowId;
   private final String module;
   private final String type;
