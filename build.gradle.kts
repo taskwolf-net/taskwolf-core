@@ -4,7 +4,7 @@ plugins {
   id("org.springframework.boot") version "3.1.4"
 }
 
-group = "de.flexpedite"
+group = "net.taskwolf"
 version = "1.0.0-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_20
 java.targetCompatibility = JavaVersion.VERSION_20
@@ -13,7 +13,7 @@ publishing {
   repositories {
     maven {
       name = "GitHubPackages"
-      url = uri("https://maven.pkg.github.com/Flexpedite/flexpedite-core")
+      url = uri("https://maven.pkg.github.com/taskwolfnet/taskwolf-core")
       credentials {
         username = System.getenv("GITHUB_USERNAME") ?: providers.gradleProperty("githubUsername").get()
         password = System.getenv("GITHUB_ACCESS_TOKEN") ?: providers.gradleProperty("githubAccessToken").get()
