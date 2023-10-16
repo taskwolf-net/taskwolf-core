@@ -22,10 +22,10 @@ public final class DatabaseKeyspace {
   }
 
   private void create(String addition) {
-    var query = new StringBuilder("CREATE TABLE ");
+    var query = new StringBuilder("CREATE KEYSPACE ");
     query.append(addition);
     query.append(name);
-    query.append("WITH REPLICATION = {\'class\' : \'");
+    query.append(" WITH REPLICATION = {'class' : '");
     query.append(replicationClass);
     query.append("', 'replication_factor' : ");
     query.append(replicationFactor);

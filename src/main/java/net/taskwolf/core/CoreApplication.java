@@ -24,15 +24,16 @@ public class CoreApplication {
     connection.connect();
     var keyspace = DatabaseKeyspace.create(connection, "taskwolf",
       "SimpleStrategy", 1);
+    keyspace.createIfNotExists();
     keyspace.use();
     var userDatabaseTable = UserDatabaseTable.create(connection, keyspace);
     userDatabaseTable.createIfNotExists();
     var triggerDatabaseTable = TriggerDatabaseTable.create(connection, keyspace);
     triggerDatabaseTable.createIfNotExists();
     var actionDatabaseTable = ActionDatabaseTable.create(connection, keyspace);
-    triggerDatabaseTable.createIfNotExists();
+    actionDatabaseTable.createIfNotExists();
     var workflowDatabaseTable = WorkflowDatabaseTable.create(connection, keyspace);
-    triggerDatabaseTable.createIfNotExists();
+    workflowDatabaseTable.createIfNotExists();
     var moduleLoader = ModuleLoader.create(System.getProperty("user.dir") + "/modules/");
     var application = new SpringApplication(CoreApplication.class);
     var classLoader = new URLClassLoader(moduleLoader.moduleFileUrls(),
