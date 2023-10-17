@@ -3,6 +3,7 @@ package net.taskwolf.core.module;
 import com.google.common.collect.Lists;
 import net.taskwolf.core.CoreModule;
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.log.Log;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -12,10 +13,12 @@ import java.net.URLClassLoader;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class ModuleLoader {
+  private final Log log;
   private final String directory;
   private final List<RegisteredModule> modules = Lists.newArrayList();
 
@@ -28,6 +31,7 @@ public final class ModuleLoader {
     Collections.reverse(modules);
     for (var module : modules) {
       module.module().enable();
+      log.log(Level.INFO, "Successfully loaded module " + module.name());
     }
   }
 
@@ -41,6 +45,7 @@ public final class ModuleLoader {
     var registeredModule = moduleOptional.get();
     unloadModule(registeredModule);
     findModule(registeredModule.file(), coreModule).module().enable();
+    log.log(Level.INFO, "Successfully reloaded module " + registeredModule.name());
   }
 
   private RegisteredModule findModule(File file, CoreModule coreModule) throws Exception {
@@ -59,6 +64,7 @@ public final class ModuleLoader {
       modules.add(registeredModule);
       return registeredModule;
     }
+    log.log(Level.SEVERE, "Could not find module class for " + file.getName());
     return null;
   }
 

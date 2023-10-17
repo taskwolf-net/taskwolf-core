@@ -1,6 +1,5 @@
 package net.taskwolf.core.log;
 
-
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,7 +20,7 @@ public final class Log extends Logger {
     return log;
   }
 
-  private static String buildLogFilePath(String basePath) {
+  private static String buildLogFilePath(String basePath) throws Exception {
     var logPath = System.getProperty("user.dir") + basePath +
       new SimpleDateFormat("yyyy-MM-dd-HHmmss").format(new Date()) + ".log";
     var logFile = new File(logPath);
@@ -66,5 +65,14 @@ public final class Log extends Logger {
     for (var handler : getHandlers()) {
       handler.close();
     }
+  }
+
+  public Log subLog(String name) {
+    var log = new Log(name, consoleHandler, fileHandler);
+    log.setLevel(Level.ALL);
+    log.addHandler(consoleHandler);
+    log.addHandler(fileHandler);
+    Runtime.getRuntime().addShutdownHook(new Thread(log::close));
+    return log;
   }
 }

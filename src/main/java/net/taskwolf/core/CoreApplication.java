@@ -34,7 +34,8 @@ public class CoreApplication {
     actionDatabaseTable.createIfNotExists();
     var workflowDatabaseTable = WorkflowDatabaseTable.create(connection, keyspace);
     workflowDatabaseTable.createIfNotExists();
-    var moduleLoader = ModuleLoader.create(System.getProperty("user.dir") + "/modules/");
+    var moduleLoader = ModuleLoader.create(log, System.getProperty("user.dir") +
+      "/modules/");
     var application = new SpringApplication(CoreApplication.class);
     var classLoader = new URLClassLoader(moduleLoader.moduleFileUrls(),
       application.getClassLoader());
