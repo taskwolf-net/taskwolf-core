@@ -50,14 +50,15 @@ public class CoreModule {
   private CompletableFuture<List<Action>> createActions(UUID workflowId) {
     return actionDatabaseTable.findActionsByWorkflow(workflowId)
       .thenApply(entries -> entries.stream().map(entry ->
-        createAction(entry.module(), entry.content())).collect(Collectors.toList()));
+        createAction(entry.module(), entry.type(), entry.content()))
+        .collect(Collectors.toList()));
   }
 
-  public Trigger createTrigger(String module, String content) {
-    return moduleLoader.findModule(module).triggerFactory().create(content);
+  public Trigger createTrigger(String module, String type, String content) {
+    return moduleLoader.findModule(module).triggerFactory().create(type, content);
   }
 
-  public Action createAction(String module, String content) {
-    return moduleLoader.findModule(module).actionFactory().create(content);
+  public Action createAction(String module, String type, String content) {
+    return moduleLoader.findModule(module).actionFactory().create(type, content);
   }
 }

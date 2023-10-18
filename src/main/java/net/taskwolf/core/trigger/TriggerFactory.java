@@ -1,5 +1,5 @@
 package net.taskwolf.core.trigger;
 
 public interface TriggerFactory {
-  Trigger create(String json);
+  Trigger create(String type, String json);
 }
