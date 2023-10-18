@@ -1,7 +1,7 @@
 package net.taskwolf.core.workflow;
 
-import net.taskwolf.core.action.Action;
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.action.Action;
 
 import java.util.List;
 import java.util.Map;

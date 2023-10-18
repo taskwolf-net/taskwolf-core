@@ -1,8 +1,8 @@
 package net.taskwolf.core.module;
 
 import com.google.common.collect.Lists;
-import net.taskwolf.core.CoreModule;
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.CoreModule;
 import net.taskwolf.core.log.Log;
 
 import java.io.File;

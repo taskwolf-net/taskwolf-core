@@ -1,7 +1,7 @@
 package net.taskwolf.core.command;
 
-import net.taskwolf.core.log.Log;
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.log.Log;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
