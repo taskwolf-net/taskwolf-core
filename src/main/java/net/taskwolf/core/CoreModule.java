@@ -15,7 +15,6 @@ import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import org.springframework.boot.SpringApplication;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +26,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(staticName = "create")
 public class CoreModule {
   private final Log log;
-  private final SpringApplication springApplication;
   private final ModuleLoader moduleLoader;
   private final DatabaseConnection databaseConnection;
   private final DatabaseKeyspace databaseKeyspace;

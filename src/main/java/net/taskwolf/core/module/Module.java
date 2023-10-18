@@ -60,10 +60,6 @@ public abstract class Module {
     return Lists.newArrayList();
   }
 
-  protected SpringApplication springApplication() {
-    return coreModule.springApplication();
-  }
-
   protected DatabaseConnection databaseConnection() {
     return coreModule.databaseConnection();
   }
