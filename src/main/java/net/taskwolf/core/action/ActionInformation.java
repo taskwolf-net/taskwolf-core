@@ -1,15 +1,23 @@
 package net.taskwolf.core.action;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
+import net.taskwolf.core.workflow.component.ComponentInformation;
+import net.taskwolf.core.workflow.component.ComponentType;
 
-@Getter
-@Accessors(fluent = true)
-@RequiredArgsConstructor(staticName = "create")
-public final class ActionInformation {
-  private final String name;
-  private final String description;
-  //TODO: EXTEND INFORMATION
+import java.util.Map;
+
+public final class ActionInformation extends ComponentInformation {
+  public static ActionInformation create(
+    String name, String description, Map<String, ComponentType> inputTypes,
+    Map<String, ComponentType> outputTypes
+  ) {
+    return new ActionInformation(name, description, inputTypes, outputTypes);
+  }
+
+  private ActionInformation(
+    String name, String description, Map<String, ComponentType> inputTypes,
+    Map<String, ComponentType> outputTypes
+  ) {
+    super(name, description, inputTypes, outputTypes);
+  }
 }
 
