@@ -8,6 +8,7 @@ import net.taskwolf.core.action.ActionDatabaseTable;
 import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
+import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.trigger.Trigger;
@@ -33,6 +34,7 @@ public class CoreModule {
   private final TriggerDatabaseTable triggerDatabaseTable;
   private final ActionDatabaseTable actionDatabaseTable;
   private final WorkflowDatabaseTable workflowDatabaseTable;
+  private final Distribution distribution;
   private final CommandRegistry commandRegistry;
 
   void initialize() throws Exception {

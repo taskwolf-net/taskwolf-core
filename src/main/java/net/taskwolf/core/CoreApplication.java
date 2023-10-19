@@ -5,8 +5,10 @@ import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.command.CommandTask;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
+import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
+import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
@@ -22,28 +24,20 @@ public class CoreApplication {
   private static DatabaseConnection databaseConnection;
   private static DatabaseKeyspace databaseKeyspace;
   private static UserDatabaseTable userDatabaseTable;
+  private static OrganizationDatabaseTable organizationDatabaseTable;
   private static TriggerDatabaseTable triggerDatabaseTable;
   private static ActionDatabaseTable actionDatabaseTable;
   private static WorkflowDatabaseTable workflowDatabaseTable;
+  private static Distribution distribution;
 
   public static void main(String[] args) throws Exception {
     var log = Log.create("Core", "/logs/");
-    databaseConnection = DatabaseConnection.create();
-    databaseConnection.connect();
-    databaseKeyspace = DatabaseKeyspace.create(databaseConnection, "taskwolf",
-      "SimpleStrategy", 1);
-    databaseKeyspace.createIfNotExists();
-    databaseKeyspace.use();
-    userDatabaseTable = UserDatabaseTable.create(databaseConnection, databaseKeyspace);
-    userDatabaseTable.createIfNotExists();
-    triggerDatabaseTable = TriggerDatabaseTable.create(databaseConnection, databaseKeyspace);
-    triggerDatabaseTable.createIfNotExists();
-    actionDatabaseTable = ActionDatabaseTable.create(databaseConnection, databaseKeyspace);
-    actionDatabaseTable.createIfNotExists();
-    workflowDatabaseTable = WorkflowDatabaseTable.create(databaseConnection, databaseKeyspace);
-    workflowDatabaseTable.createIfNotExists();
+    initializeDatabase();
+    initializeDatabaseTables();
+    distribution = Distribution.create(userDatabaseTable, organizationDatabaseTable);
+    distribution.initialize();
     var moduleLoader = ModuleLoader.create(log, System.getProperty("user.dir") +
-      "/modules/");
+      "/modules/", distribution);
     var application = new SpringApplication(CoreApplication.class);
     var classLoader = new URLClassLoader(moduleLoader.moduleFileUrls(),
       application.getClassLoader());
@@ -51,10 +45,32 @@ public class CoreApplication {
     var commandRegistry = CommandRegistry.create();
     var coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
       databaseKeyspace, userDatabaseTable, triggerDatabaseTable,
-      actionDatabaseTable, workflowDatabaseTable, commandRegistry);
+      actionDatabaseTable, workflowDatabaseTable, distribution, commandRegistry);
     coreModule.initialize();
     application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
+  }
+
+  private static void initializeDatabase() {
+    databaseConnection = DatabaseConnection.create();
+    databaseConnection.connect();
+    databaseKeyspace = DatabaseKeyspace.create(databaseConnection, "taskwolf",
+      "SimpleStrategy", 1);
+    databaseKeyspace.createIfNotExists();
+    databaseKeyspace.use();
+  }
+
+  private static void initializeDatabaseTables() {
+    userDatabaseTable = UserDatabaseTable.create(databaseConnection, databaseKeyspace);
+    userDatabaseTable.createIfNotExists();
+    organizationDatabaseTable = OrganizationDatabaseTable.create(databaseConnection, databaseKeyspace);
+    organizationDatabaseTable.createIfNotExists();
+    triggerDatabaseTable = TriggerDatabaseTable.create(databaseConnection, databaseKeyspace);
+    triggerDatabaseTable.createIfNotExists();
+    actionDatabaseTable = ActionDatabaseTable.create(databaseConnection, databaseKeyspace);
+    actionDatabaseTable.createIfNotExists();
+    workflowDatabaseTable = WorkflowDatabaseTable.create(databaseConnection, databaseKeyspace);
+    workflowDatabaseTable.createIfNotExists();
   }
 
   @Bean
@@ -73,6 +89,11 @@ public class CoreApplication {
   }
 
   @Bean
+  OrganizationDatabaseTable provideOrganizationDatabaseTable() {
+    return organizationDatabaseTable;
+  }
+
+  @Bean
   TriggerDatabaseTable provideTriggerDatabaseTable() {
     return triggerDatabaseTable;
   }
@@ -85,5 +106,10 @@ public class CoreApplication {
   @Bean
   WorkflowDatabaseTable provideWorkflowDatabaseTable() {
     return workflowDatabaseTable;
+  }
+
+  @Bean
+  Distribution provideDistribution() {
+    return distribution;
   }
 }

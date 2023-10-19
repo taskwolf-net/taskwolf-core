@@ -3,6 +3,7 @@ package net.taskwolf.core.module;
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.CoreModule;
+import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.log.Log;
 
 import java.io.File;
@@ -21,6 +22,7 @@ public final class ModuleLoader {
   private final Log log;
   private final String directory;
   private final List<RegisteredModule> modules = Lists.newArrayList();
+  private final Distribution distribution;
 
   public void loadModules(CoreModule coreModule) throws Exception {
     var files = jarsInDirectory();
@@ -31,6 +33,7 @@ public final class ModuleLoader {
     Collections.reverse(modules);
     for (var module : modules) {
       module.module().enable();
+      distribution.registerModule(module.name());
       log.log(Level.INFO, "Successfully loaded module " + module.name());
     }
   }
@@ -140,6 +143,7 @@ public final class ModuleLoader {
   }
 
   public void unloadModule(RegisteredModule registeredModule) throws Exception {
+    distribution.unregisterModule(registeredModule.name());
     registeredModule.module().disable();
     modules.remove(registeredModule);
   }

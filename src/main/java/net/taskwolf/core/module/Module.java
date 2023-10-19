@@ -12,6 +12,7 @@ import net.taskwolf.core.action.ActionInformation;
 import net.taskwolf.core.command.Command;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
+import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.trigger.TriggerFactory;
@@ -81,5 +82,9 @@ public abstract class Module {
 
   protected WorkflowDatabaseTable workflowDatabaseTable() {
     return coreModule.workflowDatabaseTable();
+  }
+
+  protected Distribution distribution() {
+    return coreModule.distribution();
   }
 }
