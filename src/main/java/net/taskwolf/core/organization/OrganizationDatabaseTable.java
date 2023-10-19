@@ -6,6 +6,7 @@ import net.taskwolf.core.database.*;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public final class OrganizationDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "organizations";
@@ -44,5 +45,10 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Organization> findOrganization(UUID organizationId) {
     return selectRow(DatabaseCell.create(organizationId)).thenApply(Organization::of);
+  }
+
+  public CompletableFuture<List<Organization>> findAllOrganization() {
+    return selectAllRows().thenApply(rows ->
+      rows.stream().map(Organization::of).collect(Collectors.toList()));
   }
 }

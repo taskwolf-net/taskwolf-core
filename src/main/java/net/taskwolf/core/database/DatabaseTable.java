@@ -117,6 +117,10 @@ public class DatabaseTable {
     return futureResponse;
   }
 
+  protected CompletableFuture<List<DatabaseRow>> selectAllRows() {
+    return selectRowsWithAddition("");
+  }
+
   protected CompletableFuture<DatabaseRow> selectRow(DatabaseCell primaryKeyCell) {
     return selectRow(primaryKeyCondition(primaryKeyCell));
   }
@@ -128,12 +132,15 @@ public class DatabaseTable {
   }
 
   protected CompletableFuture<List<DatabaseRow>> selectRows(String condition) {
+    return selectRowsWithAddition(" WHERE " + condition);
+  }
+
+  private CompletableFuture<List<DatabaseRow>> selectRowsWithAddition(String addition) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
-    query.append(" WHERE ");
-    query.append(condition);
+    query.append(addition);
     query.append(";");
     var result = connection.session().executeAsync(query.toString());
     var futureResponse = new CompletableFuture<List<DatabaseRow>>();

@@ -6,6 +6,7 @@ import net.taskwolf.core.database.*;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public final class UserDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "users";
@@ -69,5 +70,10 @@ public final class UserDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<User> findUser(String email) {
     return selectRow("email='" + email + "' ALLOW FILTERING").thenApply(User::of);
+  }
+
+  public CompletableFuture<List<User>> findAllUsers() {
+    return selectAllRows().thenApply(rows ->
+      rows.stream().map(User::of).collect(Collectors.toList()));
   }
 }
