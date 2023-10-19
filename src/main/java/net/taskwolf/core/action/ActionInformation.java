@@ -1,23 +1,27 @@
 package net.taskwolf.core.action;
 
 import net.taskwolf.core.workflow.component.ComponentInformation;
-import net.taskwolf.core.workflow.component.ComponentType;
+import net.taskwolf.core.workflow.component.ComponentVariable;
 
-import java.util.Map;
+import java.util.List;
 
 public final class ActionInformation extends ComponentInformation {
+  public static ActionInformationBuilder builder() {
+    return ActionInformationBuilder.create();
+  }
+
   public static ActionInformation create(
-    String name, String description, Map<String, ComponentType> inputTypes,
-    Map<String, ComponentType> outputTypes
+    String name, String description, List<ComponentVariable> inputVariables,
+    List<ComponentVariable> outputVariables
   ) {
-    return new ActionInformation(name, description, inputTypes, outputTypes);
+    return new ActionInformation(name, description, inputVariables, outputVariables);
   }
 
   private ActionInformation(
-    String name, String description, Map<String, ComponentType> inputTypes,
-    Map<String, ComponentType> outputTypes
+    String name, String description, List<ComponentVariable> inputVariables,
+    List<ComponentVariable> outputVariables
   ) {
-    super(name, description, inputTypes, outputTypes);
+    super(name, description, inputVariables, outputVariables);
   }
 }
 

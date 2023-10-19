@@ -1,22 +1,26 @@
 package net.taskwolf.core.trigger;
 
 import net.taskwolf.core.workflow.component.ComponentInformation;
-import net.taskwolf.core.workflow.component.ComponentType;
+import net.taskwolf.core.workflow.component.ComponentVariable;
 
-import java.util.Map;
+import java.util.List;
 
 public final class TriggerInformation extends ComponentInformation {
+  public static TriggerInformationBuilder builder() {
+    return TriggerInformationBuilder.create();
+  }
+
   public static TriggerInformation create(
-    String name, String description, Map<String, ComponentType> inputTypes,
-    Map<String, ComponentType> outputTypes
+    String name, String description, List<ComponentVariable> inputVariables,
+    List<ComponentVariable> outputVariables
   ) {
-    return new TriggerInformation(name, description, inputTypes, outputTypes);
+    return new TriggerInformation(name, description, inputVariables, outputVariables);
   }
 
   private TriggerInformation(
-    String name, String description, Map<String, ComponentType> inputTypes,
-    Map<String, ComponentType> outputTypes
+    String name, String description, List<ComponentVariable> inputVariables,
+    List<ComponentVariable> outputVariables
   ) {
-    super(name, description, inputTypes, outputTypes);
+    super(name, description, inputVariables, outputVariables);
   }
 }
