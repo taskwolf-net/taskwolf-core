@@ -51,7 +51,7 @@ dependencies {
 
   implementation("redis.clients:jedis:5.0.1")
 
-  implementation("org.springframework.boot:spring-boot-starter-web:3.1.4")
+  implementation("org.springframework.boot:spring-boot-starter-web:3.1.5")
 }
 
 tasks.test {
