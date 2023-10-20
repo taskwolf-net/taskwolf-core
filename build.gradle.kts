@@ -46,7 +46,7 @@ dependencies {
 
   implementation("com.datastax.oss:java-driver-core:4.17.0")
 
-  implementation("org.json:json:20230618")
+  implementation("org.json:json:20231013")
   implementation("commons-io:commons-io:2.14.0")
 
   implementation("redis.clients:jedis:5.0.2")
