@@ -23,4 +23,12 @@ public final class User {
   private final String email;
   private final String passwordHash;
   private final List<UUID> organizations;
+
+  public void addOrganization(UUID organization) {
+    organizations.add(organization);
+  }
+
+  public void removeOrganization(UUID organization) {
+    organizations.remove(organization);
+  }
 }

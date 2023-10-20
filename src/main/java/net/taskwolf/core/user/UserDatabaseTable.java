@@ -43,6 +43,29 @@ public final class UserDatabaseTable extends DatabaseTable {
     insert(DatabaseRow.of(id, name, email, passwordHash, organizations));
   }
 
+  public void addUserOrganization(UUID userId, UUID organizationId) {
+    findUser(userId).thenAccept(user -> addUserOrganization(user, organizationId));
+  }
+
+  private void addUserOrganization(User user, UUID organizationId) {
+    user.addOrganization(organizationId);
+    updateUser(user);
+  }
+
+  public void removeUserOrganization(UUID userId, UUID organizationId) {
+    findUser(userId).thenAccept(user -> removeUserOrganization(user, organizationId));
+  }
+
+  private void removeUserOrganization(User user, UUID organizationId) {
+    user.removeOrganization(organizationId);
+    updateUser(user);
+  }
+
+  private void updateUser(User user) {
+    update(DatabaseCell.create(user.id()), DatabaseRow.of(user.id(),
+      user.name(), user.email(), user.passwordHash(), user.organizations()));
+  }
+
   public CompletableFuture<UUID> generateAvailableUserId() {
     var futureResponse = new CompletableFuture<UUID>();
     var id = UUID.randomUUID();

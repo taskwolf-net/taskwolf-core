@@ -18,6 +18,7 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("members", DatabaseDataType.UUID));
     return new OrganizationDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
@@ -30,13 +31,52 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
   }
 
   public void insertOrganization(Organization organization) {
-    insertOrganization(organization.id(), organization.name(), organization.members());
+    insertOrganization(organization.id(), organization.name(),
+      organization.owner(), organization.members());
   }
 
   public void insertOrganization(
-    UUID id, String name, List<UUID> memberIds
+    UUID id, String name, UUID ownerId, List<UUID> memberIds
   ) {
-    insert(DatabaseRow.of(id, name, memberIds));
+    insert(DatabaseRow.of(id, name, ownerId, memberIds));
+  }
+
+  public void addOrganizationMember(UUID organizationId, UUID memberId) {
+    findOrganization(organizationId).thenAccept(organization ->
+      addOrganizationMember(organization, memberId));
+  }
+
+  private void addOrganizationMember(Organization organization, UUID memberId) {
+    organization.addMember(memberId);
+    updateOrganization(organization);
+  }
+
+  public void removeOrganizationMember(UUID organizationId, UUID memberId) {
+    findOrganization(organizationId).thenAccept(organization ->
+      removeOrganizationMember(organization, memberId));
+  }
+
+  private void removeOrganizationMember(Organization organization, UUID memberId) {
+    organization.removeMember(memberId);
+    updateOrganization(organization);
+  }
+
+  private void updateOrganization(Organization organization) {
+    update(DatabaseCell.create(organization.id()), DatabaseRow.of(organization.id(),
+      organization.name(), organization.owner(), organization.members()));
+  }
+
+  public CompletableFuture<UUID> generateAvailableOrganizationId() {
+    var futureResponse = new CompletableFuture<UUID>();
+    var id = UUID.randomUUID();
+    organizationExists(id).thenApply(exists -> exists ?
+      generateAvailableOrganizationId().thenApply(futureResponse::complete) :
+      CompletableFuture.completedFuture(futureResponse.complete(id)));
+    return futureResponse;
+  }
+
+  public CompletableFuture<Boolean> organizationExists(UUID organizationId) {
+    return exists(DatabaseCell.create(organizationId));
   }
 
   public void deleteOrganization(UUID organizationId) {
