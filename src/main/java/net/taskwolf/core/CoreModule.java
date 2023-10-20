@@ -11,6 +11,8 @@ import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
+import net.taskwolf.core.organization.InvitationDatabaseTable;
+import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.trigger.Trigger;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.user.UserDatabaseTable;
@@ -31,6 +33,8 @@ public class CoreModule {
   private final DatabaseConnection databaseConnection;
   private final DatabaseKeyspace databaseKeyspace;
   private final UserDatabaseTable userDatabaseTable;
+  private final OrganizationDatabaseTable organizationDatabaseTable;
+  private final InvitationDatabaseTable invitationDatabaseTable;
   private final TriggerDatabaseTable triggerDatabaseTable;
   private final ActionDatabaseTable actionDatabaseTable;
   private final WorkflowDatabaseTable workflowDatabaseTable;

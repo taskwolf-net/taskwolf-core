@@ -8,6 +8,7 @@ import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
+import net.taskwolf.core.organization.InvitationDatabaseTable;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.user.UserDatabaseTable;
@@ -25,6 +26,7 @@ public class CoreApplication {
   private static DatabaseKeyspace databaseKeyspace;
   private static UserDatabaseTable userDatabaseTable;
   private static OrganizationDatabaseTable organizationDatabaseTable;
+  private static InvitationDatabaseTable invitationDatabaseTable;
   private static TriggerDatabaseTable triggerDatabaseTable;
   private static ActionDatabaseTable actionDatabaseTable;
   private static WorkflowDatabaseTable workflowDatabaseTable;
@@ -44,8 +46,9 @@ public class CoreApplication {
     application.setResourceLoader(new DefaultResourceLoader(classLoader));
     var commandRegistry = CommandRegistry.create();
     var coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
-      databaseKeyspace, userDatabaseTable, triggerDatabaseTable,
-      actionDatabaseTable, workflowDatabaseTable, distribution, commandRegistry);
+      databaseKeyspace, userDatabaseTable, organizationDatabaseTable,
+      invitationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
+      workflowDatabaseTable, distribution, commandRegistry);
     coreModule.initialize();
     application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
@@ -65,6 +68,8 @@ public class CoreApplication {
     userDatabaseTable.createIfNotExists();
     organizationDatabaseTable = OrganizationDatabaseTable.create(databaseConnection, databaseKeyspace);
     organizationDatabaseTable.createIfNotExists();
+    invitationDatabaseTable = InvitationDatabaseTable.create(databaseConnection, databaseKeyspace);
+    invitationDatabaseTable.createIfNotExists();
     triggerDatabaseTable = TriggerDatabaseTable.create(databaseConnection, databaseKeyspace);
     triggerDatabaseTable.createIfNotExists();
     actionDatabaseTable = ActionDatabaseTable.create(databaseConnection, databaseKeyspace);
@@ -91,6 +96,11 @@ public class CoreApplication {
   @Bean
   OrganizationDatabaseTable provideOrganizationDatabaseTable() {
     return organizationDatabaseTable;
+  }
+
+  @Bean
+  InvitationDatabaseTable provideInvitationDatabaseTable() {
+    return invitationDatabaseTable;
   }
 
   @Bean
