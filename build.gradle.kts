@@ -59,3 +59,7 @@ dependencies {
 tasks.test {
   useJUnitPlatform()
 }
+
+tasks.bootJar {
+  mainClass = "net.taskwolf.core.CoreApplication"
+}
