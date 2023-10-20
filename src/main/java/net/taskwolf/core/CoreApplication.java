@@ -6,6 +6,7 @@ import net.taskwolf.core.command.CommandTask;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
+import net.taskwolf.core.intro.Intro;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.organization.InvitationDatabaseTable;
@@ -33,6 +34,7 @@ public class CoreApplication {
   private static Distribution distribution;
 
   public static void main(String[] args) throws Exception {
+    Intro.create("1.0.0").print();
     var log = Log.create("Core", "/logs/");
     initializeDatabase();
     initializeDatabaseTables();
