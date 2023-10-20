@@ -17,7 +17,9 @@ public final class DatabaseCell {
     if (value instanceof String) {
       return "'" + value + "'";
     }
-    if (value instanceof List<?> && ((List<?>) value).get(0) instanceof String) {
+    if (value instanceof List<?> && !((List<?>) value).isEmpty() &&
+      ((List<?>) value).get(0) instanceof String
+    ) {
       return ((List<String>) value).stream()
         .map(value -> "'" + value + "'").toList().toString();
     }
