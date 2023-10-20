@@ -21,10 +21,22 @@ public class TaskwolfRestController {
 
   private static final String API_KEY_IDENTIFIER = "API-KEY";
 
-  public CompletableFuture<User> findUser(HttpServletRequest request) {
+  protected CompletableFuture<User> findUser(HttpServletRequest request) {
     var apiKey = request.getHeader(API_KEY_IDENTIFIER);
     var email = Jwts.parser().setSigningKey(secretKey).build()
       .parseClaimsJws(apiKey).getPayload().get("email", String.class);
     return userDatabaseTable.findUser(email);
+  }
+
+  protected boolean isValidApiKey(String apiKey) {
+    try {
+      Jwts.parser()
+        .setSigningKey(secretKey)
+        .build()
+        .parseClaimsJws(apiKey);
+      return true;
+    } catch (Exception exception) {
+      return false;
+    }
   }
 }
