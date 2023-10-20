@@ -70,7 +70,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<List<WorkflowEntry>> findWorkflowsOfOwner(UUID ownerId) {
-    return selectRows("owner=" + ownerId).thenApply(rows ->
+    return selectRows("owner=" + ownerId  + " ALLOW FILTERING").thenApply(rows ->
       rows.stream().map(WorkflowEntry::of).collect(Collectors.toList()));
   }
 
