@@ -24,9 +24,10 @@ public final class Distribution {
   public void initialize() {
     //TODO: CHECK IF LOCAL IDENTIFIER IS ALREADY NODE IDENTIFIER
     localIdentifier = UUID.randomUUID();
-    jedis = new Jedis("127.0.0.1", 7000);
+    jedis = new Jedis("127.0.0.1", 8000);
     jedis.connect();
     jedis.lpush("taskwolf-nodes", localIdentifier.toString());
+    Runtime.getRuntime().addShutdownHook(new Thread(this::destroy));
   }
 
   public void registerModule(String name) {
@@ -101,8 +102,8 @@ public final class Distribution {
     var futureResponse = new CompletableFuture<List<UUID>>();
     userDatabaseTable.findAllUsers().thenAccept(users ->
       organizationDatabaseTable.findAllOrganization().thenAccept(organizations ->
-        Stream.concat(users.stream().map(User::id),
-          organizations.stream().map(Organization::id)).collect(Collectors.toList())));
+        futureResponse.complete(Stream.concat(users.stream().map(User::id),
+          organizations.stream().map(Organization::id)).collect(Collectors.toList()))));
     return futureResponse;
   }
 
