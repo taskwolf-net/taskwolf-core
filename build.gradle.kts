@@ -49,7 +49,7 @@ dependencies {
   implementation("org.json:json:20230618")
   implementation("commons-io:commons-io:2.14.0")
 
-  implementation("redis.clients:jedis:5.0.1")
+  implementation("redis.clients:jedis:5.0.2")
 
   implementation("org.springframework.boot:spring-boot-starter-web:3.1.4")
 }
