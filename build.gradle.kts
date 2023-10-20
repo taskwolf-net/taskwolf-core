@@ -52,6 +52,8 @@ dependencies {
   implementation("redis.clients:jedis:5.0.2")
 
   implementation("org.springframework.boot:spring-boot-starter-web:3.1.5")
+
+  implementation("io.jsonwebtoken:jjwt:0.12.3")
 }
 
 tasks.test {
