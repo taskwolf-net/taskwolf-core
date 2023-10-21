@@ -2,7 +2,8 @@ package net.taskwolf.core.distribution;
 
 import ch.qos.logback.classic.LoggerContext;
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.iterator.AsyncIterator;
+import net.taskwolf.core.iterator.AsyncAllocationIterator;
+import net.taskwolf.core.iterator.AsyncListIterator;
 import net.taskwolf.core.organization.Organization;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.user.User;
@@ -12,7 +13,6 @@ import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
 import org.slf4j.LoggerFactory;
 
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -142,26 +142,24 @@ public final class Distribution {
 
   private CompletableFuture<List<UUID>> findNodesWithModule(String module) {
     var futureResponse = new CompletableFuture<List<UUID>>();
-    findAllNodes().thenAccept(nodes -> AsyncIterator.<UUID, Map.Entry<UUID, List<String>>>
-      execute(nodes, node -> findRegisteredModules(node).thenApply(modules ->
-        new AbstractMap.SimpleEntry<>(node, modules)), nodes.size(),
-      nodeModules -> futureResponse.complete(filterNodesWithModules(module, nodeModules))));
+    findAllNodes().thenAccept(nodes -> AsyncAllocationIterator.execute(nodes,
+      this::findRegisteredModules, nodes.size(), nodeModules ->
+        futureResponse.complete(filterNodesWithModules(module, nodeModules))));
     return futureResponse;
   }
 
   private List<UUID> filterNodesWithModules(
-    String module, List<Map.Entry<UUID, List<String>>> nodeModules
+    String module, Map<UUID, List<String>> nodeModules
   ) {
-    return nodeModules.stream()
+    return nodeModules.entrySet().stream()
       .filter(entry -> entry.getValue().contains(module))
       .map(Map.Entry::getKey).collect(Collectors.toList());
   }
 
   private CompletableFuture<List<String>> findAllRegisteredModules() {
     var futureResponse = new CompletableFuture<List<String>>();
-    findOtherNodes().thenAccept(nodes -> AsyncIterator.execute(nodes,
-      this::findRegisteredModules, nodes.size(), modules ->
-        futureResponse.complete(modules.stream().flatMap(List::stream).toList())));
+    findOtherNodes().thenAccept(nodes -> AsyncListIterator.execute(nodes,
+      this::findRegisteredModules, nodes.size(), futureResponse::complete));
     return futureResponse;
   }
 
