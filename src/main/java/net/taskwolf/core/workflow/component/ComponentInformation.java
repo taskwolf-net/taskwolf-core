@@ -13,6 +13,7 @@ import java.util.List;
 public class ComponentInformation {
   private final String name;
   private final String description;
+  private final String identifier;
   private final List<ComponentVariable> inputVariables;
   private final List<ComponentVariable> outputVariables;
 }

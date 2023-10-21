@@ -10,6 +10,7 @@ import java.util.List;
 public final class ActionInformationBuilder {
   private String name = "Unknown";
   private String description = "";
+  private String identifier = "";
   private final List<ComponentVariable> inputVariables = Lists.newArrayList();
   private final List<ComponentVariable> outputVariables = Lists.newArrayList();
 
@@ -20,6 +21,11 @@ public final class ActionInformationBuilder {
 
   public ActionInformationBuilder withDescription(String description) {
     this.description = description;
+    return this;
+  }
+
+  public ActionInformationBuilder withIdentifier(String identifier) {
+    this.identifier = identifier;
     return this;
   }
 
@@ -34,7 +40,7 @@ public final class ActionInformationBuilder {
   }
 
   public ActionInformation build() {
-    return ActionInformation.create(name, description, inputVariables,
-      outputVariables);
+    return ActionInformation.create(name, description, identifier,
+      inputVariables, outputVariables);
   }
 }
