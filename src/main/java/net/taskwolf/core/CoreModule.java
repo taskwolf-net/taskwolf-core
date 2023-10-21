@@ -9,17 +9,20 @@ import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
+import net.taskwolf.core.iterator.AsyncAllocationIterator;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.organization.InvitationDatabaseTable;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.trigger.Trigger;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
+import net.taskwolf.core.trigger.TriggerEntry;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.Workflow;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -43,6 +46,18 @@ public class CoreModule {
 
   void initialize() throws Exception {
     moduleLoader.loadModules(this);
+  }
+
+  public CompletableFuture<List<TriggerEntry>> findTriggerEntries(
+    String module, String type
+  ) {
+    var futureResponse = new CompletableFuture<List<TriggerEntry>>();
+    triggerDatabaseTable.findTriggersByModuleAndType(module, type)
+      .thenApply(entries -> AsyncAllocationIterator.execute(entries, entry ->
+          distribution.isAssignedUser(module, entry.ownerId()), entries.size(),
+        triggers -> futureResponse.complete(triggers.entrySet().stream()
+          .filter(Map.Entry::getValue).map(Map.Entry::getKey).toList())));
+    return futureResponse;
   }
 
   public CompletableFuture<Workflow> createWorkflow(UUID triggerId) {
