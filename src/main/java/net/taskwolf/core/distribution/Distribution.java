@@ -1,14 +1,20 @@
 package net.taskwolf.core.distribution;
 
-import com.google.common.collect.Lists;
+import ch.qos.logback.classic.LoggerContext;
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.iterator.AsyncIterator;
 import net.taskwolf.core.organization.Organization;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.user.User;
 import net.taskwolf.core.user.UserDatabaseTable;
-import redis.clients.jedis.Jedis;
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
+import org.slf4j.LoggerFactory;
 
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -19,34 +25,47 @@ public final class Distribution {
   private final UserDatabaseTable userDatabaseTable;
   private final OrganizationDatabaseTable organizationDatabaseTable;
   private UUID localIdentifier;
-  private Jedis jedis;
+  private RedissonClient redisson;
 
   public void initialize() {
+    disableRedissonLogs();
     //TODO: CHECK IF LOCAL IDENTIFIER IS ALREADY NODE IDENTIFIER
     localIdentifier = UUID.randomUUID();
-    jedis = new Jedis("127.0.0.1", 8000);
-    jedis.connect();
-    jedis.lpush("taskwolf-nodes", localIdentifier.toString());
+    Config config = new Config();
+    config.useSingleServer()
+      .setAddress("redis://127.0.0.1:8000");
+    redisson = Redisson.create(config);
+    redisson.getList("taskwolf-nodes").addAsync(localIdentifier.toString());
+    registerModule("core");
     Runtime.getRuntime().addShutdownHook(new Thread(this::destroy));
   }
 
-  public void registerModule(String name) {
-    findAllPossibleUser().thenAccept(users -> registerModule(name, users));
+  private void disableRedissonLogs() {
+    ((LoggerContext) LoggerFactory.getILoggerFactory())
+      .getLogger("org.redisson").setLevel(ch.qos.logback.classic.Level.ERROR);
   }
 
-  private void registerModule(String name, List<UUID> allPossibleUsers) {
-    jedis.lpush("taskwolf-" + localIdentifier + "-modules", name);
-    if (!findAllRegisteredModules().contains(name)) {
-      assignUsersToModule(name, allPossibleUsers);
+  public void registerModule(String name) {
+    redisson.getList("taskwolf-" + localIdentifier + "-modules").addAsync(name)
+      .thenAccept(value -> findAllPossibleUser().thenAccept(users ->
+        findAllRegisteredModules().thenAccept(modules ->
+          completeModuleRegistration(name, users, modules))));
+  }
+
+  private void completeModuleRegistration(
+    String name, List<UUID> allPossibleUsers, List<String> allRegisteredModules
+  ) {
+    if (!allRegisteredModules.contains(name)) {
+      assignUsersToModule(localIdentifier, name, allPossibleUsers);
       return;
     }
     reorganizeModuleUsers(name, allPossibleUsers);
   }
 
   public void addNewUser(UUID user) {
-    for (var module : findRegisteredModules(localIdentifier)) {
-      jedis.lpush("taskwolf-" + localIdentifier + "-" + module, user.toString());
-    }
+    findRegisteredModules(localIdentifier).thenAccept(modules ->
+      modules.forEach(module -> redisson.getList("taskwolf-" + localIdentifier
+        + "-" + module).addAsync(user.toString())));
   }
 
   public void removeUser(UUID user) {
@@ -62,21 +81,26 @@ public final class Distribution {
   }
 
   private void destroy(List<UUID> allPossibleUsers) {
-    jedis.lrem("taskwolf-nodes", 1, localIdentifier.toString());
-    for (var module : findRegisteredModules(localIdentifier)) {
-      unregisterModule(module, allPossibleUsers);
-    }
+    redisson.getList("taskwolf-nodes").removeAsync(localIdentifier.toString())
+      .thenAccept(value -> findRegisteredModules(localIdentifier)
+        .thenAccept(modules -> modules.forEach(module ->
+          unregisterModule(module, allPossibleUsers))));
   }
 
   private void unregisterModule(String module, List<UUID> allPossibleUsers) {
-    jedis.lrem("taskwolf-" + localIdentifier + "-modules", 1, module);
-    jedis.del("taskwolf-" + localIdentifier + "-" + module);
-    reorganizeModuleUsers(module, allPossibleUsers);
+    redisson.getList("taskwolf-" + localIdentifier + "-" + module).deleteAsync();
+    redisson.getList("taskwolf-" + localIdentifier + "-modules").removeAsync(module)
+      .thenAccept(value -> reorganizeModuleUsers(module, allPossibleUsers));
   }
 
   private void reorganizeModuleUsers(String module, List<UUID> allPossibleUsers) {
-    var moduleNodes = findAllNodes().stream().filter(node ->
-      findRegisteredModules(node).contains(module)).toList();
+    findNodesWithModule(module).thenAccept(nodes ->
+      reorganizeModuleUsers(module, allPossibleUsers, nodes));
+  }
+
+  private void reorganizeModuleUsers(
+    String module, List<UUID> allPossibleUsers, List<UUID> moduleNodes
+  ) {
     int size = (int) Math.floor((double) allPossibleUsers.size() / moduleNodes.size());
     int currentNode = 0;
     for (var start = 0; start < allPossibleUsers.size(); start += size) {
@@ -87,15 +111,11 @@ public final class Distribution {
     }
   }
 
-  private void assignUsersToModule(String moduleName, List<UUID> users) {
-    assignUsersToModule(localIdentifier, moduleName, users);
-  }
-
   private void assignUsersToModule(
     UUID node, String moduleName, List<UUID> users
   ) {
-    jedis.lpush("taskwolf-" + node.toString() + "-" + moduleName,
-      users.stream().map(UUID::toString).toArray(String[]::new));
+    var list = redisson.getList("taskwolf-" + node.toString() + "-" + moduleName);
+    list.deleteAsync().thenAccept(value -> list.addAllAsync(users));
   }
 
   private CompletableFuture<List<UUID>> findAllPossibleUser() {
@@ -107,39 +127,65 @@ public final class Distribution {
     return futureResponse;
   }
 
-  public boolean isAssignedUser(String moduleName, UUID userId) {
-    return findAssignedUsers(moduleName).stream()
-      .anyMatch(assigned -> assigned.equals(userId));
+  public CompletableFuture<Boolean> isAssignedUser(String moduleName, UUID userId) {
+    var futureResponse = new CompletableFuture<Boolean>();
+    findAssignedUsers(moduleName).thenAccept(users ->
+      futureResponse.complete(users.stream().anyMatch(assigned ->
+        assigned.equals(userId))));
+    return futureResponse;
   }
 
-  public List<UUID> findAssignedUsers(String moduleName) {
+  public CompletableFuture<List<UUID>> findAssignedUsers(String moduleName) {
     return findRedisList("taskwolf-" + localIdentifier + "-" + moduleName)
-      .stream().map(UUID::fromString).collect(Collectors.toList());
+      .thenApply(nodes -> nodes.stream().map(UUID::fromString).collect(Collectors.toList()));
   }
 
-  private List<String> findAllRegisteredModules() {
-    var modules = Lists.<String>newArrayList();
-    for (var node : findOtherNodes()) {
-      modules.addAll(findRegisteredModules(node));
-    }
-    return modules;
+  private CompletableFuture<List<UUID>> findNodesWithModule(String module) {
+    var futureResponse = new CompletableFuture<List<UUID>>();
+    findAllNodes().thenAccept(nodes -> AsyncIterator.<UUID, Map.Entry<UUID, List<String>>>
+      execute(nodes, node -> findRegisteredModules(node).thenApply(modules ->
+        new AbstractMap.SimpleEntry<>(node, modules)), nodes.size(),
+      nodeModules -> futureResponse.complete(filterNodesWithModules(module, nodeModules))));
+    return futureResponse;
   }
 
-  private List<String> findRegisteredModules(UUID node) {
+  private List<UUID> filterNodesWithModules(
+    String module, List<Map.Entry<UUID, List<String>>> nodeModules
+  ) {
+    return nodeModules.stream()
+      .filter(entry -> entry.getValue().contains(module))
+      .map(Map.Entry::getKey).collect(Collectors.toList());
+  }
+
+  private CompletableFuture<List<String>> findAllRegisteredModules() {
+    var futureResponse = new CompletableFuture<List<String>>();
+    findOtherNodes().thenAccept(nodes -> AsyncIterator.execute(nodes,
+      this::findRegisteredModules, nodes.size(), modules ->
+        futureResponse.complete(modules.stream().flatMap(List::stream).toList())));
+    return futureResponse;
+  }
+
+  private CompletableFuture<List<String>> findRegisteredModules(UUID node) {
     return findRedisList("taskwolf-" + node.toString() + "-modules");
   }
 
-  private List<UUID> findOtherNodes() {
-    return findAllNodes().stream().filter(node -> !node.equals(localIdentifier))
-      .collect(Collectors.toList());
+  private CompletableFuture<List<UUID>> findOtherNodes() {
+    var futureResponse = new CompletableFuture<List<UUID>>();
+    findAllNodes().thenAccept(nodes -> futureResponse.complete(nodes.stream()
+      .filter(node -> !node.equals(localIdentifier)).collect(Collectors.toList())));
+    return futureResponse;
   }
 
-  private List<UUID> findAllNodes() {
-    return findRedisList("taskwolf-nodes").stream().map(UUID::fromString)
-      .collect(Collectors.toList());
+  private CompletableFuture<List<UUID>> findAllNodes() {
+    return findRedisList("taskwolf-nodes").thenApply(nodes ->
+      nodes.stream().map(UUID::fromString).collect(Collectors.toList()));
   }
 
-  private List<String> findRedisList(String key) {
-    return jedis.lrange(key, 0, jedis.llen(key));
+  private CompletableFuture<List<String>> findRedisList(String key) {
+    var futureResponse = new CompletableFuture<List<String>>();
+    var list = redisson.<String>getList(key);
+    list.sizeAsync().thenAccept(size -> list.rangeAsync(0, size)
+      .thenAccept(futureResponse::complete));
+    return futureResponse;
   }
 }
