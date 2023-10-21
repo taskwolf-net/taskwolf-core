@@ -10,6 +10,7 @@ import net.taskwolf.core.user.User;
 import net.taskwolf.core.user.UserDatabaseTable;
 
 import java.security.Key;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Getter(AccessLevel.PROTECTED)
@@ -20,6 +21,12 @@ public class TaskwolfRestController {
   private final UserDatabaseTable userDatabaseTable;
 
   private static final String API_KEY_IDENTIFIER = "API-KEY";
+
+  protected UUID findUserId(HttpServletRequest request) {
+    var apiKey = request.getHeader(API_KEY_IDENTIFIER);
+    return UUID.fromString(Jwts.parser().setSigningKey(secretKey).build()
+      .parseClaimsJws(apiKey).getPayload().get("id", String.class));
+  }
 
   protected CompletableFuture<User> findUser(HttpServletRequest request) {
     var apiKey = request.getHeader(API_KEY_IDENTIFIER);
