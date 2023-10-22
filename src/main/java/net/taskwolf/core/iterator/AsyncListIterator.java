@@ -44,13 +44,6 @@ public final class AsyncListIterator<T, U> extends TaskwolfIterator<T, U> {
   }
 
   @Override
-  protected void checkCompletion() {
-    if (result.size() == number()) {
-      complete();
-    }
-  }
-
-  @Override
   protected void complete() {
     completion.accept(result);
   }

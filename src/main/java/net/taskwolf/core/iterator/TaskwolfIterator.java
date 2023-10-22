@@ -27,9 +27,13 @@ private final List<T> list;
     }
   }
 
-  protected abstract CompletableFuture<?> entryFuture(T entry);
+  private void checkCompletion() {
+    if (counter == number) {
+      complete();
+    }
+  }
 
-  protected abstract void checkCompletion();
+  protected abstract CompletableFuture<?> entryFuture(T entry);
 
   protected abstract void complete();
 }
