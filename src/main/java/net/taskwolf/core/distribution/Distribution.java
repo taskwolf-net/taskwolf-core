@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class Distribution {
+  private final DistributionConfiguration distributionConfiguration;
   private final UserDatabaseTable userDatabaseTable;
   private final OrganizationDatabaseTable organizationDatabaseTable;
   private UUID localIdentifier;
@@ -31,9 +32,12 @@ public final class Distribution {
     disableRedissonLogs();
     //TODO: CHECK IF LOCAL IDENTIFIER IS ALREADY NODE IDENTIFIER
     localIdentifier = UUID.randomUUID();
-    Config config = new Config();
-    config.useSingleServer()
-      .setAddress("redis://127.0.0.1:8000");
+    var config = new Config();
+    var clusterConfig = config.useClusterServers();
+    clusterConfig.addNodeAddress(createNodeAddress(distributionConfiguration.self()));
+    for (var node : distributionConfiguration.nodes()) {
+      clusterConfig.addNodeAddress(createNodeAddress(node));
+    }
     redisson = Redisson.create(config);
     redisson.getList("taskwolf-nodes").addAsync(localIdentifier.toString());
     registerModule("core");
@@ -43,6 +47,10 @@ public final class Distribution {
   private void disableRedissonLogs() {
     ((LoggerContext) LoggerFactory.getILoggerFactory())
       .getLogger("org.redisson").setLevel(ch.qos.logback.classic.Level.ERROR);
+  }
+
+  private String createNodeAddress(Node node) {
+    return "redis://" + node.hostname() + ":" + node.redisPort();
   }
 
   public void registerModule(String name) {

@@ -8,6 +8,7 @@ import net.taskwolf.core.command.implementation.HelpCommand;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
+import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.intro.Intro;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
@@ -40,7 +41,9 @@ public class CoreApplication {
     var log = Log.create("Core", "/logs/");
     initializeDatabase();
     initializeDatabaseTables();
-    distribution = Distribution.create(userDatabaseTable, organizationDatabaseTable);
+    var distributionConfiguration = DistributionConfiguration.createAndLoad();
+    distribution = Distribution.create(distributionConfiguration,
+      userDatabaseTable, organizationDatabaseTable);
     distribution.initialize();
     var moduleLoader = ModuleLoader.create(log, System.getProperty("user.dir") +
       "/modules/", distribution);
