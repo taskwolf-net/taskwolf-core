@@ -3,6 +3,8 @@ package net.taskwolf.core;
 import net.taskwolf.core.action.ActionDatabaseTable;
 import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.command.CommandTask;
+import net.taskwolf.core.command.implementation.ExitCommand;
+import net.taskwolf.core.command.implementation.HelpCommand;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
@@ -47,6 +49,7 @@ public class CoreApplication {
       application.getClassLoader());
     application.setResourceLoader(new DefaultResourceLoader(classLoader));
     var commandRegistry = CommandRegistry.create();
+    registerCommands(log, commandRegistry);
     var coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
       databaseKeyspace, userDatabaseTable, organizationDatabaseTable,
       invitationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
@@ -78,6 +81,11 @@ public class CoreApplication {
     actionDatabaseTable.createIfNotExists();
     workflowDatabaseTable = WorkflowDatabaseTable.create(databaseConnection, databaseKeyspace);
     workflowDatabaseTable.createIfNotExists();
+  }
+
+  private static void registerCommands(Log log, CommandRegistry registry) {
+    registry.register(HelpCommand.create(log));
+    registry.register(ExitCommand.create(log));
   }
 
   @Bean
