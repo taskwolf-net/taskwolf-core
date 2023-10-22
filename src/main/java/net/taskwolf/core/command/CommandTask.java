@@ -24,7 +24,8 @@ public final class CommandTask {
   private void monitorInput(BufferedReader reader) throws Exception {
     var line = "";
     while((line = reader.readLine()) != null) {
-      if(line.length() == 0) {
+      if(line.isEmpty()) {
+        printNewLine();
         continue;
       }
       superviseInput(line);
@@ -34,8 +35,8 @@ public final class CommandTask {
   private void superviseInput(String line) {
     var input = line.split(" ");
     var commandName = input[0];
-    commandRegistry.find(commandName)
-      .ifPresent(command -> executeCommand(command, line, input));
+    commandRegistry.find(commandName).ifPresentOrElse(command ->
+      executeCommand(command, line, input), () -> printCommandNotFound(commandName));
   }
 
   private void executeCommand(Command command, String line, String[] input) {
@@ -60,5 +61,13 @@ public final class CommandTask {
         .append(i != arguments.length - 1 ? " / " : " ");
     }
     log.info(syntax.toString());
+  }
+
+  private void printCommandNotFound(String command) {
+    log.info("Command '" + command + "' not found");
+  }
+
+  private void printNewLine() {
+    System.out.print(" > ");
   }
 }

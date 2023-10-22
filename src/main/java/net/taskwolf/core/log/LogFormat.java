@@ -27,10 +27,14 @@ public final class LogFormat extends Formatter {
   private final DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
   private static final String COLOR_RESET = "\u001B[0m";
+  private static final String COLOR_WHITE = "\033[0;97m";
+  private static final String COLOR_RED = "\033[0;91m";
+  private static final String COLOR_DARK_RED = "\033[0;31m";
+  private static final String COLOR_CYAN = "\033[0;36m";
 
   @Override
   public String format(LogRecord record) {
-    var result = new StringBuilder();
+    var result = new StringBuilder("\r");
     if (formatType.isConsole()) {
       result.append(determineColor(record));
     }
@@ -39,14 +43,13 @@ public final class LogFormat extends Formatter {
     if (formatType.isConsole()) {
       result.append(COLOR_RESET);
     }
-    result.append("\n");
+    if (formatType.isConsole()) {
+      result.append("\n");
+      result.append(COLOR_WHITE);
+      result.append(" > ");
+    }
     return result.toString();
   }
-
-  private static final String COLOR_WHITE = "\033[0;97m";
-  private static final String COLOR_RED = "\033[0;91m";
-  private static final String COLOR_DARK_RED = "\033[0;31m";
-  private static final String COLOR_CYAN = "\033[0;36m";
 
   private String determineColor(LogRecord record) {
     if (record.getLevel() == Level.WARNING) {

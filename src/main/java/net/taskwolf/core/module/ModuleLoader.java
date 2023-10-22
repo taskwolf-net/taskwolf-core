@@ -34,7 +34,7 @@ public final class ModuleLoader {
     for (var module : modules) {
       module.module().enable();
       distribution.registerModule(module.name());
-      log.log(Level.INFO, "Successfully loaded module " + module.name());
+      log.info("Successfully loaded module " + module.name());
     }
   }
 
@@ -48,7 +48,7 @@ public final class ModuleLoader {
     var registeredModule = moduleOptional.get();
     unloadModule(registeredModule);
     findModule(registeredModule.file(), coreModule).module().enable();
-    log.log(Level.INFO, "Successfully reloaded module " + registeredModule.name());
+    log.info("Successfully reloaded module " + registeredModule.name());
   }
 
   private RegisteredModule findModule(File file, CoreModule coreModule) throws Exception {
