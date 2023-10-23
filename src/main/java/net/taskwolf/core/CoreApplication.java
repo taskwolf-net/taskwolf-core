@@ -15,6 +15,7 @@ import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.organization.InvitationDatabaseTable;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
+import net.taskwolf.core.template.TemplateDatabaseTable;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
@@ -35,6 +36,7 @@ public class CoreApplication {
   private static TriggerDatabaseTable triggerDatabaseTable;
   private static ActionDatabaseTable actionDatabaseTable;
   private static WorkflowDatabaseTable workflowDatabaseTable;
+  private static TemplateDatabaseTable templateDatabaseTable;
   private static Distribution distribution;
 
   public static void main(String[] args) throws Exception {
@@ -85,6 +87,8 @@ public class CoreApplication {
     actionDatabaseTable.createIfNotExists();
     workflowDatabaseTable = WorkflowDatabaseTable.create(databaseConnection, databaseKeyspace);
     workflowDatabaseTable.createIfNotExists();
+    templateDatabaseTable = TemplateDatabaseTable.create(databaseConnection, databaseKeyspace);
+    templateDatabaseTable.createIfNotExists();
   }
 
   private static void registerCommands(
@@ -134,6 +138,11 @@ public class CoreApplication {
   @Bean
   WorkflowDatabaseTable provideWorkflowDatabaseTable() {
     return workflowDatabaseTable;
+  }
+
+  @Bean
+  TemplateDatabaseTable provideTemplateDatabaseTable() {
+    return templateDatabaseTable;
   }
 
   @Bean
