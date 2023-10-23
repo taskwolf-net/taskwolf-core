@@ -18,5 +18,5 @@ public abstract class Command {
   @Getter
   private final String[] arguments;
 
-  public abstract boolean execute(String[] arguments);
+  public abstract boolean execute(String[] arguments) throws Exception;
 }

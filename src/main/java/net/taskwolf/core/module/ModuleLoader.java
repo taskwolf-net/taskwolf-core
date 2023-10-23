@@ -38,17 +38,29 @@ public final class ModuleLoader {
     }
   }
 
-  public void reloadModule(String name, CoreModule coreModule) throws Exception {
+  public boolean loadModule(File file, CoreModule coreModule) throws Exception {
+    if (modules.stream().anyMatch(module -> module.file().equals(file))) {
+      return false;
+    }
+    var module = findModule(file, coreModule);
+    module.module().enable();
+    distribution.registerModule(module.name());
+    log.info("Successfully loaded module " + module.name());
+    return true;
+  }
+
+  public boolean reloadModule(String name, CoreModule coreModule) throws Exception {
     var moduleOptional = modules.stream()
       .filter(module -> module.name().equals(name))
       .findFirst();
     if (moduleOptional.isEmpty()) {
-      return;
+      return false;
     }
     var registeredModule = moduleOptional.get();
     unloadModule(registeredModule);
     findModule(registeredModule.file(), coreModule).module().enable();
     log.info("Successfully reloaded module " + registeredModule.name());
+    return true;
   }
 
   private RegisteredModule findModule(File file, CoreModule coreModule) throws Exception {
@@ -130,16 +142,18 @@ public final class ModuleLoader {
         .equals(ModuleDescription.class)).findFirst();
   }
 
-  public void unloadModule(String name) throws Exception {
+  public boolean unloadModule(String name) throws Exception {
     var moduleOptional = modules.stream()
       .filter(module -> module.name().equals(name))
       .findFirst();
     if (moduleOptional.isEmpty()) {
-      return;
+      return false;
     }
     var registeredModule = moduleOptional.get();
     registeredModule.module().disable();
     unloadModule(registeredModule);
+    log.info("Successfully unloaded module " + registeredModule.name());
+    return true;
   }
 
   public void unloadModule(RegisteredModule registeredModule) throws Exception {
