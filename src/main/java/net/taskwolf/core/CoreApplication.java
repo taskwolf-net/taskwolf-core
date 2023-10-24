@@ -3,6 +3,7 @@ package net.taskwolf.core;
 import net.taskwolf.core.action.ActionDatabaseTable;
 import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.command.CommandTask;
+import net.taskwolf.core.command.implementation.DistributionCommand;
 import net.taskwolf.core.command.implementation.ExitCommand;
 import net.taskwolf.core.command.implementation.HelpCommand;
 import net.taskwolf.core.command.implementation.ModuleCommand;
@@ -61,7 +62,8 @@ public class CoreApplication {
       invitationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
       workflowDatabaseTable, distribution, commandRegistry);
     coreModule.initialize();
-    registerCommands(log, commandRegistry, moduleLoader, coreModule);
+    registerCommands(log, commandRegistry, moduleLoader, coreModule,
+      distributionConfiguration, distribution);
     application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
   }
@@ -94,10 +96,13 @@ public class CoreApplication {
 
   private static void registerCommands(
     Log log, CommandRegistry registry, ModuleLoader moduleLoader,
-    CoreModule coreModule
+    CoreModule coreModule, DistributionConfiguration distributionConfiguration,
+    Distribution distribution
   ) {
     registry.register(HelpCommand.create(log));
     registry.register(ModuleCommand.create(log, moduleLoader, coreModule));
+    registry.register(DistributionCommand.create(log, distributionConfiguration,
+      distribution));
     registry.register(ExitCommand.create(log));
   }
 

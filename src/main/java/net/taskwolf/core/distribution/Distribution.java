@@ -3,6 +3,7 @@ package net.taskwolf.core.distribution;
 import ch.qos.logback.classic.LoggerContext;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.iterator.AsyncAllocationIterator;
+import net.taskwolf.core.iterator.AsyncIterator;
 import net.taskwolf.core.iterator.AsyncListIterator;
 import net.taskwolf.core.organization.Organization;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
@@ -178,6 +179,14 @@ public final class Distribution {
 
   private CompletableFuture<List<String>> findRegisteredModules(UUID node) {
     return findRedisList("taskwolf-" + node.toString() + "-modules");
+  }
+
+  public CompletableFuture<List<String>> findConnectedNodes() {
+    var futureResponse = new CompletableFuture<List<String>>();
+    findRedisList("taskwolf-nodes").thenAccept(nodes -> AsyncIterator.execute(nodes,
+      node -> redisson.<String>getBucket("taskwolf-" + node + "-hostname")
+        .getAsync().toCompletableFuture(), nodes.size(), futureResponse::complete));
+    return futureResponse;
   }
 
   private CompletableFuture<List<UUID>> findOtherNodes() {
