@@ -34,12 +34,15 @@ public final class Distribution {
     localIdentifier = UUID.randomUUID();
     var config = new Config();
     var clusterConfig = config.useClusterServers();
-    clusterConfig.addNodeAddress(createNodeAddress(distributionConfiguration.self()));
+    var self = distributionConfiguration.self();
+    clusterConfig.addNodeAddress(createNodeAddress(self));
     for (var node : distributionConfiguration.nodes()) {
       clusterConfig.addNodeAddress(createNodeAddress(node));
     }
     redisson = Redisson.create(config);
     redisson.getList("taskwolf-nodes").addAsync(localIdentifier.toString());
+    redisson.getBucket("taskwolf-" + localIdentifier.toString() + "-hostname")
+      .setAsync(self.hostname() + ":" + self.redisPort());
     registerModule("core");
     Runtime.getRuntime().addShutdownHook(new Thread(this::destroy));
   }
@@ -89,6 +92,8 @@ public final class Distribution {
   }
 
   private void destroy(List<UUID> allPossibleUsers) {
+    redisson.getBucket("taskwolf-" + localIdentifier.toString() + "-hostname")
+      .deleteAsync();
     redisson.getList("taskwolf-nodes").removeAsync(localIdentifier.toString())
       .thenAccept(value -> findRegisteredModules(localIdentifier)
         .thenAccept(modules -> modules.forEach(module ->
