@@ -32,13 +32,7 @@ public abstract class Module {
     return null;
   }
 
-  public void registerCommand(Command command) {
-    coreModule.commandRegistry().register(command);
-  }
-
-  public void unregisterCommand(Command command) {
-    coreModule.commandRegistry().unregister(command);
-  }
+  public abstract ModuleInformation moduleInformation();
 
   public List<TriggerInformation> triggerInformation() {
     return Lists.newArrayList();
@@ -46,5 +40,13 @@ public abstract class Module {
 
   public List<ActionInformation> actionInformation() {
     return Lists.newArrayList();
+  }
+
+  public void registerCommand(Command command) {
+    coreModule.commandRegistry().register(command);
+  }
+
+  public void unregisterCommand(Command command) {
+    coreModule.commandRegistry().unregister(command);
   }
 }
