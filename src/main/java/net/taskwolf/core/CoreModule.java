@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.action.Action;
 import net.taskwolf.core.action.ActionDatabaseTable;
+import net.taskwolf.core.action.ActionInformation;
 import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
@@ -17,12 +18,14 @@ import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.trigger.Trigger;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.trigger.TriggerEntry;
+import net.taskwolf.core.trigger.TriggerInformation;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.Workflow;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -46,6 +49,30 @@ public class CoreModule {
 
   void initialize() throws Exception {
     moduleLoader.loadModules(this);
+  }
+
+  public Optional<TriggerInformation> findTriggerInformation(
+    String moduleName, String triggerType
+  ) {
+    var moduleOptional = moduleLoader.findModule(moduleName);
+    if (moduleOptional.isEmpty()) {
+      return Optional.empty();
+    }
+    var module = moduleOptional.get();
+    return module.triggerInformation().stream().filter(triggerInformation ->
+      triggerInformation.identifier().equals(triggerType)).findFirst();
+  }
+
+  public Optional<ActionInformation> findActionInformation(
+    String moduleName, String actionType
+  ) {
+    var moduleOptional = moduleLoader.findModule(moduleName);
+    if (moduleOptional.isEmpty()) {
+      return Optional.empty();
+    }
+    var module = moduleOptional.get();
+    return module.actionInformation().stream().filter(actionInformation ->
+      actionInformation.identifier().equals(actionType)).findFirst();
   }
 
   public CompletableFuture<List<TriggerEntry>> findTriggerEntries(
@@ -76,10 +103,10 @@ public class CoreModule {
   }
 
   public Trigger createTrigger(String module, String type, String content) {
-    return moduleLoader.findModule(module).triggerFactory().create(type, content);
+    return moduleLoader.findModule(module).get().triggerFactory().create(type, content);
   }
 
   public Action createAction(String module, String type, String content) {
-    return moduleLoader.findModule(module).actionFactory().create(type, content);
+    return moduleLoader.findModule(module).get().actionFactory().create(type, content);
   }
 }

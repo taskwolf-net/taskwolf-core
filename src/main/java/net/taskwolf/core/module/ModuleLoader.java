@@ -162,11 +162,15 @@ public final class ModuleLoader {
     modules.remove(registeredModule);
   }
 
-  public Module findModule(String name) {
+  public Optional<RegisteredModule> findRegisteredModule(String name) {
     return modules.stream()
       .filter(module -> module.name().equals(name))
-      .map(RegisteredModule::module)
-      .findFirst().get();
+      .findFirst();
+  }
+
+  public Optional<Module> findModule(String name) {
+    return findRegisteredModule(name)
+      .map(RegisteredModule::module);
   }
 
   public List<RegisteredModule> allRegisteredModules() {
