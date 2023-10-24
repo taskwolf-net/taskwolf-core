@@ -69,4 +69,9 @@ public final class TemplateDatabaseTable extends DatabaseTable {
       .thenApply(rows -> rows.stream().map(Template::of)
         .collect(Collectors.toList()));
   }
+
+  public CompletableFuture<List<Template>> findAllTemplates() {
+    return selectAllRows().thenApply(rows -> rows.stream().map(Template::of)
+      .collect(Collectors.toList()));
+  }
 }
