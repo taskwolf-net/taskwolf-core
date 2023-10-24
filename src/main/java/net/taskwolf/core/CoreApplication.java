@@ -38,6 +38,7 @@ public class CoreApplication {
   private static WorkflowDatabaseTable workflowDatabaseTable;
   private static TemplateDatabaseTable templateDatabaseTable;
   private static Distribution distribution;
+  private static CoreModule coreModule;
 
   public static void main(String[] args) throws Exception {
     Intro.create("1.0.0").print();
@@ -55,7 +56,7 @@ public class CoreApplication {
       application.getClassLoader());
     application.setResourceLoader(new DefaultResourceLoader(classLoader));
     var commandRegistry = CommandRegistry.create();
-    var coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
+    coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
       databaseKeyspace, userDatabaseTable, organizationDatabaseTable,
       invitationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
       workflowDatabaseTable, distribution, commandRegistry);
@@ -148,5 +149,10 @@ public class CoreApplication {
   @Bean
   Distribution provideDistribution() {
     return distribution;
+  }
+
+  @Bean
+  CoreModule provideCoreModule() {
+    return coreModule;
   }
 }
