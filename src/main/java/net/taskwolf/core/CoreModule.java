@@ -15,6 +15,7 @@ import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.organization.InvitationDatabaseTable;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
+import net.taskwolf.core.template.TemplateDatabaseTable;
 import net.taskwolf.core.trigger.Trigger;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.trigger.TriggerEntry;
@@ -22,6 +23,7 @@ import net.taskwolf.core.trigger.TriggerInformation;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.Workflow;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
+import org.springframework.boot.SpringApplication;
 
 import java.util.List;
 import java.util.Map;
@@ -44,8 +46,10 @@ public class CoreModule {
   private final TriggerDatabaseTable triggerDatabaseTable;
   private final ActionDatabaseTable actionDatabaseTable;
   private final WorkflowDatabaseTable workflowDatabaseTable;
+  private final TemplateDatabaseTable templateDatabaseTable;
   private final Distribution distribution;
   private final CommandRegistry commandRegistry;
+  private final SpringApplication springApplication;
 
   void initialize() throws Exception {
     moduleLoader.loadModules(this);

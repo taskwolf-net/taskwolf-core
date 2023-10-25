@@ -22,32 +22,44 @@ import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.DefaultResourceLoader;
 
 import java.net.URLClassLoader;
 
 @SpringBootApplication(scanBasePackages = {"net.taskwolf"})
 public class CoreApplication {
-  private static DatabaseConnection databaseConnection;
-  private static DatabaseKeyspace databaseKeyspace;
-  private static UserDatabaseTable userDatabaseTable;
-  private static OrganizationDatabaseTable organizationDatabaseTable;
-  private static InvitationDatabaseTable invitationDatabaseTable;
-  private static TriggerDatabaseTable triggerDatabaseTable;
-  private static ActionDatabaseTable actionDatabaseTable;
-  private static WorkflowDatabaseTable workflowDatabaseTable;
-  private static TemplateDatabaseTable templateDatabaseTable;
-  private static Distribution distribution;
-  private static CoreModule coreModule;
-
   public static void main(String[] args) throws Exception {
     Intro.create("1.0.0").print();
     var log = Log.create("Core", "/logs/");
-    initializeDatabase();
-    initializeDatabaseTables();
+    var databaseConnection = DatabaseConnection.create();
+    databaseConnection.connect();
+    var databaseKeyspace = DatabaseKeyspace.create(databaseConnection, "taskwolf",
+      "SimpleStrategy", 1);
+    databaseKeyspace.createIfNotExists();
+    databaseKeyspace.use();
+    var userDatabaseTable = UserDatabaseTable.create(databaseConnection,
+      databaseKeyspace);
+    userDatabaseTable.createIfNotExists();
+    var organizationDatabaseTable = OrganizationDatabaseTable.create(
+      databaseConnection, databaseKeyspace);
+    organizationDatabaseTable.createIfNotExists();
+    var invitationDatabaseTable = InvitationDatabaseTable.create(
+      databaseConnection, databaseKeyspace);
+    invitationDatabaseTable.createIfNotExists();
+    var triggerDatabaseTable = TriggerDatabaseTable.create(databaseConnection,
+      databaseKeyspace);
+    triggerDatabaseTable.createIfNotExists();
+    var actionDatabaseTable = ActionDatabaseTable.create(databaseConnection,
+      databaseKeyspace);
+    actionDatabaseTable.createIfNotExists();
+    var workflowDatabaseTable = WorkflowDatabaseTable.create(databaseConnection,
+      databaseKeyspace);
+    workflowDatabaseTable.createIfNotExists();
+    var templateDatabaseTable = TemplateDatabaseTable.create(databaseConnection,
+      databaseKeyspace);
+    templateDatabaseTable.createIfNotExists();
     var distributionConfiguration = DistributionConfiguration.createAndLoad();
-    distribution = Distribution.create(distributionConfiguration,
+    var distribution = Distribution.create(distributionConfiguration,
       userDatabaseTable, organizationDatabaseTable);
     distribution.initialize();
     var moduleLoader = ModuleLoader.create(log, System.getProperty("user.dir") +
@@ -57,41 +69,16 @@ public class CoreApplication {
       application.getClassLoader());
     application.setResourceLoader(new DefaultResourceLoader(classLoader));
     var commandRegistry = CommandRegistry.create();
-    coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
+    var coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
       databaseKeyspace, userDatabaseTable, organizationDatabaseTable,
       invitationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
-      workflowDatabaseTable, distribution, commandRegistry);
+      workflowDatabaseTable, templateDatabaseTable, distribution,
+      commandRegistry, application);
     coreModule.initialize();
     registerCommands(log, commandRegistry, moduleLoader, coreModule,
       distributionConfiguration, distribution);
     application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
-  }
-
-  private static void initializeDatabase() {
-    databaseConnection = DatabaseConnection.create();
-    databaseConnection.connect();
-    databaseKeyspace = DatabaseKeyspace.create(databaseConnection, "taskwolf",
-      "SimpleStrategy", 1);
-    databaseKeyspace.createIfNotExists();
-    databaseKeyspace.use();
-  }
-
-  private static void initializeDatabaseTables() {
-    userDatabaseTable = UserDatabaseTable.create(databaseConnection, databaseKeyspace);
-    userDatabaseTable.createIfNotExists();
-    organizationDatabaseTable = OrganizationDatabaseTable.create(databaseConnection, databaseKeyspace);
-    organizationDatabaseTable.createIfNotExists();
-    invitationDatabaseTable = InvitationDatabaseTable.create(databaseConnection, databaseKeyspace);
-    invitationDatabaseTable.createIfNotExists();
-    triggerDatabaseTable = TriggerDatabaseTable.create(databaseConnection, databaseKeyspace);
-    triggerDatabaseTable.createIfNotExists();
-    actionDatabaseTable = ActionDatabaseTable.create(databaseConnection, databaseKeyspace);
-    actionDatabaseTable.createIfNotExists();
-    workflowDatabaseTable = WorkflowDatabaseTable.create(databaseConnection, databaseKeyspace);
-    workflowDatabaseTable.createIfNotExists();
-    templateDatabaseTable = TemplateDatabaseTable.create(databaseConnection, databaseKeyspace);
-    templateDatabaseTable.createIfNotExists();
   }
 
   private static void registerCommands(
@@ -104,60 +91,5 @@ public class CoreApplication {
     registry.register(DistributionCommand.create(log, distributionConfiguration,
       distribution));
     registry.register(ExitCommand.create(log));
-  }
-
-  @Bean
-  DatabaseConnection provideDatabaseConnection() {
-    return databaseConnection;
-  }
-
-  @Bean
-  DatabaseKeyspace provideDatabaseKeyspace() {
-    return databaseKeyspace;
-  }
-
-  @Bean
-  UserDatabaseTable provideUserDatabaseTable() {
-    return userDatabaseTable;
-  }
-
-  @Bean
-  OrganizationDatabaseTable provideOrganizationDatabaseTable() {
-    return organizationDatabaseTable;
-  }
-
-  @Bean
-  InvitationDatabaseTable provideInvitationDatabaseTable() {
-    return invitationDatabaseTable;
-  }
-
-  @Bean
-  TriggerDatabaseTable provideTriggerDatabaseTable() {
-    return triggerDatabaseTable;
-  }
-
-  @Bean
-  ActionDatabaseTable provideActionDatabaseTable() {
-    return actionDatabaseTable;
-  }
-
-  @Bean
-  WorkflowDatabaseTable provideWorkflowDatabaseTable() {
-    return workflowDatabaseTable;
-  }
-
-  @Bean
-  TemplateDatabaseTable provideTemplateDatabaseTable() {
-    return templateDatabaseTable;
-  }
-
-  @Bean
-  Distribution provideDistribution() {
-    return distribution;
-  }
-
-  @Bean
-  CoreModule provideCoreModule() {
-    return coreModule;
   }
 }
