@@ -13,7 +13,8 @@ import java.util.UUID;
 public final class Organization {
   public static Organization of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).stringValue(),
-      row.findCell(2).uuidValue(), row.findCell(3).listValue());
+      row.findCell(2).uuidValue(), row.findCell(3).listValue(),
+      row.findCell(4).listValue());
   }
 
   @Getter
@@ -23,6 +24,7 @@ public final class Organization {
   @Getter
   private final UUID owner;
   private final List<UUID> members;
+  private final List<UUID> invitations;
 
   public void addMember(UUID member) {
     members.add(member);
@@ -32,7 +34,19 @@ public final class Organization {
     members.remove(member);
   }
 
+  public void addInvitation(UUID user) {
+    invitations.add(user);
+  }
+
+  public void removeInvitations(UUID user) {
+    invitations.remove(user);
+  }
+
   public List<UUID> members() {
     return List.copyOf(members);
+  }
+
+  public List<UUID> invitations() {
+    return List.copyOf(invitations);
   }
 }

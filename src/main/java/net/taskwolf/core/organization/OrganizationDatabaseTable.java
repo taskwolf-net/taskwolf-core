@@ -20,6 +20,7 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("members", DatabaseDataType.UUID));
+    columns.add(DatabaseListColumn.create("invitations", DatabaseDataType.UUID));
     return new OrganizationDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -32,13 +33,13 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
 
   public void insertOrganization(Organization organization) {
     insertOrganization(organization.id(), organization.name(),
-      organization.owner(), organization.members());
+      organization.owner(), organization.members(), organization.invitations());
   }
 
   public void insertOrganization(
-    UUID id, String name, UUID ownerId, List<UUID> memberIds
+    UUID id, String name, UUID ownerId, List<UUID> memberIds, List<UUID> invitations
   ) {
-    insert(DatabaseRow.of(id, name, ownerId, memberIds));
+    insert(DatabaseRow.of(id, name, ownerId, memberIds, invitations));
   }
 
   public void addOrganizationMember(UUID organizationId, UUID memberId) {
@@ -58,6 +59,26 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
 
   private void removeOrganizationMember(Organization organization, UUID memberId) {
     organization.removeMember(memberId);
+    updateOrganization(organization);
+  }
+
+  public void addOrganizationInvitation(UUID organizationId, UUID userId) {
+    findOrganization(organizationId).thenAccept(organization ->
+      addOrganizationMember(organization, userId));
+  }
+
+  private void addOrganizationInvitation(Organization organization, UUID userId) {
+    organization.addMember(userId);
+    updateOrganization(organization);
+  }
+
+  public void removeOrganizationInvitation(UUID organizationId, UUID userId) {
+    findOrganization(organizationId).thenAccept(organization ->
+      removeOrganizationMember(organization, userId));
+  }
+
+  private void removeOrganizationInvitation(Organization organization, UUID userId) {
+    organization.removeMember(userId);
     updateOrganization(organization);
   }
 
