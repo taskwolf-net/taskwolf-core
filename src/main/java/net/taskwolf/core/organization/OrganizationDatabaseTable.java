@@ -42,6 +42,17 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
     insert(DatabaseRow.of(id, name, ownerId, memberIds, invitations));
   }
 
+  public void acceptOrganizationInvitation(UUID organizationId, UUID userId) {
+    findOrganization(organizationId).thenAccept(organization ->
+      acceptOrganizationInvitation(organization, userId));
+  }
+
+  private void acceptOrganizationInvitation(Organization organization, UUID userId) {
+    organization.addMember(userId);
+    organization.removeInvitation(userId);
+    updateOrganization(organization);
+  }
+
   public void addOrganizationMember(UUID organizationId, UUID memberId) {
     findOrganization(organizationId).thenAccept(organization ->
       addOrganizationMember(organization, memberId));
