@@ -66,6 +66,10 @@ public final class InvitationDatabaseTable extends DatabaseTable {
     updateInvitations(userId, organizationIds);
   }
 
+  public CompletableFuture<Boolean> invitationsExists(UUID userId) {
+    return exists(DatabaseCell.create(userId));
+  }
+
   private void updateInvitations(UUID userId, List<UUID> organizationIds) {
     update(DatabaseCell.create(userId), DatabaseRow.of(userId, organizationIds));
   }
