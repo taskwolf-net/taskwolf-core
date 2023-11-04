@@ -38,7 +38,7 @@ public final class Organization {
     invitations.add(user);
   }
 
-  public void removeInvitations(UUID user) {
+  public void removeInvitation(UUID user) {
     invitations.remove(user);
   }
 

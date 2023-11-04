@@ -64,27 +64,28 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
 
   public void addOrganizationInvitation(UUID organizationId, UUID userId) {
     findOrganization(organizationId).thenAccept(organization ->
-      addOrganizationMember(organization, userId));
+      addOrganizationInvitation(organization, userId));
   }
 
   private void addOrganizationInvitation(Organization organization, UUID userId) {
-    organization.addMember(userId);
+    organization.addInvitation(userId);
     updateOrganization(organization);
   }
 
   public void removeOrganizationInvitation(UUID organizationId, UUID userId) {
     findOrganization(organizationId).thenAccept(organization ->
-      removeOrganizationMember(organization, userId));
+      removeOrganizationInvitation(organization, userId));
   }
 
   private void removeOrganizationInvitation(Organization organization, UUID userId) {
-    organization.removeMember(userId);
+    organization.removeInvitation(userId);
     updateOrganization(organization);
   }
 
   private void updateOrganization(Organization organization) {
     update(DatabaseCell.create(organization.id()), DatabaseRow.of(organization.id(),
-      organization.name(), organization.owner(), organization.members()));
+      organization.name(), organization.owner(), organization.members(),
+      organization.invitations()));
   }
 
   public CompletableFuture<UUID> generateAvailableOrganizationId() {
