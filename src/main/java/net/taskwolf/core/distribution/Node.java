@@ -11,4 +11,5 @@ public final class Node {
   private final String hostname;
   private final int redisPort;
   private final int restPort;
+  private final int webPort;
 }
