@@ -15,7 +15,7 @@ public final class TriggerInformation extends ComponentInformation {
     List<ComponentVariable> inputVariables,
     List<ComponentVariable> outputVariables
   ) {
-    return new TriggerInformation(name, identifier, description,
+    return new TriggerInformation(name, description, identifier,
       inputVariables, outputVariables);
   }
 
