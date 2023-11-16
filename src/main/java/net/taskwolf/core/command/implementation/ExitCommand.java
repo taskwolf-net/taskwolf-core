@@ -14,7 +14,7 @@ public final class ExitCommand extends Command {
 
   @Override
   public boolean execute(String[] arguments) {
-    log().info("Ending Taskwolf");
+    log().info("Ending Taskwolf - Core");
     System.exit(0);
     return true;
   }
