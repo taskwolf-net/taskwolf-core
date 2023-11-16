@@ -31,6 +31,7 @@ public class CoreApplication {
   public static void main(String[] args) throws Exception {
     Intro.create("1.0.0").print();
     var log = Log.create("Core", "/logs/");
+    log.info("Initializing Taskwolf - Core");
     var databaseConnection = DatabaseConnection.create();
     databaseConnection.connect();
     var databaseKeyspace = DatabaseKeyspace.create(databaseConnection, "taskwolf",
@@ -79,6 +80,7 @@ public class CoreApplication {
       distributionConfiguration, distribution);
     application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
+    log.info("Successfully booted Taskwolf - Core");
   }
 
   private static void registerCommands(
