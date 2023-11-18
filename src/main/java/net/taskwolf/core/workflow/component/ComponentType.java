@@ -7,5 +7,6 @@ public enum ComponentType {
   BOOLEAN,
   UUID,
   DATE,
-  TIME
+  TIME,
+  SELECT;
 }

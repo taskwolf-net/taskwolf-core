@@ -1,14 +1,29 @@
 package net.taskwolf.core.workflow.component;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 @Getter
 @Accessors(fluent = true)
-@RequiredArgsConstructor(staticName = "create")
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ComponentVariable {
+  public static ComponentVariable createSelect(
+    String displayName, String identifier, ComponentSelect select
+  ) {
+    return new ComponentVariable(displayName, identifier, ComponentType.SELECT,
+      select);
+  }
+
+  public static ComponentVariable create(
+    String displayName, String identifier, ComponentType type
+  ) {
+    return new ComponentVariable(displayName, identifier, type, null);
+  }
+
   private final String displayName;
   private final String identifier;
   private final ComponentType type;
+  private final ComponentSelect select;
 }
