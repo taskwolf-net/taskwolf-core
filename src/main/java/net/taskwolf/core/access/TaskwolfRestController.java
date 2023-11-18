@@ -24,6 +24,10 @@ public class TaskwolfRestController {
 
   protected UUID findUserId(HttpServletRequest request) {
     var apiKey = request.getHeader(API_KEY_IDENTIFIER);
+    return findUserId(apiKey);
+  }
+
+  protected UUID findUserId(String apiKey) {
     return UUID.fromString(Jwts.parser().setSigningKey(secretKey).build()
       .parseClaimsJws(apiKey).getPayload().get("id", String.class));
   }
