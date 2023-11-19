@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.CoreModule;
+import net.taskwolf.core.account.AccountLink;
 import net.taskwolf.core.action.ActionFactory;
 import net.taskwolf.core.action.ActionInformation;
 import net.taskwolf.core.command.Command;
@@ -29,6 +30,10 @@ public abstract class Module {
   }
 
   public ActionFactory actionFactory() {
+    return null;
+  }
+
+  public AccountLink accountLink() {
     return null;
   }
 
