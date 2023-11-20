@@ -129,7 +129,8 @@ public final class Distribution {
     UUID node, String moduleName, List<UUID> users
   ) {
     var list = redisson.getList("taskwolf-" + node.toString() + "-" + moduleName);
-    list.deleteAsync().thenAccept(value -> list.addAllAsync(users));
+    list.deleteAsync().thenAccept(value -> list.addAllAsync(users.stream()
+      .map(UUID::toString).collect(Collectors.toList())));
   }
 
   private CompletableFuture<List<UUID>> findAllPossibleUser() {

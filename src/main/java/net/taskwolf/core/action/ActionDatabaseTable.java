@@ -76,7 +76,7 @@ public final class ActionDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<ActionEntry>> findActionsByModuleAndType(
     String module, String type
   ) {
-    return selectRows("module='" + module + "' AND type='" + type + "'")
+    return selectRows("module='" + module + "' AND type='" + type + "' ALLOW FILTERING")
       .thenApply(rows -> rows.stream().map(ActionEntry::of)
         .collect(Collectors.toList()));
   }

@@ -73,7 +73,7 @@ public final class TriggerDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<TriggerEntry>> findTriggersByModuleAndType(
     String module, String type
   ) {
-    return selectRows("module='" + module + "' AND type='" + type + "'")
+    return selectRows("module='" + module + "' AND type='" + type + "' ALLOW FILTERING")
       .thenApply(rows -> rows.stream().map(TriggerEntry::of)
         .collect(Collectors.toList()));
   }

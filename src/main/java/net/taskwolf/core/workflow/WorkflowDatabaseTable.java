@@ -75,7 +75,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<WorkflowEntry> findWorkflowByTrigger(UUID triggerId) {
-    return selectRow("trigger=" + triggerId.toString())
+    return selectRow("trigger=" + triggerId.toString() + " ALLOW FILTERING")
       .thenApply(WorkflowEntry::of);
   }
 }
