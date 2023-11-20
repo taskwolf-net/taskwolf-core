@@ -68,7 +68,7 @@ public final class ActionDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<ActionEntry>> findActionsByWorkflow(
     UUID workflowId
   ) {
-    return selectRows("workflow=" + workflowId)
+    return selectRows("workflow=" + workflowId + " ALLOW FILTERING")
       .thenApply(rows -> rows.stream().map(ActionEntry::of)
         .collect(Collectors.toList()));
   }

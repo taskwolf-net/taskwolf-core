@@ -67,7 +67,7 @@ public final class TriggerDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<TriggerEntry> findTriggerByWorkflow(UUID workflowId) {
-    return selectRow("workflow=" + workflowId).thenApply(TriggerEntry::of);
+    return selectRow("workflow=" + workflowId + " ALLOW FILTERING").thenApply(TriggerEntry::of);
   }
 
   public CompletableFuture<List<TriggerEntry>> findTriggersByModuleAndType(
