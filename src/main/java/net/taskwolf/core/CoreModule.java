@@ -97,7 +97,8 @@ public class CoreModule {
       .thenApply(entries -> AsyncAllocationIterator.execute(entries, entry ->
           distribution.isAssignedUser(module, entry.ownerId()), entries.size(),
         triggers -> futureResponse.complete(triggers.entrySet().stream()
-          .filter(Map.Entry::getValue).map(Map.Entry::getKey).toList())));
+          .filter(Map.Entry::getValue).map(Map.Entry::getKey)
+          .filter(entry -> entry.state().isArmed()).toList())));
     return futureResponse;
   }
 
