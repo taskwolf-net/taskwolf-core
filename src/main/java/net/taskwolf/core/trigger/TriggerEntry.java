@@ -1,7 +1,7 @@
 package net.taskwolf.core.trigger;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.database.DatabaseRow;
 
@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Getter
 @Accessors(fluent = true)
-@RequiredArgsConstructor(staticName = "create")
+@AllArgsConstructor(staticName = "create")
 public final class TriggerEntry {
   public static TriggerEntry of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
@@ -24,5 +24,9 @@ public final class TriggerEntry {
   private final String module;
   private final String type;
   private final String content;
-  private final TriggerState state;
+  private TriggerState state;
+
+  public void changeState(TriggerState state) {
+    this.state = state;
+  }
 }

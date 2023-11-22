@@ -45,6 +45,21 @@ public final class TriggerDatabaseTable extends DatabaseTable {
     insert(DatabaseRow.of(id, ownerId, workflowId, module, type, content, state));
   }
 
+  public void changeState(UUID triggerId, TriggerState state) {
+    findTrigger(triggerId).thenAccept(entry -> changeState(entry, state));
+  }
+
+  private void changeState(TriggerEntry entry, TriggerState state) {
+    entry.changeState(state);
+    updateTrigger(entry);
+  }
+
+  private void updateTrigger(TriggerEntry entry) {
+    update(DatabaseCell.create(entry.id()), DatabaseRow.of(entry.id(),
+      entry.ownerId(), entry.workflowId(), entry.module(), entry.type(),
+      entry.content(), entry.state().toString()));
+  }
+
   public void deleteTrigger(UUID triggerId) {
     delete(DatabaseCell.create(triggerId));
   }

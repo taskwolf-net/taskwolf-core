@@ -17,7 +17,7 @@ public final class WorkflowEntry {
       WorkflowAffiliation.valueOf(row.findCell(2).stringValue()),
       row.findCell(3).uuidValue(), row.findCell(4).uuidValue(),
       row.findCell(5).listValue(), row.findCell(6).stringValue(),
-      row.findCell(7).stringValue());
+      row.findCell(7).stringValue(), row.findCell(8).stringValue());
   }
 
   private final UUID id;
@@ -26,6 +26,7 @@ public final class WorkflowEntry {
   private final UUID ownerId;
   private final UUID triggerId;
   private final List<UUID> actionIds;
+  private final String created;
   private final String name;
   private final String description;
 }

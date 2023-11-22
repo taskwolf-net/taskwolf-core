@@ -22,6 +22,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("trigger", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("actions", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("created", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("description", DatabaseDataType.TEXT));
     return new WorkflowDatabaseTable(connection, keyspace, TABLE_NAME, columns);
@@ -36,16 +37,16 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
 
   public void insertWorkflow(WorkflowEntry entry) {
     insertWorkflow(entry.id(), entry.creatorId(), entry.affiliation().toString(),
-      entry.ownerId(), entry.triggerId(), entry.actionIds(), entry.name(),
-      entry. description());
+      entry.ownerId(), entry.triggerId(), entry.actionIds(), entry.created(),
+      entry.name(), entry.description());
   }
 
   public void insertWorkflow(
-    UUID id, UUID creatorId, String affiliation, UUID ownerId,
-    UUID triggerId, List<UUID> actionIds, String name, String description
+    UUID id, UUID creatorId, String affiliation, UUID ownerId, UUID triggerId,
+    List<UUID> actionIds, String created, String name, String description
   ) {
     insert(DatabaseRow.of(id, creatorId, affiliation, ownerId, triggerId, actionIds,
-      name, description));
+      created, name, description));
   }
 
   public void deleteWorkflow(UUID workflowId) {
