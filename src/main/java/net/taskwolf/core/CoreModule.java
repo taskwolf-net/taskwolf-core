@@ -12,6 +12,8 @@ import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.iterator.AsyncAllocationIterator;
 import net.taskwolf.core.log.Log;
+import net.taskwolf.core.module.Module;
+import net.taskwolf.core.module.ModuleInformation;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.organization.InvitationDatabaseTable;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
@@ -53,6 +55,14 @@ public class CoreModule {
 
   void initialize() throws Exception {
     moduleLoader.loadModules(this);
+  }
+
+  public Optional<ModuleInformation> findModuleInformation(String moduleName) {
+    var moduleOptional = moduleLoader.findModule(moduleName);
+    if (moduleOptional.isEmpty()) {
+      return Optional.empty();
+    }
+    return moduleOptional.map(Module::moduleInformation);
   }
 
   public Optional<TriggerInformation> findTriggerInformation(
