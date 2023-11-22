@@ -26,6 +26,6 @@ public class ComponentInformation {
 
   public List<ComponentVariable> outputVariables() {
     return Stream.concat(inputVariables.stream(),
-      inputVariables.stream()).toList();
+      outputVariables.stream()).toList();
   }
 }
