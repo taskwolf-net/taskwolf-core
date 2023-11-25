@@ -26,7 +26,7 @@ import org.springframework.core.io.DefaultResourceLoader;
 
 import java.net.URLClassLoader;
 
-@SpringBootApplication(scanBasePackages = {"net.taskwolf"})
+@SpringBootApplication(scanBasePackages = {"net.taskwolf"}, exclude = {org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration.class})
 public class CoreApplication {
   public static void main(String[] args) throws Exception {
     Intro.create("1.0.0").print();

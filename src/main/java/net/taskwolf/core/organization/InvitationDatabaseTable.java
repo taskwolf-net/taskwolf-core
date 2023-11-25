@@ -8,7 +8,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public final class InvitationDatabaseTable extends DatabaseTable {
-  private static final String TABLE_NAME = "invitations";
+  private static final String TABLE_NAME = "invitation";
 
   public static InvitationDatabaseTable create(
     DatabaseConnection connection, DatabaseKeyspace keyspace

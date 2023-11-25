@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public final class ActionDatabaseTable extends DatabaseTable {
-  private static final String TABLE_NAME = "actions";
+  private static final String TABLE_NAME = "action";
 
   public static ActionDatabaseTable create(
     DatabaseConnection connection, DatabaseKeyspace keyspace

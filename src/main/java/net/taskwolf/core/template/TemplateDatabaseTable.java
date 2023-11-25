@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public final class TemplateDatabaseTable extends DatabaseTable {
-  private static final String TABLE_NAME = "templates";
+  private static final String TABLE_NAME = "template";
 
   public static TemplateDatabaseTable create(
     DatabaseConnection connection, DatabaseKeyspace keyspace

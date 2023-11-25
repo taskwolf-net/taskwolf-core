@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public final class TriggerDatabaseTable extends DatabaseTable {
-  private static final String TABLE_NAME = "triggers";
+  private static final String TABLE_NAME = "trigger";
 
   public static TriggerDatabaseTable create(
     DatabaseConnection connection, DatabaseKeyspace keyspace

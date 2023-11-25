@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public final class OrganizationDatabaseTable extends DatabaseTable {
-  private static final String TABLE_NAME = "organizations";
+  private static final String TABLE_NAME = "organization";
 
   public static OrganizationDatabaseTable create(
     DatabaseConnection connection, DatabaseKeyspace keyspace

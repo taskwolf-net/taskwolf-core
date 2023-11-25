@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public final class WorkflowDatabaseTable extends DatabaseTable {
-  private static final String TABLE_NAME = "workflows";
+  private static final String TABLE_NAME = "workflow";
 
   public static WorkflowDatabaseTable create(
     DatabaseConnection connection, DatabaseKeyspace keyspace

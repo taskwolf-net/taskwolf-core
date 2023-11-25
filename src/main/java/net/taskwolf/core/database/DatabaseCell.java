@@ -33,6 +33,13 @@ public final class DatabaseCell {
     return (int) value;
   }
 
+  public long longValue() {
+    if (!(value instanceof Long)) {
+      return -1;
+    }
+    return (long) value;
+  }
+
   public String stringValue() {
     if (!(value instanceof String)) {
       return null;
