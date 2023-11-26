@@ -23,6 +23,9 @@ public final class DatabaseCell {
       return ((List<String>) value).stream()
         .map(value -> "'" + value + "'").toList().toString();
     }
+    if (value == null) {
+      return null;
+    }
     return value.toString();
   }
 
