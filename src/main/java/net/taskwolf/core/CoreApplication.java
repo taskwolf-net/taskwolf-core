@@ -3,10 +3,7 @@ package net.taskwolf.core;
 import net.taskwolf.core.action.ActionDatabaseTable;
 import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.command.CommandTask;
-import net.taskwolf.core.command.implementation.DistributionCommand;
-import net.taskwolf.core.command.implementation.ExitCommand;
-import net.taskwolf.core.command.implementation.HelpCommand;
-import net.taskwolf.core.command.implementation.ModuleCommand;
+import net.taskwolf.core.command.implementation.*;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
@@ -59,6 +56,7 @@ public class CoreApplication {
     var templateDatabaseTable = TemplateDatabaseTable.create(databaseConnection,
       databaseKeyspace);
     templateDatabaseTable.createIfNotExists();
+    templateDatabaseTable.createIndexIfNotExists("modules");
     var distributionConfiguration = DistributionConfiguration.createAndLoad();
     var distribution = Distribution.create(distributionConfiguration,
       userDatabaseTable, organizationDatabaseTable);
@@ -77,7 +75,7 @@ public class CoreApplication {
       commandRegistry, application);
     coreModule.initialize();
     registerCommands(log, commandRegistry, moduleLoader, coreModule,
-      distributionConfiguration, distribution);
+      distributionConfiguration, distribution, templateDatabaseTable);
     application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
     log.info("Successfully booted Taskwolf - Core");
@@ -86,12 +84,13 @@ public class CoreApplication {
   private static void registerCommands(
     Log log, CommandRegistry registry, ModuleLoader moduleLoader,
     CoreModule coreModule, DistributionConfiguration distributionConfiguration,
-    Distribution distribution
+    Distribution distribution, TemplateDatabaseTable templateDatabaseTable
   ) {
     registry.register(HelpCommand.create(log));
     registry.register(ModuleCommand.create(log, moduleLoader, coreModule));
     registry.register(DistributionCommand.create(log, distributionConfiguration,
       distribution));
+    registry.register(TemplateCommand.create(log, templateDatabaseTable));
     registry.register(ExitCommand.create(log));
   }
 }

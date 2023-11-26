@@ -15,8 +15,9 @@ public final class HelpCommand extends Command {
   @Override
   public boolean execute(String[] arguments) {
     log().info("Commands: ");
-    log().info("- modules");
+    log().info("- module");
     log().info("- distribution");
+    log().info("- template");
     log().info("- exit");
     return true;
   }
