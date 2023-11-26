@@ -19,6 +19,7 @@ public final class TemplateDatabaseTable extends DatabaseTable {
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("trigger", DatabaseDataType.TEXT));
     columns.add(DatabaseListColumn.create("actions", DatabaseDataType.TEXT));
+    columns.add(DatabaseListColumn.create("modules", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("description", DatabaseDataType.TEXT));
     return new TemplateDatabaseTable(connection, keyspace, TABLE_NAME, columns);
@@ -34,13 +35,14 @@ public final class TemplateDatabaseTable extends DatabaseTable {
   public void insertTemplate(Template template) {
     insertTemplate(template.id(), template.trigger().encode(),
       template.actions().stream().map(TemplateAction::encode).toList(),
-      template.name(), template.description());
+      template.modules(), template.name(), template.description());
   }
 
   public void insertTemplate(
-    UUID id, String trigger, List<String> actions, String name, String description
+    UUID id, String trigger, List<String> actions, List<String> modules,
+    String name, String description
   ) {
-    insert(DatabaseRow.of(id, trigger, actions, name, description));
+    insert(DatabaseRow.of(id, trigger, actions, modules, name, description));
   }
 
   public void deleteTemplate(UUID templateId) {
@@ -65,7 +67,7 @@ public final class TemplateDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<List<Template>> findTemplatesByModule(String module) {
-    return selectRows("module='" + module + "'")
+    return selectRows("modules CONTAINS '" + module + "'")
       .thenApply(rows -> rows.stream().map(Template::of)
         .collect(Collectors.toList()));
   }

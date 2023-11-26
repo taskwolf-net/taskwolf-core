@@ -11,19 +11,16 @@ import org.json.JSONObject;
 public final class TemplateTrigger {
   public static TemplateTrigger of(String content) {
     var json = new JSONObject(content);
-    return create(json.getString("module"), json.getString("type"),
-      json.getString("content"));
+    return create(json.getString("module"), json.getString("type"));
   }
 
   private final String module;
   private final String type;
-  private final String content;
 
   public String encode() {
     var json = new JSONObject();
     json.put("module", module);
     json.put("type", type);
-    json.put("content", content);
     return json.toString();
   }
 }
