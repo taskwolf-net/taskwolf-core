@@ -31,6 +31,25 @@ public class DatabaseTable {
     connection.session().executeAsync(query.toString());
   }
 
+  public void createIndex(String column) {
+    createIndex(column, "");
+  }
+
+  public void createIndexIfNotExists(String column) {
+    createIndex(column, "IF NOT EXISTS");
+  }
+
+  private void createIndex(String column, String addition) {
+    var query = new StringBuilder("CREATE INDEX ");
+    query.append(addition);
+    query.append(" ON ");
+    query.append(fullName());
+    query.append(" (");
+    query.append(column);
+    query.append(");");
+    connection.session().executeAsync(query.toString());
+  }
+
   private String columnCompilation() {
     var compilation = new StringBuilder();
     for (var i = 0; i < columns.size(); i++) {
