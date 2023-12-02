@@ -83,8 +83,8 @@ public final class TemplateCommand extends Command {
     if (arguments.length < 7 || (arguments.length & 1) == 0) {
       return false;
     }
-    var name = arguments[1];
-    var description = arguments[2];
+    var name = arguments[1].replace("_", " ");
+    var description = arguments[2].replace("_", " ");
     var triggerModule = arguments[3];
     var triggerType = arguments[4];
     var actionModules = Lists.<String>newArrayList();
