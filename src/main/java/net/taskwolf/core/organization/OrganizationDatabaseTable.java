@@ -120,6 +120,11 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
     return selectRow(DatabaseCell.create(organizationId)).thenApply(Organization::of);
   }
 
+  public CompletableFuture<List<Organization>> findOrganizationsByOwner(UUID ownerId) {
+    return selectRows("owner=" + ownerId + " ALLOW FILTERING").thenApply(rows ->
+      rows.stream().map(Organization::of).toList());
+  }
+
   public CompletableFuture<List<Organization>> findAllOrganization() {
     return selectAllRows().thenApply(rows ->
       rows.stream().map(Organization::of).collect(Collectors.toList()));
