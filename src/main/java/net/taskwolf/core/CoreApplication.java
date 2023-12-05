@@ -17,6 +17,7 @@ import net.taskwolf.core.template.TemplateDatabaseTable;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
+import net.taskwolf.core.workflow.WorkflowExecutionDatabaseTable;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -53,6 +54,9 @@ public class CoreApplication {
     var workflowDatabaseTable = WorkflowDatabaseTable.create(databaseConnection,
       databaseKeyspace);
     workflowDatabaseTable.createIfNotExists();
+    var workflowExecutionDatabaseTable = WorkflowExecutionDatabaseTable.create(
+      databaseConnection, databaseKeyspace);
+    workflowExecutionDatabaseTable.createIfNotExists();
     var templateDatabaseTable = TemplateDatabaseTable.create(databaseConnection,
       databaseKeyspace);
     templateDatabaseTable.createIfNotExists();
