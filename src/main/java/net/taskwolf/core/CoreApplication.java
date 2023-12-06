@@ -30,59 +30,122 @@ public class CoreApplication {
     Intro.create("1.0.0").print();
     var log = Log.create("Core", "/logs/");
     log.info("Initializing Taskwolf - Core");
-    var databaseConnection = DatabaseConnection.create();
-    databaseConnection.connect();
-    var databaseKeyspace = DatabaseKeyspace.create(databaseConnection, "taskwolf",
-      "SimpleStrategy", 1);
-    databaseKeyspace.createIfNotExists();
-    databaseKeyspace.use();
-    var userDatabaseTable = UserDatabaseTable.create(databaseConnection,
-      databaseKeyspace);
-    userDatabaseTable.createIfNotExists();
-    var organizationDatabaseTable = OrganizationDatabaseTable.create(
-      databaseConnection, databaseKeyspace);
-    organizationDatabaseTable.createIfNotExists();
-    var invitationDatabaseTable = InvitationDatabaseTable.create(
-      databaseConnection, databaseKeyspace);
-    invitationDatabaseTable.createIfNotExists();
-    var triggerDatabaseTable = TriggerDatabaseTable.create(databaseConnection,
-      databaseKeyspace);
-    triggerDatabaseTable.createIfNotExists();
-    var actionDatabaseTable = ActionDatabaseTable.create(databaseConnection,
-      databaseKeyspace);
-    actionDatabaseTable.createIfNotExists();
-    var workflowDatabaseTable = WorkflowDatabaseTable.create(databaseConnection,
-      databaseKeyspace);
-    workflowDatabaseTable.createIfNotExists();
-    var workflowExecutionDatabaseTable = WorkflowExecutionDatabaseTable.create(
-      databaseConnection, databaseKeyspace);
-    workflowExecutionDatabaseTable.createIfNotExists();
-    var templateDatabaseTable = TemplateDatabaseTable.create(databaseConnection,
-      databaseKeyspace);
-    templateDatabaseTable.createIfNotExists();
-    templateDatabaseTable.createIndexIfNotExists("modules");
+    var databaseConnection = createDatabaseConnection();
+    var databaseKeyspace = createDatabaseKeyspace(databaseConnection);
+    var userDatabaseTable = createUserDatabaseTable(databaseConnection, databaseKeyspace);
+    var organizationDatabaseTable = createOrganizationDatabaseTable(databaseConnection, databaseKeyspace);
+    var invitationDatabaseTable = createInvitationDatabaseTable(databaseConnection, databaseKeyspace);
+    var triggerDatabaseTable = createTriggerDatabaseTable(databaseConnection, databaseKeyspace);
+    var actionDatabaseTable = createActionDatabaseTable(databaseConnection, databaseKeyspace);
+    var workflowDatabaseTable = createWorkflowDatabaseTable(databaseConnection, databaseKeyspace);
+    var workflowExecutionDatabaseTable = createWorkflowExecutionDatabaseTable(databaseConnection, databaseKeyspace);
+    var templateDatabaseTable = createTemplateDatabaseTable(databaseConnection, databaseKeyspace);
     var distributionConfiguration = DistributionConfiguration.createAndLoad();
     var distribution = Distribution.create(distributionConfiguration,
       userDatabaseTable, organizationDatabaseTable);
     distribution.initialize();
     var moduleLoader = ModuleLoader.create(log, System.getProperty("user.dir") +
       "/modules/", distribution);
-    var application = new SpringApplication(CoreApplication.class);
-    var classLoader = new URLClassLoader(moduleLoader.moduleFileUrls(),
-      application.getClassLoader());
-    application.setResourceLoader(new DefaultResourceLoader(classLoader));
+    var application = createSpringApplication(moduleLoader);
     var commandRegistry = CommandRegistry.create();
     var coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
       databaseKeyspace, userDatabaseTable, organizationDatabaseTable,
       invitationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
-      workflowDatabaseTable, templateDatabaseTable, distribution,
-      commandRegistry, application);
+      workflowDatabaseTable, workflowExecutionDatabaseTable, templateDatabaseTable,
+      distribution, commandRegistry, application);
     coreModule.initialize();
     registerCommands(log, commandRegistry, moduleLoader, coreModule,
       distributionConfiguration, distribution, templateDatabaseTable);
     application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
     log.info("Successfully booted Taskwolf - Core");
+  }
+
+  private static DatabaseConnection createDatabaseConnection() {
+    var databaseConnection = DatabaseConnection.create();
+    databaseConnection.connect();
+    return databaseConnection;
+  }
+
+  private static DatabaseKeyspace createDatabaseKeyspace(DatabaseConnection connection) {
+    var databaseKeyspace = DatabaseKeyspace.create(connection, "taskwolf",
+      "SimpleStrategy", 1);
+    databaseKeyspace.createIfNotExists();
+    databaseKeyspace.use();
+    return databaseKeyspace;
+  }
+
+  private static UserDatabaseTable createUserDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var userDatabaseTable = UserDatabaseTable.create(connection, keyspace);
+    userDatabaseTable.createIfNotExists();
+    return userDatabaseTable;
+  }
+
+  private static OrganizationDatabaseTable createOrganizationDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var organizationDatabaseTable = OrganizationDatabaseTable.create(connection, keyspace);
+    organizationDatabaseTable.createIfNotExists();
+    return organizationDatabaseTable;
+  }
+
+  private static InvitationDatabaseTable createInvitationDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var invitationDatabaseTable = InvitationDatabaseTable.create(connection, keyspace);
+    invitationDatabaseTable.createIfNotExists();
+    return invitationDatabaseTable;
+  }
+
+  private static TriggerDatabaseTable createTriggerDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var triggerDatabaseTable = TriggerDatabaseTable.create(connection, keyspace);
+    triggerDatabaseTable.createIfNotExists();
+    return triggerDatabaseTable;
+  }
+
+  private static ActionDatabaseTable createActionDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var actionDatabaseTable = ActionDatabaseTable.create(connection, keyspace);
+    actionDatabaseTable.createIfNotExists();
+    return actionDatabaseTable;
+  }
+
+  private static WorkflowDatabaseTable createWorkflowDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var workflowDatabaseTable = WorkflowDatabaseTable.create(connection, keyspace);
+    workflowDatabaseTable.createIfNotExists();
+    return workflowDatabaseTable;
+  }
+
+  private static WorkflowExecutionDatabaseTable createWorkflowExecutionDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var workflowExecutionDatabaseTable = WorkflowExecutionDatabaseTable.create(connection, keyspace);
+    workflowExecutionDatabaseTable.createIfNotExists();
+    return workflowExecutionDatabaseTable;
+  }
+
+  private static TemplateDatabaseTable createTemplateDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var templateDatabaseTable = TemplateDatabaseTable.create(connection, keyspace);
+    templateDatabaseTable.createIfNotExists();
+    templateDatabaseTable.createIndexIfNotExists("modules");
+    return templateDatabaseTable;
+  }
+
+  private static SpringApplication createSpringApplication(ModuleLoader loader) {
+    var application = new SpringApplication(CoreApplication.class);
+    var classLoader = new URLClassLoader(loader.moduleFileUrls(),
+      application.getClassLoader());
+    application.setResourceLoader(new DefaultResourceLoader(classLoader));
+    return application;
   }
 
   private static void registerCommands(
