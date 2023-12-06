@@ -16,7 +16,7 @@ public final class WorkflowExecutionDatabaseTable extends DatabaseTable {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("workflow", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
-    columns.add(DatabaseListColumn.create("executions", DatabaseDataType.TEXT));
+    columns.add(DatabaseListColumn.create("executions", DatabaseDataType.BIGINT));
     return new WorkflowExecutionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -27,12 +27,12 @@ public final class WorkflowExecutionDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public void addWorkflowExecution(UUID workflowId, String execution) {
+  public void addWorkflowExecution(UUID workflowId, long execution) {
     exists(DatabaseCell.create(workflowId)).thenAccept(exists ->
       addWorkflowExecution(workflowId, execution, exists));
   }
 
-  private void addWorkflowExecution(UUID workflowId, String execution, boolean exists) {
+  private void addWorkflowExecution(UUID workflowId, long execution, boolean exists) {
     if (!exists) {
       addWorkflowExecution(workflowId, execution);
       return;
@@ -41,23 +41,27 @@ public final class WorkflowExecutionDatabaseTable extends DatabaseTable {
       addWorkflowExecution(workflowId, execution, row));
   }
 
-  private void addWorkflowExecution(UUID workflowId, String execution, DatabaseRow row) {
-    var executions = row.findCell(1).<String>listValue();
+  private void addWorkflowExecution(UUID workflowId, long execution, DatabaseRow row) {
+    var executions = row.findCell(1).<Long>listValue();
     executions.add(execution);
     updateWorkflowExecutions(workflowId, executions);
   }
 
-  private void insertWorkflowExecution(UUID workflowId, String execution) {
-    insert(DatabaseRow.of(workflowId, Lists.newArrayList(execution)));
+  private void insertWorkflowExecution(UUID workflowId, long execution) {
+    insertWorkflowExecution(workflowId, Lists.newArrayList(execution));
   }
 
-  public void removeWorkflowExecution(UUID workflowId, String execution) {
+  public void insertWorkflowExecution(UUID workflowId, List<Long> executions) {
+    insert(DatabaseRow.of(workflowId, executions));
+  }
+
+  public void removeWorkflowExecution(UUID workflowId, long execution) {
     selectRow(DatabaseCell.create(workflowId)).thenAccept(row ->
       removeWorkflowExecution(workflowId, execution, row));
   }
 
-  private void removeWorkflowExecution(UUID workflowId, String execution, DatabaseRow row) {
-    var executions = row.findCell(1).<String>listValue();
+  private void removeWorkflowExecution(UUID workflowId, long execution, DatabaseRow row) {
+    var executions = row.findCell(1).<Long>listValue();
     if (executions.size() == 1) {
       deleteWorkflowExecutions(workflowId);
       return;
@@ -66,11 +70,11 @@ public final class WorkflowExecutionDatabaseTable extends DatabaseTable {
     updateWorkflowExecutions(workflowId, executions);
   }
 
-  private void updateWorkflowExecutions(UUID workflowId, List<String> executions) {
+  private void updateWorkflowExecutions(UUID workflowId, List<Long> executions) {
     update(DatabaseCell.create(workflowId), DatabaseRow.of(workflowId, executions));
   }
 
-  private void deleteWorkflowExecutions(UUID workflowId) {
+  public void deleteWorkflowExecutions(UUID workflowId) {
     delete(DatabaseCell.create(workflowId));
   }
 
@@ -78,7 +82,7 @@ public final class WorkflowExecutionDatabaseTable extends DatabaseTable {
     return exists(DatabaseCell.create(workflowId));
   }
 
-  public CompletableFuture<List<String>> findWorkflowExecutions(UUID workflowId) {
+  public CompletableFuture<List<Long>> findWorkflowExecutions(UUID workflowId) {
     return selectRow(DatabaseCell.create(workflowId)).thenApply(row ->
       row.findCell(1).listValue());
   }

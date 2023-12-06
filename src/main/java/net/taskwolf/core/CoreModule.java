@@ -25,6 +25,7 @@ import net.taskwolf.core.trigger.TriggerInformation;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.Workflow;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
+import net.taskwolf.core.workflow.WorkflowExecutionDatabaseTable;
 import org.springframework.boot.SpringApplication;
 
 import java.util.List;
@@ -48,6 +49,7 @@ public class CoreModule {
   private final TriggerDatabaseTable triggerDatabaseTable;
   private final ActionDatabaseTable actionDatabaseTable;
   private final WorkflowDatabaseTable workflowDatabaseTable;
+  private final WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable;
   private final TemplateDatabaseTable templateDatabaseTable;
   private final Distribution distribution;
   private final CommandRegistry commandRegistry;
@@ -106,7 +108,8 @@ public class CoreModule {
     var futureResponse = new CompletableFuture<Workflow>();
     workflowDatabaseTable.findWorkflowByTrigger(triggerId).thenAccept(workflowEntry ->
       createActions(workflowEntry.id()).thenApply(actions ->
-        futureResponse.complete(Workflow.create(actions))));
+        futureResponse.complete(Workflow.create(workflowExecutionDatabaseTable,
+          workflowEntry.id(), actions))));
     return futureResponse;
   }
 
