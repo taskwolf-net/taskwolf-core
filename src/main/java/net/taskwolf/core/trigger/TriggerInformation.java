@@ -1,7 +1,8 @@
 package net.taskwolf.core.trigger;
 
 import net.taskwolf.core.workflow.component.ComponentInformation;
-import net.taskwolf.core.workflow.component.ComponentVariable;
+import net.taskwolf.core.workflow.component.input.InputComponentVariable;
+import net.taskwolf.core.workflow.component.output.OutputComponentVariable;
 
 import java.util.List;
 
@@ -12,8 +13,8 @@ public final class TriggerInformation extends ComponentInformation {
 
   public static TriggerInformation create(
     String name, String description, String identifier,
-    List<ComponentVariable> inputVariables,
-    List<ComponentVariable> outputVariables
+    List<InputComponentVariable> inputVariables,
+    List<OutputComponentVariable> outputVariables
   ) {
     return new TriggerInformation(name, description, identifier,
       inputVariables, outputVariables);
@@ -21,8 +22,8 @@ public final class TriggerInformation extends ComponentInformation {
 
   private TriggerInformation(
     String name, String description, String identifier,
-    List<ComponentVariable> inputVariables,
-    List<ComponentVariable> outputVariables
+    List<InputComponentVariable> inputVariables,
+    List<OutputComponentVariable> outputVariables
   ) {
     super(name, description, identifier, inputVariables, outputVariables);
   }

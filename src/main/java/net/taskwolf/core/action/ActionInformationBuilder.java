@@ -3,6 +3,8 @@ package net.taskwolf.core.action;
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.workflow.component.ComponentVariable;
+import net.taskwolf.core.workflow.component.input.InputComponentVariable;
+import net.taskwolf.core.workflow.component.output.OutputComponentVariable;
 
 import java.util.List;
 
@@ -11,8 +13,8 @@ public final class ActionInformationBuilder {
   private String name = "Unknown";
   private String description = "";
   private String identifier = "";
-  private final List<ComponentVariable> inputVariables = Lists.newArrayList();
-  private final List<ComponentVariable> outputVariables = Lists.newArrayList();
+  private final List<InputComponentVariable> inputVariables = Lists.newArrayList();
+  private final List<OutputComponentVariable> outputVariables = Lists.newArrayList();
 
   public ActionInformationBuilder withName(String name) {
     this.name = name;
@@ -29,12 +31,12 @@ public final class ActionInformationBuilder {
     return this;
   }
 
-  public ActionInformationBuilder withInputVariable(ComponentVariable variable) {
+  public ActionInformationBuilder withInputVariable(InputComponentVariable variable) {
     inputVariables.add(variable);
     return this;
   }
 
-  public ActionInformationBuilder withOutputVariable(ComponentVariable variable) {
+  public ActionInformationBuilder withOutputVariable(OutputComponentVariable variable) {
     outputVariables.add(variable);
     return this;
   }

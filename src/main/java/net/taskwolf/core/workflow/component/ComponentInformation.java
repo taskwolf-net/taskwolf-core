@@ -4,6 +4,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.taskwolf.core.workflow.component.input.InputComponentVariable;
+import net.taskwolf.core.workflow.component.output.OutputComponentVariable;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -17,15 +19,14 @@ public class ComponentInformation {
   private final String description;
   @Getter
   private final String identifier;
-  private final List<ComponentVariable> inputVariables;
-  private final List<ComponentVariable> outputVariables;
+  private final List<InputComponentVariable> inputVariables;
+  private final List<OutputComponentVariable> outputVariables;
 
-  public List<ComponentVariable> inputVariables() {
+  public List<InputComponentVariable> inputVariables() {
     return List.copyOf(inputVariables);
   }
 
   public List<ComponentVariable> outputVariables() {
-    return Stream.concat(inputVariables.stream(),
-      outputVariables.stream()).toList();
+    return List.copyOf(outputVariables);
   }
 }

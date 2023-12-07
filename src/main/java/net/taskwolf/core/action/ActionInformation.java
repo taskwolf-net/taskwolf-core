@@ -2,6 +2,8 @@ package net.taskwolf.core.action;
 
 import net.taskwolf.core.workflow.component.ComponentInformation;
 import net.taskwolf.core.workflow.component.ComponentVariable;
+import net.taskwolf.core.workflow.component.input.InputComponentVariable;
+import net.taskwolf.core.workflow.component.output.OutputComponentVariable;
 
 import java.util.List;
 
@@ -12,8 +14,8 @@ public final class ActionInformation extends ComponentInformation {
 
   public static ActionInformation create(
     String name, String description, String identifier,
-    List<ComponentVariable> inputVariables,
-    List<ComponentVariable> outputVariables
+    List<InputComponentVariable> inputVariables,
+    List<OutputComponentVariable> outputVariables
   ) {
     return new ActionInformation(name, description, identifier,
       inputVariables, outputVariables);
@@ -21,8 +23,8 @@ public final class ActionInformation extends ComponentInformation {
 
   private ActionInformation(
     String name, String description, String identifier,
-    List<ComponentVariable> inputVariables,
-    List<ComponentVariable> outputVariables
+    List<InputComponentVariable> inputVariables,
+    List<OutputComponentVariable> outputVariables
   ) {
     super(name, description, identifier, inputVariables, outputVariables);
   }
