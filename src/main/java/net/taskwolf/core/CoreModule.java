@@ -7,6 +7,8 @@ import net.taskwolf.core.action.Action;
 import net.taskwolf.core.action.ActionDatabaseTable;
 import net.taskwolf.core.action.ActionInformation;
 import net.taskwolf.core.command.CommandRegistry;
+import net.taskwolf.core.condition.ConditionDatabaseTable;
+import net.taskwolf.core.condition.ConditionInformationRepository;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
@@ -48,11 +50,13 @@ public class CoreModule {
   private final InvitationDatabaseTable invitationDatabaseTable;
   private final TriggerDatabaseTable triggerDatabaseTable;
   private final ActionDatabaseTable actionDatabaseTable;
+  private final ConditionDatabaseTable conditionDatabaseTable;
   private final WorkflowDatabaseTable workflowDatabaseTable;
   private final WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable;
   private final TemplateDatabaseTable templateDatabaseTable;
   private final Distribution distribution;
   private final CommandRegistry commandRegistry;
+  private final ConditionInformationRepository conditionRepository;
   private final SpringApplication springApplication;
 
   void initialize() throws Exception {

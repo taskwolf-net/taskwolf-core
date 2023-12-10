@@ -4,6 +4,11 @@ import net.taskwolf.core.action.ActionDatabaseTable;
 import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.command.CommandTask;
 import net.taskwolf.core.command.implementation.*;
+import net.taskwolf.core.condition.ConditionDatabaseTable;
+import net.taskwolf.core.condition.ConditionInformationRepository;
+import net.taskwolf.core.condition.text.ConditionTextEndsWith;
+import net.taskwolf.core.condition.text.ConditionTextEquals;
+import net.taskwolf.core.condition.text.ConditionTextStartsWith;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
@@ -37,6 +42,7 @@ public class CoreApplication {
     var invitationDatabaseTable = createInvitationDatabaseTable(databaseConnection, databaseKeyspace);
     var triggerDatabaseTable = createTriggerDatabaseTable(databaseConnection, databaseKeyspace);
     var actionDatabaseTable = createActionDatabaseTable(databaseConnection, databaseKeyspace);
+    var conditionDatabaseTable = createConditionDatabaseTable(databaseConnection, databaseKeyspace);
     var workflowDatabaseTable = createWorkflowDatabaseTable(databaseConnection, databaseKeyspace);
     var workflowExecutionDatabaseTable = createWorkflowExecutionDatabaseTable(databaseConnection, databaseKeyspace);
     var templateDatabaseTable = createTemplateDatabaseTable(databaseConnection, databaseKeyspace);
@@ -48,11 +54,14 @@ public class CoreApplication {
       "/modules/", distribution);
     var application = createSpringApplication(moduleLoader);
     var commandRegistry = CommandRegistry.create();
+    var conditionRepository = ConditionInformationRepository.create();
+    registerConditions(conditionRepository);
     var coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
       databaseKeyspace, userDatabaseTable, organizationDatabaseTable,
       invitationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
-      workflowDatabaseTable, workflowExecutionDatabaseTable, templateDatabaseTable,
-      distribution, commandRegistry, application);
+      conditionDatabaseTable, workflowDatabaseTable, workflowExecutionDatabaseTable,
+      templateDatabaseTable, distribution, commandRegistry, conditionRepository,
+      application);
     coreModule.initialize();
     registerCommands(log, commandRegistry, moduleLoader, coreModule,
       distributionConfiguration, distribution, templateDatabaseTable);
@@ -115,6 +124,14 @@ public class CoreApplication {
     return actionDatabaseTable;
   }
 
+  private static ConditionDatabaseTable createConditionDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var conditionDatabaseTable = ConditionDatabaseTable.create(connection, keyspace);
+    conditionDatabaseTable.createIfNotExists();
+    return conditionDatabaseTable;
+  }
+
   private static WorkflowDatabaseTable createWorkflowDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
@@ -146,6 +163,12 @@ public class CoreApplication {
       application.getClassLoader());
     application.setResourceLoader(new DefaultResourceLoader(classLoader));
     return application;
+  }
+
+  private static void registerConditions(ConditionInformationRepository repository) {
+    repository.register(ConditionTextEquals.information());
+    repository.register(ConditionTextStartsWith.information());
+    repository.register(ConditionTextEndsWith.information());
   }
 
   private static void registerCommands(
