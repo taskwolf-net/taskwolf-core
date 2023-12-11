@@ -23,7 +23,7 @@ public final class ConditionTextEndsWith extends Condition {
   }
 
   @Override
-  protected boolean compare(Map<String, Object> information) {
+  public boolean compare(Map<String, Object> information) {
     dissolve(information);
     return inputValue().endsWith(comparativeValue());
   }
