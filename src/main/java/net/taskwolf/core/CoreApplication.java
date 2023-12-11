@@ -5,6 +5,7 @@ import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.command.CommandTask;
 import net.taskwolf.core.command.implementation.*;
 import net.taskwolf.core.condition.ConditionDatabaseTable;
+import net.taskwolf.core.condition.ConditionFactory;
 import net.taskwolf.core.condition.ConditionInformationRepository;
 import net.taskwolf.core.condition.text.ConditionTextEndsWith;
 import net.taskwolf.core.condition.text.ConditionTextEquals;
@@ -54,14 +55,15 @@ public class CoreApplication {
       "/modules/", distribution);
     var application = createSpringApplication(moduleLoader);
     var commandRegistry = CommandRegistry.create();
+    var conditionFactory = ConditionFactory.create();
     var conditionRepository = ConditionInformationRepository.create();
     registerConditions(conditionRepository);
     var coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
       databaseKeyspace, userDatabaseTable, organizationDatabaseTable,
       invitationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
       conditionDatabaseTable, workflowDatabaseTable, workflowExecutionDatabaseTable,
-      templateDatabaseTable, distribution, commandRegistry, conditionRepository,
-      application);
+      templateDatabaseTable, distribution, commandRegistry, conditionFactory,
+      conditionRepository, application);
     coreModule.initialize();
     registerCommands(log, commandRegistry, moduleLoader, coreModule,
       distributionConfiguration, distribution, templateDatabaseTable);

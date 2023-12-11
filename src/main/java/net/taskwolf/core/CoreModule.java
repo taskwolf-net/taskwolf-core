@@ -1,5 +1,7 @@
 package net.taskwolf.core;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -7,8 +9,7 @@ import net.taskwolf.core.action.Action;
 import net.taskwolf.core.action.ActionDatabaseTable;
 import net.taskwolf.core.action.ActionInformation;
 import net.taskwolf.core.command.CommandRegistry;
-import net.taskwolf.core.condition.ConditionDatabaseTable;
-import net.taskwolf.core.condition.ConditionInformationRepository;
+import net.taskwolf.core.condition.*;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
@@ -56,6 +57,7 @@ public class CoreModule {
   private final TemplateDatabaseTable templateDatabaseTable;
   private final Distribution distribution;
   private final CommandRegistry commandRegistry;
+  private final ConditionFactory conditionFactory;
   private final ConditionInformationRepository conditionRepository;
   private final SpringApplication springApplication;
 
@@ -112,8 +114,9 @@ public class CoreModule {
     var futureResponse = new CompletableFuture<Workflow>();
     workflowDatabaseTable.findWorkflowByTrigger(triggerId).thenAccept(workflowEntry ->
       createActions(workflowEntry.id()).thenApply(actions ->
-        futureResponse.complete(Workflow.create(workflowExecutionDatabaseTable,
-          workflowEntry.id(), actions))));
+        createConditions(workflowEntry.id()).thenApply(conditions ->
+          futureResponse.complete(Workflow.create(workflowExecutionDatabaseTable,
+            workflowEntry.id(), actions, conditions)))));
     return futureResponse;
   }
 
@@ -122,6 +125,20 @@ public class CoreModule {
       .thenApply(entries -> entries.stream().map(entry ->
         createAction(entry.module(), entry.type(), entry.content()))
         .collect(Collectors.toList()));
+  }
+
+  private CompletableFuture<Multimap<Integer, Condition>> createConditions(UUID workflowId) {
+    return conditionDatabaseTable.findConditionsByWorkflow(workflowId)
+      .thenApply(this::createConditionsMap);
+  }
+
+  private Multimap<Integer, Condition> createConditionsMap(List<ConditionEntry> conditions) {
+    var result = HashMultimap.<Integer, Condition>create();
+    for (var condition : conditions) {
+      result.put(condition.index(), conditionFactory.create(condition.type(),
+        condition.content()));
+    }
+    return result;
   }
 
   public Trigger createTrigger(String module, String type, String content) {
