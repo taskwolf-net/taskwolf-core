@@ -1,7 +1,6 @@
 package net.taskwolf.core.condition;
 
 import com.google.common.collect.Lists;
-import net.taskwolf.core.action.ActionEntry;
 import net.taskwolf.core.database.*;
 
 import java.util.List;
@@ -31,8 +30,9 @@ public final class ConditionDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public void insertCondition(ActionEntry entry) {
-    insertCondition(entry.id(), entry.ownerId(), entry.workflowId(), entry.content());
+  public void insertCondition(ConditionEntry entry) {
+    insertCondition(entry.id(), entry.ownerId(), entry.workflowId(),
+      entry.content());
   }
 
   public void insertCondition(
