@@ -7,9 +7,8 @@ import org.json.JSONObject;
 
 @RequiredArgsConstructor(staticName = "create")
 public class ConditionFactory {
-  public Condition create(String content) {
+  public Condition create(String type, String content) {
     var json = new JSONObject(content);
-    var type = json.getString("type");
     var inputValue = json.getString("inputValue");
     var comparativeValue = json.getString("comparativeValue");
     if (type.equals("condition-text-equals")) {
