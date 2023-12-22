@@ -20,7 +20,7 @@ public final class ConditionEntry {
   private final UUID id;
   private final UUID ownerId;
   private final UUID workflowId;
-  private final int index;
+  private final int actionIndex;
   private final String type;
   private final String content;
 }

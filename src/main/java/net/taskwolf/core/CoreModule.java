@@ -135,7 +135,7 @@ public class CoreModule {
   private Multimap<Integer, Condition> createConditionsMap(List<ConditionEntry> conditions) {
     var result = HashMultimap.<Integer, Condition>create();
     for (var condition : conditions) {
-      result.put(condition.index(), conditionFactory.create(condition.type(),
+      result.put(condition.actionIndex(), conditionFactory.create(condition.type(),
         condition.content()));
     }
     return result;
