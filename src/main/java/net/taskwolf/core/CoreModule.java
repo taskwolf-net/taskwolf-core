@@ -1,12 +1,14 @@
 package net.taskwolf.core;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.action.Action;
 import net.taskwolf.core.action.ActionDatabaseTable;
+import net.taskwolf.core.action.ActionEntry;
 import net.taskwolf.core.action.ActionInformation;
 import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.condition.*;
@@ -120,11 +122,18 @@ public class CoreModule {
     return futureResponse;
   }
 
-  private CompletableFuture<List<Action>> createActions(UUID workflowId) {
+  private CompletableFuture<Map<Integer, Action>> createActions(UUID workflowId) {
     return actionDatabaseTable.findActionsByWorkflow(workflowId)
-      .thenApply(entries -> entries.stream().map(entry ->
-        createAction(entry.module(), entry.type(), entry.content()))
-        .collect(Collectors.toList()));
+      .thenApply(this::createActionsMap);
+  }
+
+  private Map<Integer, Action> createActionsMap(List<ActionEntry> actions) {
+    var result = Maps.<Integer, Action>newHashMap();
+    for (var action : actions) {
+      result.put(action.actionIndex(), createAction(action.module(),
+        action.type(), action.content()));
+    }
+    return result;
   }
 
   private CompletableFuture<Multimap<Integer, Condition>> createConditions(UUID workflowId) {

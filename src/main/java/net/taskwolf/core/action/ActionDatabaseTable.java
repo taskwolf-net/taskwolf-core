@@ -19,6 +19,7 @@ public final class ActionDatabaseTable extends DatabaseTable {
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("workflow", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("actionIndex", DatabaseDataType.INT));
     columns.add(DatabaseColumn.create("module", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
@@ -34,14 +35,15 @@ public final class ActionDatabaseTable extends DatabaseTable {
 
   public void insertAction(ActionEntry entry) {
     insertAction(entry.id(), entry.ownerId(), entry.workflowId(),
-      entry.module(), entry.type(), entry.content());
+      entry.actionIndex(), entry.module(), entry.type(), entry.content());
   }
 
   public void insertAction(
-    UUID id, UUID ownerId, UUID workflowId, String module, String type,
-    String content
+    UUID id, UUID ownerId, UUID workflowId, int actionIndex, String module,
+    String type, String content
   ) {
-    insert(DatabaseRow.of(id, ownerId, workflowId, module, type, content));
+    insert(DatabaseRow.of(id, ownerId, workflowId, actionIndex, module, type,
+      content));
   }
 
   public void deleteAction(UUID actionId) {

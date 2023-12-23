@@ -13,7 +13,7 @@ import java.util.UUID;
 public final class Workflow {
   private final WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable;
   private final UUID workflowId;
-  private final List<Action> actions;
+  private final Map<Integer, Action> actions;
   private final Multimap<Integer, Condition> conditions;
 
   public void trigger(Map<String, Object> information) {
