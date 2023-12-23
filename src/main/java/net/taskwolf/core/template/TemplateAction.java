@@ -11,14 +11,17 @@ import org.json.JSONObject;
 public final class TemplateAction {
   public static TemplateAction of(String content) {
     var json = new JSONObject(content);
-    return create(json.getString("module"), json.getString("type"));
+    return create(json.getInt("actionIndex"), json.getString("module"),
+      json.getString("type"));
   }
 
+  private final int actionIndex;
   private final String module;
   private final String type;
 
   public String encode() {
     var json = new JSONObject();
+    json.put("actionIndex", actionIndex);
     json.put("module", module);
     json.put("type", type);
     return json.toString();

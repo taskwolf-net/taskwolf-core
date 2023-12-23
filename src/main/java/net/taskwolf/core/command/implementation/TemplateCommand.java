@@ -105,7 +105,7 @@ public final class TemplateCommand extends Command {
   ) {
     var actions = Lists.<TemplateAction>newArrayList();
     for (int i = 0; i < actionTypes.size(); i++) {
-      actions.add(TemplateAction.create(actionModules.get(i), actionTypes.get(i)));
+      actions.add(TemplateAction.create(i, actionModules.get(i), actionTypes.get(i)));
     }
     templateDatabaseTable.insertTemplate(Template.create(id,
       TemplateTrigger.create(triggerModule, triggerType), actions, name, description));
