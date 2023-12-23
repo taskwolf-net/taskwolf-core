@@ -10,7 +10,7 @@ public final class PlaceholderDissolve {
 
   public String dissolve(String value) {
     for (var entry : context.entrySet()) {
-      value = value.replace("%" + entry.getKey(), entry.getValue().toString() + "%");
+      value = value.replace("%" + entry.getKey() + "%", entry.getValue().toString());
     }
     return value;
   }
