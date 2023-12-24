@@ -17,7 +17,7 @@ public final class WorkflowEntry {
       WorkflowAffiliation.valueOf(row.findCell(2).stringValue()),
       row.findCell(3).uuidValue(), row.findCell(4).uuidValue(),
       row.findCell(5).listValue(), row.findCell(6).listValue(),
-      row.findCell(7).listValue(), row.findCell(8).stringValue(),
+      row.findCell(7).listValue(), row.findCell(8).longValue(),
       row.findCell(9).stringValue(), row.findCell(10).stringValue());
   }
 
@@ -29,7 +29,7 @@ public final class WorkflowEntry {
   private final List<UUID> actionIds;
   private final List<UUID> conditionIds;
   private final List<String> modules;
-  private final String created;
+  private final long created;
   private final String name;
   private final String description;
 }

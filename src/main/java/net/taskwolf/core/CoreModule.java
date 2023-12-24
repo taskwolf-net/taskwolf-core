@@ -31,6 +31,7 @@ import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.Workflow;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowExecutionDatabaseTable;
+import net.taskwolf.core.workflow.timeline.TimelineFactory;
 import org.springframework.boot.SpringApplication;
 
 import java.util.List;
@@ -61,6 +62,7 @@ public class CoreModule {
   private final CommandRegistry commandRegistry;
   private final ConditionFactory conditionFactory;
   private final ConditionInformationRepository conditionRepository;
+  private final TimelineFactory timelineFactory;
   private final SpringApplication springApplication;
 
   void initialize() throws Exception {

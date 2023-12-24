@@ -24,7 +24,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     columns.add(DatabaseListColumn.create("actions", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("conditions", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("modules", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("created", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("created", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("description", DatabaseDataType.TEXT));
     return new WorkflowDatabaseTable(connection, keyspace, TABLE_NAME, columns);
@@ -46,7 +46,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   public void insertWorkflow(
     UUID id, UUID creatorId, String affiliation, UUID ownerId, UUID triggerId,
     List<UUID> actionIds, List<UUID> conditionIds, List<String> modules,
-    String created, String name, String description
+    long created, String name, String description
   ) {
     insert(DatabaseRow.of(id, creatorId, affiliation, ownerId, triggerId, actionIds,
       conditionIds, modules, created, name, description));

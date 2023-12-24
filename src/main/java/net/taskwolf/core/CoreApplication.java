@@ -24,6 +24,9 @@ import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowExecutionDatabaseTable;
+import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
+import net.taskwolf.core.workflow.timeline.TimelineFactory;
+import net.taskwolf.core.workflow.timeline.entry.TimelineEntryFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -47,6 +50,7 @@ public class CoreApplication {
     var workflowDatabaseTable = createWorkflowDatabaseTable(databaseConnection, databaseKeyspace);
     var workflowExecutionDatabaseTable = createWorkflowExecutionDatabaseTable(databaseConnection, databaseKeyspace);
     var templateDatabaseTable = createTemplateDatabaseTable(databaseConnection, databaseKeyspace);
+    var timelineDatabaseTable = createTimelineDatabaseTable(databaseConnection, databaseKeyspace);
     var distributionConfiguration = DistributionConfiguration.createAndLoad();
     var distribution = Distribution.create(distributionConfiguration,
       userDatabaseTable, organizationDatabaseTable);
@@ -58,12 +62,14 @@ public class CoreApplication {
     var conditionFactory = ConditionFactory.create();
     var conditionRepository = ConditionInformationRepository.create();
     registerConditions(conditionRepository);
+    var timelineEntryFactory = TimelineEntryFactory.create(userDatabaseTable);
+    var timelineFactory = TimelineFactory.create(timelineDatabaseTable, timelineEntryFactory);
     var coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
       databaseKeyspace, userDatabaseTable, organizationDatabaseTable,
       invitationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
       conditionDatabaseTable, workflowDatabaseTable, workflowExecutionDatabaseTable,
       templateDatabaseTable, distribution, commandRegistry, conditionFactory,
-      conditionRepository, application);
+      conditionRepository, timelineFactory, application);
     coreModule.initialize();
     registerCommands(log, commandRegistry, moduleLoader, coreModule,
       distributionConfiguration, distribution, templateDatabaseTable);
@@ -157,6 +163,14 @@ public class CoreApplication {
     templateDatabaseTable.createIfNotExists();
     templateDatabaseTable.createIndexIfNotExists("modules");
     return templateDatabaseTable;
+  }
+
+  private static TimelineDatabaseTable createTimelineDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var timelineDatabaseTable = TimelineDatabaseTable.create(connection, keyspace);
+    timelineDatabaseTable.createIfNotExists();
+    return timelineDatabaseTable;
   }
 
   private static SpringApplication createSpringApplication(ModuleLoader loader) {
