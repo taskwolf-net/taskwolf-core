@@ -51,7 +51,7 @@ dependencies {
 
   implementation("org.redisson:redisson:3.25.0")
 
-  implementation("org.springframework.boot:spring-boot-starter-web:3.2.0")
+  implementation("org.springframework.boot:spring-boot-starter-web:3.2.1")
 
   implementation("io.jsonwebtoken:jjwt:0.12.3")
 }
