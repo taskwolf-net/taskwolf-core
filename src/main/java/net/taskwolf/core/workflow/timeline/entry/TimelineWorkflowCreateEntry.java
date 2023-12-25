@@ -27,11 +27,11 @@ public final class TimelineWorkflowCreateEntry extends TimelineEntry {
 
   @Override
   public String title() {
-    return "";
+    return "Workflow was created";
   }
 
   @Override
   public String description() {
-    return "";
+    return "The workflow was published by " + creator + ".";
   }
 }

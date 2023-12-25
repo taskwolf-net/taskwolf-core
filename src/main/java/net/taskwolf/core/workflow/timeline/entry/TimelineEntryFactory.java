@@ -15,6 +15,24 @@ public final class TimelineEntryFactory {
     if (type.equals("timeline-workflow-create")) {
       return TimelineWorkflowCreateEntry.of(time, userDatabaseTable, json);
     }
+    if (type.equals("timeline-workflow-execute")) {
+      return CompletableFuture.completedFuture(TimelineWorkflowExecuteEntry.create(time));
+    }
+    if (type.equals("timeline-workflow-presentation")) {
+      return TimelineWorkflowPresentationEntry.of(time, userDatabaseTable, json);
+    }
+    if (type.equals("timeline-workflow-action-add")) {
+      return TimelineWorkflowActionAddEntry.of(time, userDatabaseTable, json);
+    }
+    if (type.equals("timeline-workflow-action-remove")) {
+      return TimelineWorkflowActionRemoveEntry.of(time, userDatabaseTable, json);
+    }
+    if (type.equals("timeline-workflow-condition-add")) {
+      return TimelineWorkflowConditionAddEntry.of(time, userDatabaseTable, json);
+    }
+    if (type.equals("timeline-workflow-condition-remove")) {
+      return TimelineWorkflowConditionRemoveEntry.of(time, userDatabaseTable, json);
+    }
     return null;
   }
 }

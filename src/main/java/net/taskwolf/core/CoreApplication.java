@@ -68,8 +68,8 @@ public class CoreApplication {
       databaseKeyspace, userDatabaseTable, organizationDatabaseTable,
       invitationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
       conditionDatabaseTable, workflowDatabaseTable, workflowExecutionDatabaseTable,
-      templateDatabaseTable, distribution, commandRegistry, conditionFactory,
-      conditionRepository, timelineFactory, application);
+      templateDatabaseTable, timelineDatabaseTable, distribution, commandRegistry,
+      conditionFactory, conditionRepository, timelineFactory, application);
     coreModule.initialize();
     registerCommands(log, commandRegistry, moduleLoader, coreModule,
       distributionConfiguration, distribution, templateDatabaseTable);

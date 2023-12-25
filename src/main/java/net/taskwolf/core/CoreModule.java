@@ -31,6 +31,7 @@ import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.Workflow;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowExecutionDatabaseTable;
+import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
 import net.taskwolf.core.workflow.timeline.TimelineFactory;
 import org.springframework.boot.SpringApplication;
 
@@ -39,7 +40,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 @Getter
 @Accessors(fluent = true)
@@ -58,6 +58,7 @@ public class CoreModule {
   private final WorkflowDatabaseTable workflowDatabaseTable;
   private final WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable;
   private final TemplateDatabaseTable templateDatabaseTable;
+  private final TimelineDatabaseTable timelineDatabaseTable;
   private final Distribution distribution;
   private final CommandRegistry commandRegistry;
   private final ConditionFactory conditionFactory;
@@ -120,7 +121,7 @@ public class CoreModule {
       createActions(workflowEntry.id()).thenApply(actions ->
         createConditions(workflowEntry.id()).thenApply(conditions ->
           futureResponse.complete(Workflow.create(workflowExecutionDatabaseTable,
-            workflowEntry.id(), actions, conditions)))));
+            timelineDatabaseTable, workflowEntry.id(), actions, conditions)))));
     return futureResponse;
   }
 

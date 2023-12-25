@@ -14,9 +14,13 @@ public abstract class TimelineEntry {
 
   public abstract String description();
 
-  public String time() {
+  public long rawTime() {
+    return time;
+  }
+
+  public String formattedTime() {
     var calendar = Calendar.getInstance();
     calendar.setTimeInMillis(time);
-    return new SimpleDateFormat("dd.MM.yyyy").format(calendar.getTime());
+    return new SimpleDateFormat("dd.MM.yyyy HH:mm").format(calendar.getTime());
   }
 }
