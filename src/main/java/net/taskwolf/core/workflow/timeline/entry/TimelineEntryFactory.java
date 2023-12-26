@@ -18,6 +18,9 @@ public final class TimelineEntryFactory {
     if (type.equals("timeline-workflow-execute")) {
       return CompletableFuture.completedFuture(TimelineWorkflowExecuteEntry.create(time));
     }
+    if (type.equals("timeline-workflow-failure")) {
+      return CompletableFuture.completedFuture(TimelineWorkflowFailureEntry.of(time, json));
+    }
     if (type.equals("timeline-workflow-presentation")) {
       return TimelineWorkflowPresentationEntry.of(time, userDatabaseTable, json);
     }
