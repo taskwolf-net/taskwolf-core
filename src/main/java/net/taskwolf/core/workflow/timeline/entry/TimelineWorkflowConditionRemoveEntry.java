@@ -34,4 +34,9 @@ public final class TimelineWorkflowConditionRemoveEntry extends TimelineEntry {
   public String description() {
     return "A condition was removed from the workflow by " + actor + ".";
   }
+
+  @Override
+  public TimelineEntryLevel level() {
+    return TimelineEntryLevel.INFO;
+  }
 }

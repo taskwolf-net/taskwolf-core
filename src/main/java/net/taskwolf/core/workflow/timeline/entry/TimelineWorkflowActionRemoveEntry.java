@@ -34,4 +34,9 @@ public final class TimelineWorkflowActionRemoveEntry extends TimelineEntry {
   public String description() {
     return "An action was removed from the workflow by " + actor + ".";
   }
+
+  @Override
+  public TimelineEntryLevel level() {
+    return TimelineEntryLevel.INFO;
+  }
 }

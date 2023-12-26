@@ -34,4 +34,9 @@ public final class TimelineWorkflowConditionAddEntry extends TimelineEntry {
   public String description() {
     return "A condition was added to the workflow by " + actor + ".";
   }
+
+  @Override
+  public TimelineEntryLevel level() {
+    return TimelineEntryLevel.INFO;
+  }
 }

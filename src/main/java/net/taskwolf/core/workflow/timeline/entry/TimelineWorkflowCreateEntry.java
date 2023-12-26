@@ -34,4 +34,9 @@ public final class TimelineWorkflowCreateEntry extends TimelineEntry {
   public String description() {
     return "The workflow was published by " + creator + ".";
   }
+
+  @Override
+  public TimelineEntryLevel level() {
+    return TimelineEntryLevel.INFO;
+  }
 }

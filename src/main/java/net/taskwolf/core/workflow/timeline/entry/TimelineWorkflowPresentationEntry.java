@@ -34,4 +34,9 @@ public final class TimelineWorkflowPresentationEntry extends TimelineEntry {
   public String description() {
     return actor + " has changed the name or description of the workflow.";
   }
+
+  @Override
+  public TimelineEntryLevel level() {
+    return TimelineEntryLevel.INFO;
+  }
 }

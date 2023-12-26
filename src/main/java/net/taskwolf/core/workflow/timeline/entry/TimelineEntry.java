@@ -14,6 +14,8 @@ public abstract class TimelineEntry {
 
   public abstract String description();
 
+  public abstract TimelineEntryLevel level();
+
   public long rawTime() {
     return time;
   }

@@ -34,4 +34,9 @@ public final class TimelineWorkflowActionAddEntry extends TimelineEntry {
   public String description() {
     return "An action was added to the workflow by " + actor + ".";
   }
+
+  @Override
+  public TimelineEntryLevel level() {
+    return TimelineEntryLevel.INFO;
+  }
 }
