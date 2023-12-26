@@ -22,6 +22,7 @@ import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.template.TemplateDatabaseTable;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.user.UserDatabaseTable;
+import net.taskwolf.core.user.UserVerificationDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowExecutionDatabaseTable;
 import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
@@ -42,6 +43,7 @@ public class CoreApplication {
     var databaseConnection = createDatabaseConnection();
     var databaseKeyspace = createDatabaseKeyspace(databaseConnection);
     var userDatabaseTable = createUserDatabaseTable(databaseConnection, databaseKeyspace);
+    var userVerificationDatabaseTable = createUserVerificationDatabaseTable(databaseConnection, databaseKeyspace);
     var organizationDatabaseTable = createOrganizationDatabaseTable(databaseConnection, databaseKeyspace);
     var invitationDatabaseTable = createInvitationDatabaseTable(databaseConnection, databaseKeyspace);
     var triggerDatabaseTable = createTriggerDatabaseTable(databaseConnection, databaseKeyspace);
@@ -65,11 +67,12 @@ public class CoreApplication {
     var timelineEntryFactory = TimelineEntryFactory.create(userDatabaseTable);
     var timelineFactory = TimelineFactory.create(timelineDatabaseTable, timelineEntryFactory);
     var coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
-      databaseKeyspace, userDatabaseTable, organizationDatabaseTable,
-      invitationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
-      conditionDatabaseTable, workflowDatabaseTable, workflowExecutionDatabaseTable,
-      templateDatabaseTable, timelineDatabaseTable, distribution, commandRegistry,
-      conditionFactory, conditionRepository, timelineFactory, application);
+      databaseKeyspace, userDatabaseTable, userVerificationDatabaseTable,
+      organizationDatabaseTable, invitationDatabaseTable, triggerDatabaseTable,
+      actionDatabaseTable, conditionDatabaseTable, workflowDatabaseTable,
+      workflowExecutionDatabaseTable, templateDatabaseTable, timelineDatabaseTable,
+      distribution, commandRegistry, conditionFactory, conditionRepository,
+      timelineFactory, application);
     coreModule.initialize();
     registerCommands(log, commandRegistry, moduleLoader, coreModule,
       distributionConfiguration, distribution, templateDatabaseTable);
@@ -98,6 +101,14 @@ public class CoreApplication {
     var userDatabaseTable = UserDatabaseTable.create(connection, keyspace);
     userDatabaseTable.createIfNotExists();
     return userDatabaseTable;
+  }
+
+  private static UserVerificationDatabaseTable createUserVerificationDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var userVerificationDatabaseTable = UserVerificationDatabaseTable.create(connection, keyspace);
+    userVerificationDatabaseTable.createIfNotExists();
+    return userVerificationDatabaseTable;
   }
 
   private static OrganizationDatabaseTable createOrganizationDatabaseTable(
