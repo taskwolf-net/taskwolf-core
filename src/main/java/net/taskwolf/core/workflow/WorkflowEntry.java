@@ -18,7 +18,8 @@ public final class WorkflowEntry {
       row.findCell(3).uuidValue(), row.findCell(4).uuidValue(),
       row.findCell(5).listValue(), row.findCell(6).listValue(),
       row.findCell(7).listValue(), row.findCell(8).longValue(),
-      row.findCell(9).stringValue(), row.findCell(10).stringValue());
+      row.findCell(9).stringValue(), row.findCell(10).stringValue(),
+      WorkflowState.valueOf(row.findCell(11).stringValue()));
   }
 
   private final UUID id;
@@ -32,4 +33,5 @@ public final class WorkflowEntry {
   private final long created;
   private final String name;
   private final String description;
+  private final WorkflowState state;
 }

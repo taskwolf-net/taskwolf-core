@@ -120,8 +120,9 @@ public class CoreModule {
     workflowDatabaseTable.findWorkflowByTrigger(triggerId).thenAccept(workflowEntry ->
       createActions(workflowEntry.id()).thenApply(actions ->
         createConditions(workflowEntry.id()).thenApply(conditions ->
-          futureResponse.complete(Workflow.create(workflowExecutionDatabaseTable,
-            timelineDatabaseTable, workflowEntry.id(), actions, conditions)))));
+          futureResponse.complete(Workflow.create(workflowDatabaseTable,
+            workflowExecutionDatabaseTable, timelineDatabaseTable, workflowEntry,
+            actions, conditions)))));
     return futureResponse;
   }
 

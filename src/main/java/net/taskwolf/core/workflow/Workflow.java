@@ -8,13 +8,13 @@ import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
 import org.json.JSONObject;
 
 import java.util.Map;
-import java.util.UUID;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class Workflow {
+  private final WorkflowDatabaseTable workflowDatabaseTable;
   private final WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable;
   private final TimelineDatabaseTable timelineDatabaseTable;
-  private final UUID workflowId;
+  private final WorkflowEntry workflowEntry;
   private final Map<Integer, Action> actions;
   private final Multimap<Integer, Condition> conditions;
 
@@ -35,17 +35,22 @@ public final class Workflow {
 
   private void postExecutionSuccess() {
     long currentTime = System.currentTimeMillis();
-    workflowExecutionDatabaseTable.addWorkflowExecution(workflowId, currentTime);
+    if (workflowEntry.state().isFailing()) {
+      workflowDatabaseTable.updateWorkflowState(workflowEntry, WorkflowState.OPERATIONAL);
+    }
+    workflowExecutionDatabaseTable.addWorkflowExecution(workflowEntry.id(), currentTime);
     timelineDatabaseTable.generateAvailableEntryId().thenAccept(id ->
-      timelineDatabaseTable.insertEntry(id, workflowId, currentTime,
+      timelineDatabaseTable.insertEntry(id, workflowEntry.id(), currentTime,
         "timeline-workflow-execute", "{}"));
   }
 
   private void postExecutionFailure(String failureMessage) {
     long currentTime = System.currentTimeMillis();
-    //TODO: Mark workflow as failed in WorkflowDatabaseTable (for dashboard display)
+    if (workflowEntry.state().isOperational()) {
+      workflowDatabaseTable.updateWorkflowState(workflowEntry, WorkflowState.FAILING);
+    }
     timelineDatabaseTable.generateAvailableEntryId().thenAccept(id ->
-      timelineDatabaseTable.insertEntry(id, workflowId, currentTime,
+      timelineDatabaseTable.insertEntry(id, workflowEntry.id(), currentTime,
         "timeline-workflow-failure", new JSONObject(Map.of("message",
           failureMessage)).toString()));
   }
