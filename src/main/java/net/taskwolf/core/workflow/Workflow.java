@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.action.Action;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
+import org.json.JSONObject;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,15 +21,33 @@ public final class Workflow {
   public void trigger(Map<String, Object> information) {
     for (var i = 0; i < actions.size(); i++) {
       if (!checkConditions(i, information)) {
-        break;
+        return;
       }
-      information.putAll(actions.get(i).execute(information));
+      var result = actions.get(i).execute(information);
+      if (result.isFailure()) {
+        postExecutionFailure(result.failureMessage());
+        return;
+      }
+      information.putAll(result.information());
     }
+    postExecutionSuccess();
+  }
+
+  private void postExecutionSuccess() {
     long currentTime = System.currentTimeMillis();
     workflowExecutionDatabaseTable.addWorkflowExecution(workflowId, currentTime);
     timelineDatabaseTable.generateAvailableEntryId().thenAccept(id ->
       timelineDatabaseTable.insertEntry(id, workflowId, currentTime,
         "timeline-workflow-execute", "{}"));
+  }
+
+  private void postExecutionFailure(String failureMessage) {
+    long currentTime = System.currentTimeMillis();
+    //TODO: Mark workflow as failed in WorkflowDatabaseTable (for dashboard display)
+    timelineDatabaseTable.generateAvailableEntryId().thenAccept(id ->
+      timelineDatabaseTable.insertEntry(id, workflowId, currentTime,
+        "timeline-workflow-failure", new JSONObject(Map.of("message",
+          failureMessage)).toString()));
   }
 
   private boolean checkConditions(int index, Map<String, Object> information) {
