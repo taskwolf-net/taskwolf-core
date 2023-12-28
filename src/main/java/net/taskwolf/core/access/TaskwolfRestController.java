@@ -20,8 +20,6 @@ public class TaskwolfRestController {
   private final Key secretKey;
   private final UserDatabaseTable userDatabaseTable;
 
-  private static final String API_KEY_IDENTIFIER = "API-KEY";
-
   protected UUID findUserId(HttpServletRequest request) {
     return findUserId(findApiKey(request));
   }
@@ -32,14 +30,14 @@ public class TaskwolfRestController {
   }
 
   protected CompletableFuture<User> findUser(HttpServletRequest request) {
-    var apiKey = request.getHeader(API_KEY_IDENTIFIER);
+    var apiKey = request.getHeader("Authorization").replace("Bearer ", "");
     var email = Jwts.parser().setSigningKey(secretKey).build()
       .parseClaimsJws(apiKey).getPayload().get("email", String.class);
     return userDatabaseTable.findUser(email);
   }
 
   protected String findApiKey(HttpServletRequest request) {
-    return request.getHeader(API_KEY_IDENTIFIER);
+    return request.getHeader("Authorization").replace("Bearer ", "");
   }
 
   protected boolean isValidApiKey(String apiKey) {
