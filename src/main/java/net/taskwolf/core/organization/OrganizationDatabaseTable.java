@@ -20,7 +20,7 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("members", DatabaseDataType.UUID));
-    columns.add(DatabaseListColumn.create("invitations", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("invitationToken", DatabaseDataType.TEXT));
     return new OrganizationDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -33,24 +33,13 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
 
   public void insertOrganization(Organization organization) {
     insertOrganization(organization.id(), organization.name(),
-      organization.owner(), organization.members(), organization.invitations());
+      organization.owner(), organization.members(), organization.invitationToken());
   }
 
   public void insertOrganization(
-    UUID id, String name, UUID ownerId, List<UUID> memberIds, List<UUID> invitations
+    UUID id, String name, UUID ownerId, List<UUID> memberIds, String invitationToken
   ) {
-    insert(DatabaseRow.of(id, name, ownerId, memberIds, invitations));
-  }
-
-  public void acceptOrganizationInvitation(UUID organizationId, UUID userId) {
-    findOrganization(organizationId).thenAccept(organization ->
-      acceptOrganizationInvitation(organization, userId));
-  }
-
-  private void acceptOrganizationInvitation(Organization organization, UUID userId) {
-    organization.addMember(userId);
-    organization.removeInvitation(userId);
-    updateOrganization(organization);
+    insert(DatabaseRow.of(id, name, ownerId, memberIds, invitationToken));
   }
 
   public void addOrganizationMember(UUID organizationId, UUID memberId) {
@@ -73,30 +62,20 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
     updateOrganization(organization);
   }
 
-  public void addOrganizationInvitation(UUID organizationId, UUID userId) {
+  public void changeOrganizationInvitationToken(UUID organizationId, String token) {
     findOrganization(organizationId).thenAccept(organization ->
-      addOrganizationInvitation(organization, userId));
+      changeOrganizationInvitationToken(organization, token));
   }
 
-  private void addOrganizationInvitation(Organization organization, UUID userId) {
-    organization.addInvitation(userId);
-    updateOrganization(organization);
-  }
-
-  public void removeOrganizationInvitation(UUID organizationId, UUID userId) {
-    findOrganization(organizationId).thenAccept(organization ->
-      removeOrganizationInvitation(organization, userId));
-  }
-
-  private void removeOrganizationInvitation(Organization organization, UUID userId) {
-    organization.removeInvitation(userId);
+  private void changeOrganizationInvitationToken(Organization organization, String token) {
+    organization.changeInvitationToken(token);
     updateOrganization(organization);
   }
 
   private void updateOrganization(Organization organization) {
     update(DatabaseCell.create(organization.id()), DatabaseRow.of(organization.id(),
       organization.name(), organization.owner(), organization.members(),
-      organization.invitations()));
+      organization.invitationToken()));
   }
 
   public CompletableFuture<UUID> generateAvailableOrganizationId() {

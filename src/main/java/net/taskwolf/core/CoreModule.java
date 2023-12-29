@@ -20,7 +20,6 @@ import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.Module;
 import net.taskwolf.core.module.ModuleInformation;
 import net.taskwolf.core.module.ModuleLoader;
-import net.taskwolf.core.organization.InvitationDatabaseTable;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.template.TemplateDatabaseTable;
 import net.taskwolf.core.trigger.Trigger;
@@ -53,7 +52,6 @@ public class CoreModule {
   private final UserDatabaseTable userDatabaseTable;
   private final UserVerificationDatabaseTable userVerificationDatabaseTable;
   private final OrganizationDatabaseTable organizationDatabaseTable;
-  private final InvitationDatabaseTable invitationDatabaseTable;
   private final TriggerDatabaseTable triggerDatabaseTable;
   private final ActionDatabaseTable actionDatabaseTable;
   private final ConditionDatabaseTable conditionDatabaseTable;
