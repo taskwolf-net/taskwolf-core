@@ -6,5 +6,5 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public interface InputComponentSelect {
-  CompletableFuture<List<String>> compile(UUID user, Map<String, String> previousInputs);
+  CompletableFuture<List<String>> compile(UUID id, Map<String, String> previousInputs);
 }

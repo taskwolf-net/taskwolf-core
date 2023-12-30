@@ -5,13 +5,13 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public interface AccountLink {
-  CompletableFuture<Boolean> accountExists(UUID userId);
+  CompletableFuture<Boolean> accountExists(UUID id);
 
-  CompletableFuture<List<String>> findAccounts(UUID userId);
+  CompletableFuture<List<String>> findAccounts(UUID id);
 
-  void removeAccount(UUID userId, String identifier);
+  void removeAccount(UUID id, String identifier);
 
-  String registrationUrl(String apiKey);
+  String registrationUrl(UUID id, String apiKey);
 
   String description();
 }
