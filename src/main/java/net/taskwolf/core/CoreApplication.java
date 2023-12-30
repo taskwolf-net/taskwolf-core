@@ -7,6 +7,8 @@ import net.taskwolf.core.command.implementation.*;
 import net.taskwolf.core.condition.ConditionDatabaseTable;
 import net.taskwolf.core.condition.ConditionFactory;
 import net.taskwolf.core.condition.ConditionInformationRepository;
+import net.taskwolf.core.condition.number.ConditionNumberGreaterThan;
+import net.taskwolf.core.condition.number.ConditionNumberSmallerThan;
 import net.taskwolf.core.condition.text.ConditionTextEndsWith;
 import net.taskwolf.core.condition.text.ConditionTextEquals;
 import net.taskwolf.core.condition.text.ConditionTextStartsWith;
@@ -196,6 +198,8 @@ public class CoreApplication {
     repository.register(ConditionTextEquals.information());
     repository.register(ConditionTextStartsWith.information());
     repository.register(ConditionTextEndsWith.information());
+    repository.register(ConditionNumberGreaterThan.information());
+    repository.register(ConditionNumberSmallerThan.information());
   }
 
   private static void registerCommands(
