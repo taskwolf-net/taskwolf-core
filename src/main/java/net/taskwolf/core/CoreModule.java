@@ -27,6 +27,7 @@ import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.trigger.TriggerEntry;
 import net.taskwolf.core.trigger.TriggerInformation;
 import net.taskwolf.core.user.UserDatabaseTable;
+import net.taskwolf.core.user.UserPasswordResetDatabaseTable;
 import net.taskwolf.core.user.UserVerificationDatabaseTable;
 import net.taskwolf.core.workflow.Workflow;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
@@ -51,6 +52,7 @@ public class CoreModule {
   private final DatabaseKeyspace databaseKeyspace;
   private final UserDatabaseTable userDatabaseTable;
   private final UserVerificationDatabaseTable userVerificationDatabaseTable;
+  private final UserPasswordResetDatabaseTable userPasswordResetDatabaseTable;
   private final OrganizationDatabaseTable organizationDatabaseTable;
   private final TriggerDatabaseTable triggerDatabaseTable;
   private final ActionDatabaseTable actionDatabaseTable;

@@ -61,6 +61,15 @@ public final class UserDatabaseTable extends DatabaseTable {
     updateUser(user);
   }
 
+  public void changeUserPassword(UUID userId, String newPasswordHash) {
+    findUser(userId).thenAccept(user -> changeUserPassword(user, newPasswordHash));
+  }
+
+  private void changeUserPassword(User user, String newPasswordHash) {
+    user.changePassword(newPasswordHash);
+    updateUser(user);
+  }
+
   private void updateUser(User user) {
     update(DatabaseCell.create(user.id()), DatabaseRow.of(user.id(),
       user.name(), user.email(), user.passwordHash(), user.organizations()));

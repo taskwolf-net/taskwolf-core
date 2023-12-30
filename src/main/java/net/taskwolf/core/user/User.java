@@ -1,5 +1,6 @@
 package net.taskwolf.core.user;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -10,7 +11,7 @@ import java.util.UUID;
 
 @Getter
 @Accessors(fluent = true)
-@RequiredArgsConstructor(staticName = "create")
+@AllArgsConstructor(staticName = "create")
 public final class User {
   public static User of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).stringValue(),
@@ -21,7 +22,7 @@ public final class User {
   private final UUID id;
   private final String name;
   private final String email;
-  private final String passwordHash;
+  private String passwordHash;
   private final List<UUID> organizations;
 
   public void addOrganization(UUID organization) {
@@ -30,5 +31,9 @@ public final class User {
 
   public void removeOrganization(UUID organization) {
     organizations.remove(organization);
+  }
+
+  public void changePassword(String newPasswordHash) {
+    passwordHash = newPasswordHash;
   }
 }
