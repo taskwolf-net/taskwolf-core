@@ -21,7 +21,7 @@ public final class User {
 
   private final UUID id;
   private final String name;
-  private final String email;
+  private String email;
   private String passwordHash;
   private final List<UUID> organizations;
 
@@ -35,5 +35,9 @@ public final class User {
 
   public void changePassword(String newPasswordHash) {
     passwordHash = newPasswordHash;
+  }
+
+  public void changeEmail(String newEmail) {
+    email = newEmail;
   }
 }

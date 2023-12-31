@@ -70,6 +70,15 @@ public final class UserDatabaseTable extends DatabaseTable {
     updateUser(user);
   }
 
+  public void changeUserEmail(UUID userId, String newEmail) {
+    findUser(userId).thenAccept(user -> changeUserEmail(user, newEmail));
+  }
+
+  private void changeUserEmail(User user, String newEmail) {
+    user.changeEmail(newEmail);
+    updateUser(user);
+  }
+
   private void updateUser(User user) {
     update(DatabaseCell.create(user.id()), DatabaseRow.of(user.id(),
       user.name(), user.email(), user.passwordHash(), user.organizations()));
