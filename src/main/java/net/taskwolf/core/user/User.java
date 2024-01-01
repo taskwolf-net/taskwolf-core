@@ -20,7 +20,7 @@ public final class User {
   }
 
   private final UUID id;
-  private final String name;
+  private String name;
   private String email;
   private String passwordHash;
   private final List<UUID> organizations;
@@ -33,11 +33,15 @@ public final class User {
     organizations.remove(organization);
   }
 
-  public void changePassword(String newPasswordHash) {
-    passwordHash = newPasswordHash;
+  public void changeName(String newName) {
+    name = newName;
   }
 
   public void changeEmail(String newEmail) {
     email = newEmail;
+  }
+
+  public void changePassword(String newPasswordHash) {
+    passwordHash = newPasswordHash;
   }
 }

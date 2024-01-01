@@ -61,12 +61,12 @@ public final class UserDatabaseTable extends DatabaseTable {
     updateUser(user);
   }
 
-  public void changeUserPassword(UUID userId, String newPasswordHash) {
-    findUser(userId).thenAccept(user -> changeUserPassword(user, newPasswordHash));
+  public void changeUserName(UUID userId, String newName) {
+    findUser(userId).thenAccept(user -> changeUserName(user, newName));
   }
 
-  private void changeUserPassword(User user, String newPasswordHash) {
-    user.changePassword(newPasswordHash);
+  private void changeUserName(User user, String newName) {
+    user.changeName(newName);
     updateUser(user);
   }
 
@@ -76,6 +76,15 @@ public final class UserDatabaseTable extends DatabaseTable {
 
   private void changeUserEmail(User user, String newEmail) {
     user.changeEmail(newEmail);
+    updateUser(user);
+  }
+
+  public void changeUserPassword(UUID userId, String newPasswordHash) {
+    findUser(userId).thenAccept(user -> changeUserPassword(user, newPasswordHash));
+  }
+
+  private void changeUserPassword(User user, String newPasswordHash) {
+    user.changePassword(newPasswordHash);
     updateUser(user);
   }
 
