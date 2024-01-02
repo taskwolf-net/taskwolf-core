@@ -17,17 +17,18 @@ public final class User {
   public static User of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).stringValue(),
       row.findCell(2).stringValue(), row.findCell(3).stringValue(),
-      row.findCell(4).listValue());
+      row.findCell(4).stringValue(), row.findCell(5).listValue());
   }
 
   public static User unknown(UUID id) {
-    return create(id, "Unknown", "Unknown", "", Lists.newArrayList());
+    return create(id, "Unknown", "Unknown", "", "", Lists.newArrayList());
   }
 
   private final UUID id;
   private String name;
   private String email;
   private String passwordHash;
+  private String language;
   private final List<UUID> organizations;
 
   public void addOrganization(UUID organization) {
@@ -48,5 +49,9 @@ public final class User {
 
   public void changePassword(String newPasswordHash) {
     passwordHash = newPasswordHash;
+  }
+
+  public void changeLanguage(String newLanguage) {
+    language = newLanguage;
   }
 }

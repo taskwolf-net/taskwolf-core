@@ -20,6 +20,7 @@ public final class UserDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("email", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("password", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("language", DatabaseDataType.TEXT));
     columns.add(DatabaseListColumn.create("organizations", DatabaseDataType.UUID));
     return new UserDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
@@ -33,14 +34,14 @@ public final class UserDatabaseTable extends DatabaseTable {
 
   public void insertUser(User user) {
     insertUser(user.id(), user.name(), user.email(), user.passwordHash(),
-      user.organizations());
+      user.language(), user.organizations());
   }
 
   public void insertUser(
-    UUID id, String name, String email, String passwordHash,
+    UUID id, String name, String email, String passwordHash, String language,
     List<UUID> organizations
   ) {
-    insert(DatabaseRow.of(id, name, email, passwordHash, organizations));
+    insert(DatabaseRow.of(id, name, email, passwordHash, language, organizations));
   }
 
   public void addUserOrganization(UUID userId, UUID organizationId) {
@@ -88,9 +89,19 @@ public final class UserDatabaseTable extends DatabaseTable {
     updateUser(user);
   }
 
+  public void changeUserLanguage(UUID userId, String newLanguage) {
+    findUser(userId).thenAccept(user -> changeUserLanguage(user, newLanguage));
+  }
+
+  private void changeUserLanguage(User user, String newLanguage) {
+    user.changeLanguage(newLanguage);
+    updateUser(user);
+  }
+
   private void updateUser(User user) {
     update(DatabaseCell.create(user.id()), DatabaseRow.of(user.id(),
-      user.name(), user.email(), user.passwordHash(), user.organizations()));
+      user.name(), user.email(), user.passwordHash(), user.language(),
+      user.organizations()));
   }
 
   public CompletableFuture<UUID> generateAvailableUserId() {
