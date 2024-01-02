@@ -118,6 +118,22 @@ public final class UserDatabaseTable extends DatabaseTable {
     return selectRow(DatabaseCell.create(userId)).thenApply(User::of);
   }
 
+  public CompletableFuture<User> findUserIfExists(UUID userId) {
+    var futureResponse = new CompletableFuture<User>();
+    userExists(userId).thenAccept(exists -> completeExistenceUserFinding(
+      userId, exists).thenAccept(futureResponse::complete));
+    return futureResponse;
+  }
+
+  private CompletableFuture<User> completeExistenceUserFinding(
+    UUID userId, boolean exists
+  ) {
+    if (!exists) {
+      return CompletableFuture.completedFuture(User.unknown(userId));
+    }
+    return findUser(userId);
+  }
+
   public CompletableFuture<User> findUser(String email) {
     return selectRow("email='" + email + "' ALLOW FILTERING").thenApply(User::of);
   }

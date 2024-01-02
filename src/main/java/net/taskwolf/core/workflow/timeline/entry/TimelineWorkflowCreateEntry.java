@@ -10,7 +10,7 @@ public final class TimelineWorkflowCreateEntry extends TimelineEntry {
   public static CompletableFuture<TimelineEntry> of(
     long time, UserDatabaseTable userDatabaseTable, JSONObject content
   ) {
-    return userDatabaseTable.findUser(UUID.fromString(content.getString("creator")))
+    return userDatabaseTable.findUserIfExists(UUID.fromString(content.getString("creator")))
       .thenApply(user -> create(time, user.name()));
   }
 

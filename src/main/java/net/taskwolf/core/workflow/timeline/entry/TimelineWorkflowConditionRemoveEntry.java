@@ -10,7 +10,7 @@ public final class TimelineWorkflowConditionRemoveEntry extends TimelineEntry {
   public static CompletableFuture<TimelineEntry> of(
     long time, UserDatabaseTable userDatabaseTable, JSONObject content
   ) {
-    return userDatabaseTable.findUser(UUID.fromString(content.getString("actor")))
+    return userDatabaseTable.findUserIfExists(UUID.fromString(content.getString("actor")))
       .thenApply(user -> create(time, user.name()));
   }
 

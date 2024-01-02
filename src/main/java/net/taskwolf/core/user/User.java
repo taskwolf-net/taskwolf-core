@@ -1,5 +1,6 @@
 package net.taskwolf.core.user;
 
+import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,10 @@ public final class User {
     return create(row.findCell(0).uuidValue(), row.findCell(1).stringValue(),
       row.findCell(2).stringValue(), row.findCell(3).stringValue(),
       row.findCell(4).listValue());
+  }
+
+  public static User unknown(UUID id) {
+    return create(id, "Unknown", "Unknown", "", Lists.newArrayList());
   }
 
   private final UUID id;
