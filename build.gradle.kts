@@ -55,7 +55,7 @@ dependencies {
 
   implementation("io.jsonwebtoken:jjwt:0.12.3")
 
-  implementation("com.sun.mail:javax.mail:1.5.5")
+  implementation("com.sun.mail:javax.mail:1.6.2")
 }
 
 tasks.test {
