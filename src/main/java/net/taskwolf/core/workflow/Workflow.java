@@ -44,6 +44,25 @@ public final class Workflow {
         "timeline-workflow-execute", "{}"));
   }
 
+  private boolean checkConditions(int index, Map<String, Object> information) {
+    if (!conditions.containsKey(index)) {
+      return true;
+    }
+    var allFulfilled = true;
+    for (var condition : conditions.get(index)) {
+      var result = condition.compare(information);
+      if (result.isFailure()) {
+        postExecutionFailure(result.failureMessage());
+        return false;
+      }
+      if (!result.comparisonResult()) {
+        allFulfilled = false;
+        break;
+      }
+    }
+    return allFulfilled;
+  }
+
   private void postExecutionFailure(String failureMessage) {
     long currentTime = System.currentTimeMillis();
     if (workflowEntry.state().isOperational()) {
@@ -53,19 +72,5 @@ public final class Workflow {
       timelineDatabaseTable.insertEntry(id, workflowEntry.id(), currentTime,
         "timeline-workflow-failure", new JSONObject(Map.of("message",
           failureMessage)).toString()));
-  }
-
-  private boolean checkConditions(int index, Map<String, Object> information) {
-    if (!conditions.containsKey(index)) {
-      return true;
-    }
-    var allFulfilled = true;
-    for (var condition : conditions.get(index)) {
-      if (!condition.compare(information)) {
-        allFulfilled = false;
-        break;
-      }
-    }
-    return allFulfilled;
   }
 }

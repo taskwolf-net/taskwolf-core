@@ -4,8 +4,9 @@
   "condition.text.starts.with": "Startet mit",
   "condition.number.greater.than": "Ist größer",
   "condition.number.smaller.than": "Ist kleiner",
+  "condition.not.a.number": "Bei der Überprüfung einer Bedingung ist ein Fehler aufgetreten. Der Fehler trat auf, weil der Eingabe- oder Vergleichswert keiner Zahl entsprachen.",
 
-  "workflow.owner.you":  "Du / Persönlich",
+  "workflow.owner.you": "Du / Persönlich",
 
   "workflow.timeline.entry.created.title": "Workflow wurde erstellt",
   "workflow.timeline.entry.created.description": "Der Workflow wurde von %CREATOR% veröffentlicht.",
@@ -43,6 +44,6 @@
   "discord.action.channel.message.input.message.description": "Die Nachricht, die gesendet werden soll",
   "discord.action.channel.message.output.message": "Nachricht",
   "discord.action.channel.message.output.channel.name": "Kanalname",
-  "discord.action.channel.message.failure.server.not.found": "Beim Senden einer Discord-Kanal-Nachricht ist ein Fehler aufgetreten. Der Fehler trat auf, weil der ausgewählte Server nicht gefunden werden konnte",
-  "discord.action.channel.message.failure.channel.not.found": "Beim Senden einer Discord-Kanal-Nachricht ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil der ausgewählte Kanal nicht gefunden werden konnte"
+  "discord.action.channel.message.failure.server.not.found": "Beim Senden einer Discord-Kanal-Nachricht ist ein Fehler aufgetreten. Der Fehler trat auf, weil der ausgewählte Server nicht gefunden werden konnte.",
+  "discord.action.channel.message.failure.channel.not.found": "Beim Senden einer Discord-Kanal-Nachricht ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil der ausgewählte Kanal nicht gefunden werden konnte."
 }

@@ -3,6 +3,7 @@ package net.taskwolf.core.condition.number;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.condition.ConditionDataType;
 import net.taskwolf.core.condition.ConditionInformation;
+import net.taskwolf.core.condition.ConditionResult;
 
 import java.util.Map;
 
@@ -23,11 +24,12 @@ public final class ConditionNumberGreaterThan extends Condition {
   }
 
   @Override
-  public boolean compare(Map<String, Object> information) {
+  public ConditionResult compare(Map<String, Object> information) {
     dissolve(information);
     if (!inputValue().matches("-?\\d+(\\.\\d+)?") || !comparativeValue().matches("-?\\d+(\\.\\d+)?")) {
-      return false;
+      return ConditionResult.failure("condition.not.a.number");
     }
-    return Integer.parseInt(inputValue()) > Integer.parseInt(comparativeValue());
+    return ConditionResult.success(Integer.parseInt(inputValue()) >
+      Integer.parseInt(comparativeValue()));
   }
 }

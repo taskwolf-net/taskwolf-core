@@ -4,6 +4,7 @@ package net.taskwolf.core.condition.text;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.condition.ConditionDataType;
 import net.taskwolf.core.condition.ConditionInformation;
+import net.taskwolf.core.condition.ConditionResult;
 
 import java.util.Map;
 
@@ -24,8 +25,8 @@ public final class ConditionTextStartsWith extends Condition {
   }
 
   @Override
-  public boolean compare(Map<String, Object> information) {
+  public ConditionResult compare(Map<String, Object> information) {
     dissolve(information);
-    return inputValue().startsWith(comparativeValue());
+    return ConditionResult.success(inputValue().startsWith(comparativeValue()));
   }
 }

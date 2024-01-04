@@ -18,7 +18,7 @@ public abstract class Condition {
     this.comparativeValue = comparativeValue;
   }
 
-  public abstract boolean compare(Map<String, Object> information);
+  public abstract ConditionResult compare(Map<String, Object> information);
 
   protected void dissolve(Map<String, Object> information) {
     var dissolve = PlaceholderDissolve.create(information);

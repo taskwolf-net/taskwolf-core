@@ -1,6 +1,8 @@
 package net.taskwolf.core.condition;
 
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.condition.number.ConditionNumberGreaterThan;
+import net.taskwolf.core.condition.number.ConditionNumberSmallerThan;
 import net.taskwolf.core.condition.text.ConditionTextEndsWith;
 import net.taskwolf.core.condition.text.ConditionTextEquals;
 import net.taskwolf.core.condition.text.ConditionTextStartsWith;
@@ -20,6 +22,12 @@ public class ConditionFactory {
     }
     if (type.equals("condition-text-ends-with")) {
       return ConditionTextEndsWith.create(inputValue, comparativeValue);
+    }
+    if (type.equals("condition-number-is-greater")) {
+      return ConditionNumberGreaterThan.create(inputValue, comparativeValue);
+    }
+    if (type.equals("condition-number-is-smaller")) {
+      return ConditionNumberSmallerThan.create(inputValue, comparativeValue);
     }
     return null;
   }

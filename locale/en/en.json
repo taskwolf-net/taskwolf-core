@@ -4,8 +4,9 @@
   "condition.text.starts.with": "Starts with",
   "condition.number.greater.than": "Is greater",
   "condition.number.smaller.than": "Is smaller",
+  "condition.not.a.number": "An error occurred while checking a condition. The error occurred because the input or comparison value did not correspond to a number.",
 
-  "workflow.owner.you":  "You / Personal",
+  "workflow.owner.you": "You / Personal",
 
   "workflow.timeline.entry.created.title": "Workflow was created",
   "workflow.timeline.entry.created.description": "The workflow was published by %CREATOR%.",
@@ -43,6 +44,6 @@
   "discord.action.channel.message.input.message.description": "The message to be sent",
   "discord.action.channel.message.output.message": "Message",
   "discord.action.channel.message.output.channel.name": "Channel Name",
-  "discord.action.channel.message.failure.server.not.found": "An error occurred while sending a discord channel message. The error occurred because the selected server could not be found",
-  "discord.action.channel.message.failure.channel.not.found": "An error occurred while sending a discord channel message. The error occurred because the selected channel could not be found"
+  "discord.action.channel.message.failure.server.not.found": "An error occurred while sending a discord channel message. The error occurred because the selected server could not be found.",
+  "discord.action.channel.message.failure.channel.not.found": "An error occurred while sending a discord channel message. The error occurred because the selected channel could not be found."
 }
