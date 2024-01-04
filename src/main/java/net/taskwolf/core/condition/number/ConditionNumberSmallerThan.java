@@ -9,7 +9,7 @@ import java.util.Map;
 public final class ConditionNumberSmallerThan extends Condition {
   public static ConditionInformation information() {
     return ConditionInformation.builder()
-      .withName("Is smaller")
+      .withName("condition.number.smaller.than")
       .withDataType(ConditionDataType.NUMBER)
       .withIdentifier("condition-number-is-smaller").build();
   }

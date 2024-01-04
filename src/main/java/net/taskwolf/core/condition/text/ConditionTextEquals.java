@@ -9,7 +9,7 @@ import java.util.Map;
 public final class ConditionTextEquals extends Condition {
   public static ConditionInformation information() {
     return ConditionInformation.builder()
-      .withName("Is equals")
+      .withName("condition.text.equals")
       .withDataType(ConditionDataType.TEXT)
       .withIdentifier("condition-text-equals").build();
   }

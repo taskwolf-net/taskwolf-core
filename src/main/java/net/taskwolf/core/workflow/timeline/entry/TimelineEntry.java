@@ -2,6 +2,8 @@ package net.taskwolf.core.workflow.timeline.entry;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.CoreModule;
+import net.taskwolf.core.user.User;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -10,9 +12,9 @@ import java.util.Calendar;
 public abstract class TimelineEntry {
   private final long time;
 
-  public abstract String title();
+  public abstract String title(CoreModule coreModule, User user);
 
-  public abstract String description();
+  public abstract String description(CoreModule coreModule, User user);
 
   public abstract TimelineEntryLevel level();
 

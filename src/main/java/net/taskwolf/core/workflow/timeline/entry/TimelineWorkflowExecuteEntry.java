@@ -1,5 +1,8 @@
 package net.taskwolf.core.workflow.timeline.entry;
 
+import net.taskwolf.core.CoreModule;
+import net.taskwolf.core.user.User;
+
 public final class TimelineWorkflowExecuteEntry extends TimelineEntry {
   public static TimelineWorkflowExecuteEntry create(long time) {
     return new TimelineWorkflowExecuteEntry(time);
@@ -10,13 +13,13 @@ public final class TimelineWorkflowExecuteEntry extends TimelineEntry {
   }
 
   @Override
-  public String title() {
-    return "Workflow was executed";
+  public String title(CoreModule coreModule, User user) {
+    return coreModule.translate(user, "workflow.timeline.entry.executed.title");
   }
 
   @Override
-  public String description() {
-    return "The workflow was triggered and the actions were executed.";
+  public String description(CoreModule coreModule, User user) {
+    return coreModule.translate(user, "workflow.timeline.entry.executed.description");
   }
 
   @Override

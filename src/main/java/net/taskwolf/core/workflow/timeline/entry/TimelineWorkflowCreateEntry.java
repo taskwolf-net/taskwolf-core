@@ -1,5 +1,7 @@
 package net.taskwolf.core.workflow.timeline.entry;
 
+import net.taskwolf.core.CoreModule;
+import net.taskwolf.core.user.User;
 import net.taskwolf.core.user.UserDatabaseTable;
 import org.json.JSONObject;
 
@@ -26,13 +28,14 @@ public final class TimelineWorkflowCreateEntry extends TimelineEntry {
   }
 
   @Override
-  public String title() {
-    return "Workflow was created";
+  public String title(CoreModule coreModule, User user) {
+    return coreModule.translate(user, "workflow.timeline.entry.created.title");
   }
 
   @Override
-  public String description() {
-    return "The workflow was published by " + creator + ".";
+  public String description(CoreModule coreModule, User user) {
+    return coreModule.translate(user, "workflow.timeline.entry.created.description")
+      .replace("%CREATOR%", creator);
   }
 
   @Override

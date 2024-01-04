@@ -16,6 +16,7 @@ import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.iterator.AsyncAllocationIterator;
+import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.Module;
 import net.taskwolf.core.module.ModuleInformation;
@@ -66,6 +67,8 @@ public class CoreModule {
   private final ConditionFactory conditionFactory;
   private final ConditionInformationRepository conditionRepository;
   private final TimelineFactory timelineFactory;
+  private final Locale englishLocale;
+  private final Locale germanLocale;
   private final SpringApplication springApplication;
 
   void initialize() throws Exception {
@@ -162,5 +165,17 @@ public class CoreModule {
 
   public Action createAction(String module, String type, String content) {
     return moduleLoader.findModule(module).get().actionFactory().create(type, content);
+  }
+
+  public CompletableFuture<String> translate(UUID userId, String key) {
+    return userDatabaseTable.findUser(userId).thenApply(user -> translate(user, key));
+  }
+
+  public String translate(User user, String key) {
+    return switch(user.language().toLowerCase()) {
+      case "en" -> englishLocale().findText(key);
+      case "de" -> germanLocale().findText(key);
+      default -> "LANGUAGE NOT FOUND";
+    };
   }
 }

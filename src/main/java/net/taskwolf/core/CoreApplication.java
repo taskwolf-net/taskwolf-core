@@ -17,6 +17,7 @@ import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.intro.Intro;
+import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
@@ -68,13 +69,16 @@ public class CoreApplication {
     registerConditions(conditionRepository);
     var timelineEntryFactory = TimelineEntryFactory.create(userDatabaseTable);
     var timelineFactory = TimelineFactory.create(timelineDatabaseTable, timelineEntryFactory);
+    var englishLocale = Locale.createAndLoad("en");
+    var germanLocale = Locale.createAndLoad("de");
     var coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
       databaseKeyspace, userDatabaseTable, userVerificationDatabaseTable,
       userPasswordDatabaseTable, userEmailDatabaseTable, profilePictureDatabaseTable,
       organizationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
       conditionDatabaseTable, workflowDatabaseTable, workflowExecutionDatabaseTable,
       templateDatabaseTable, timelineDatabaseTable, distribution, commandRegistry,
-      conditionFactory, conditionRepository, timelineFactory, application);
+      conditionFactory, conditionRepository, timelineFactory, englishLocale,
+      germanLocale, application);
     coreModule.initialize();
     registerCommands(log, commandRegistry, moduleLoader, coreModule,
       distributionConfiguration, distribution, templateDatabaseTable);

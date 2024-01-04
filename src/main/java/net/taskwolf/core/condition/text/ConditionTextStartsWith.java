@@ -10,7 +10,7 @@ import java.util.Map;
 public final class ConditionTextStartsWith extends Condition {
   public static ConditionInformation information() {
     return ConditionInformation.builder()
-      .withName("Starts with")
+      .withName("condition.text.starts.with")
       .withDataType(ConditionDataType.TEXT)
       .withIdentifier("condition-text-starts-with").build();
   }

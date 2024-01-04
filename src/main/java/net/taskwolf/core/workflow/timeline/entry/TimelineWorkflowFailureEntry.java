@@ -1,5 +1,7 @@
 package net.taskwolf.core.workflow.timeline.entry;
 
+import net.taskwolf.core.CoreModule;
+import net.taskwolf.core.user.User;
 import org.json.JSONObject;
 
 public final class TimelineWorkflowFailureEntry extends TimelineEntry {
@@ -19,12 +21,12 @@ public final class TimelineWorkflowFailureEntry extends TimelineEntry {
   }
 
   @Override
-  public String title() {
-    return "Workflow has failed";
+  public String title(CoreModule coreModule, User user) {
+    return coreModule.translate(user, "workflow.timeline.entry.failed.title");
   }
 
   @Override
-  public String description() {
+  public String description(CoreModule coreModule, User user) {
     return message;
   }
 

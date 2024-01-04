@@ -1,5 +1,7 @@
 package net.taskwolf.core.workflow.timeline.entry;
 
+import net.taskwolf.core.CoreModule;
+import net.taskwolf.core.user.User;
 import net.taskwolf.core.user.UserDatabaseTable;
 import org.json.JSONObject;
 
@@ -26,13 +28,14 @@ public final class TimelineWorkflowActionAddEntry extends TimelineEntry {
   }
 
   @Override
-  public String title() {
-    return "Workflow action added";
+  public String title(CoreModule coreModule, User user) {
+    return coreModule.translate(user, "workflow.timeline.entry.action.add.title");
   }
 
   @Override
-  public String description() {
-    return "An action was added to the workflow by " + actor + ".";
+  public String description(CoreModule coreModule, User user) {
+    return coreModule.translate(user, "workflow.timeline.entry.action.add.description")
+      .replace("%ACTOR%", actor);
   }
 
   @Override

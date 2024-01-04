@@ -9,7 +9,7 @@ import java.util.Map;
 public final class ConditionTextEndsWith extends Condition {
   public static ConditionInformation information() {
     return ConditionInformation.builder()
-      .withName("Ends with")
+      .withName("condition.text.ends.with")
       .withDataType(ConditionDataType.TEXT)
       .withIdentifier("condition-text-ends-with").build();
   }
