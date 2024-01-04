@@ -27,7 +27,7 @@ public final class TimelineWorkflowFailureEntry extends TimelineEntry {
 
   @Override
   public String description(CoreModule coreModule, User user) {
-    return message;
+    return coreModule.translate(user, message);
   }
 
   @Override
