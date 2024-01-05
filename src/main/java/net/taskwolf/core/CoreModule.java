@@ -23,6 +23,8 @@ import net.taskwolf.core.module.ModuleInformation;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.template.TemplateDatabaseTable;
+import net.taskwolf.core.ticket.TicketDatabaseTable;
+import net.taskwolf.core.ticket.TicketMessageDatabaseTable;
 import net.taskwolf.core.trigger.Trigger;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.trigger.TriggerEntry;
@@ -62,6 +64,8 @@ public class CoreModule {
   private final WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable;
   private final TemplateDatabaseTable templateDatabaseTable;
   private final TimelineDatabaseTable timelineDatabaseTable;
+  private final TicketDatabaseTable ticketDatabaseTable;
+  private final TicketMessageDatabaseTable ticketMessageDatabaseTable;
   private final Distribution distribution;
   private final CommandRegistry commandRegistry;
   private final ConditionFactory conditionFactory;

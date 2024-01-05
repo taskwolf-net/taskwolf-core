@@ -22,6 +22,8 @@ import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.template.TemplateDatabaseTable;
+import net.taskwolf.core.ticket.TicketDatabaseTable;
+import net.taskwolf.core.ticket.TicketMessageDatabaseTable;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.user.*;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
@@ -56,6 +58,8 @@ public class CoreApplication {
     var workflowExecutionDatabaseTable = createWorkflowExecutionDatabaseTable(databaseConnection, databaseKeyspace);
     var templateDatabaseTable = createTemplateDatabaseTable(databaseConnection, databaseKeyspace);
     var timelineDatabaseTable = createTimelineDatabaseTable(databaseConnection, databaseKeyspace);
+    var ticketDatabaseTable = createTicketDatabaseTable(databaseConnection, databaseKeyspace);
+    var ticketMessageDatabaseTable = createTicketMessageDatabaseTable(databaseConnection, databaseKeyspace);
     var distributionConfiguration = DistributionConfiguration.createAndLoad();
     var distribution = Distribution.create(distributionConfiguration,
       userDatabaseTable, organizationDatabaseTable);
@@ -76,9 +80,9 @@ public class CoreApplication {
       userPasswordDatabaseTable, userEmailDatabaseTable, profilePictureDatabaseTable,
       organizationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
       conditionDatabaseTable, workflowDatabaseTable, workflowExecutionDatabaseTable,
-      templateDatabaseTable, timelineDatabaseTable, distribution, commandRegistry,
-      conditionFactory, conditionRepository, timelineFactory, englishLocale,
-      germanLocale, application);
+      templateDatabaseTable, timelineDatabaseTable, ticketDatabaseTable,
+      ticketMessageDatabaseTable, distribution, commandRegistry, conditionFactory,
+      conditionRepository, timelineFactory, englishLocale, germanLocale, application);
     coreModule.initialize();
     registerCommands(log, commandRegistry, moduleLoader, coreModule,
       distributionConfiguration, distribution, templateDatabaseTable);
@@ -204,6 +208,22 @@ public class CoreApplication {
     var timelineDatabaseTable = TimelineDatabaseTable.create(connection, keyspace);
     timelineDatabaseTable.createIfNotExists();
     return timelineDatabaseTable;
+  }
+
+  private static TicketDatabaseTable createTicketDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var ticketDatabaseTable = TicketDatabaseTable.create(connection, keyspace);
+    ticketDatabaseTable.createIfNotExists();
+    return ticketDatabaseTable;
+  }
+
+  private static TicketMessageDatabaseTable createTicketMessageDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var ticketMessageDatabaseTable = TicketMessageDatabaseTable.create(connection, keyspace);
+    ticketMessageDatabaseTable.createIfNotExists();
+    return ticketMessageDatabaseTable;
   }
 
   private static SpringApplication createSpringApplication(ModuleLoader loader) {
