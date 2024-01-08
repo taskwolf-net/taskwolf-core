@@ -63,6 +63,16 @@ public final class TicketDatabaseTable extends DatabaseTable {
     updateTicket(ticket);
   }
 
+  public void renameTicket(UUID ticketId, String title) {
+    findTicket(ticketId).thenAccept(organization ->
+      renameTicket(organization, title));
+  }
+
+  private void renameTicket(Ticket ticket, String title) {
+    ticket.rename(title);
+    updateTicket(ticket);
+  }
+
   private void updateTicket(Ticket ticket) {
     update(DatabaseCell.create(ticket.id()), DatabaseRow.of(ticket.id(),
       ticket.creator(), ticket.title(), ticket.type().toString(),
