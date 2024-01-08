@@ -31,9 +31,7 @@ public class TaskwolfRestController {
 
   protected CompletableFuture<User> findUser(HttpServletRequest request) {
     var apiKey = request.getHeader("Authorization").replace("Bearer ", "");
-    var email = Jwts.parser().setSigningKey(secretKey).build()
-      .parseClaimsJws(apiKey).getPayload().get("email", String.class);
-    return userDatabaseTable.findUser(email);
+    return userDatabaseTable.findUser(findUserId(apiKey));
   }
 
   protected String findApiKey(HttpServletRequest request) {
