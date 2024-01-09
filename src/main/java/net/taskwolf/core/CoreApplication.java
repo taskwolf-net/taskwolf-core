@@ -85,7 +85,8 @@ public class CoreApplication {
       conditionRepository, timelineFactory, englishLocale, germanLocale, application);
     coreModule.initialize();
     registerCommands(log, commandRegistry, moduleLoader, coreModule,
-      distributionConfiguration, distribution, templateDatabaseTable);
+      distributionConfiguration, distribution, templateDatabaseTable,
+      userDatabaseTable);
     application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
     log.info("Successfully booted Taskwolf - Core");
@@ -245,13 +246,15 @@ public class CoreApplication {
   private static void registerCommands(
     Log log, CommandRegistry registry, ModuleLoader moduleLoader,
     CoreModule coreModule, DistributionConfiguration distributionConfiguration,
-    Distribution distribution, TemplateDatabaseTable templateDatabaseTable
+    Distribution distribution, TemplateDatabaseTable templateDatabaseTable,
+    UserDatabaseTable userDatabaseTable
   ) {
     registry.register(HelpCommand.create(log));
     registry.register(ModuleCommand.create(log, moduleLoader, coreModule));
     registry.register(DistributionCommand.create(log, distributionConfiguration,
       distribution));
     registry.register(TemplateCommand.create(log, templateDatabaseTable));
+    registry.register(UserCommand.create(log, userDatabaseTable));
     registry.register(ExitCommand.create(log));
   }
 }
