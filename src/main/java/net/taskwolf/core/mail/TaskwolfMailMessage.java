@@ -1,0 +1,46 @@
+package net.taskwolf.core.mail;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+import javax.mail.Address;
+import javax.mail.Message;
+import javax.mail.internet.MimeMultipart;
+import java.util.Arrays;
+import java.util.Date;
+
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor(staticName = "create")
+public final class TaskwolfMailMessage {
+  public static TaskwolfMailMessage of(Message message) {
+    try {
+      var content = (MimeMultipart) message.getContent();
+      var body = new StringBuilder();
+      for (var i = 0; i < content.getCount(); i++) {
+        var bodyPart = content.getBodyPart(i);
+        if (bodyPart.isMimeType("text/plain")) {
+          body.append(bodyPart.getContent());
+        }
+      }
+      var inReplyTo = message.getHeader("In-Reply-To");
+      return create(message.getHeader("Message-ID")[0], message.getSubject(),
+        body.toString(), message.getFrom()[0], message.getReceivedDate(),
+        message.getReplyTo(), message.reply(false),
+        inReplyTo == null || inReplyTo.length == 0 ? "" : inReplyTo[0]);
+    } catch (Exception exception) {
+      exception.printStackTrace();
+      return null;
+    }
+  }
+
+  private final String messageId;
+  private final String title;
+  private final String body;
+  private final Address sender;
+  private final Date receiveDate;
+  private final Address[] replyTo;
+  private final Message replyMessage;
+  private final String repliedMessageId;
+}
