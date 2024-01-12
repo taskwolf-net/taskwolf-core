@@ -104,4 +104,9 @@ public final class TicketDatabaseTable extends DatabaseTable {
     return selectRows("creator=" + creatorId + " ALLOW FILTERING").thenApply(rows ->
       rows.stream().map(Ticket::of).toList());
   }
+
+  public CompletableFuture<List<Ticket>> findAllTickets() {
+    return selectAllRows().thenApply(rows ->
+      rows.stream().map(Ticket::of).toList());
+  }
 }
