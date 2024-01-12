@@ -7,7 +7,6 @@ import lombok.experimental.Accessors;
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.internet.MimeMultipart;
-import java.util.Arrays;
 import java.util.Date;
 
 @Getter
@@ -24,23 +23,22 @@ public final class TaskwolfMailMessage {
           body.append(bodyPart.getContent());
         }
       }
-      var inReplyTo = message.getHeader("In-Reply-To");
-      return create(message.getHeader("Message-ID")[0], message.getSubject(),
-        body.toString(), message.getFrom()[0], message.getReceivedDate(),
-        message.getReplyTo(), message.reply(false),
-        inReplyTo == null || inReplyTo.length == 0 ? "" : inReplyTo[0]);
+      var abc = message.reply(false);
+      var iterator = abc.getAllHeaders().asIterator();
+      while (iterator.hasNext()) {
+        var element = iterator.next();
+        System.out.println(element.getName() + ":" + element.getValue());
+      }
+      return create(message.getSubject(), body.toString(), message.getFrom()[0],
+        message.getReceivedDate());
     } catch (Exception exception) {
       exception.printStackTrace();
       return null;
     }
   }
 
-  private final String messageId;
   private final String title;
   private final String body;
   private final Address sender;
   private final Date receiveDate;
-  private final Address[] replyTo;
-  private final Message replyMessage;
-  private final String repliedMessageId;
 }

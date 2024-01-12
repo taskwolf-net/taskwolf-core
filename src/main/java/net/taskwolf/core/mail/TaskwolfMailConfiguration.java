@@ -19,7 +19,9 @@ public final class TaskwolfMailConfiguration extends Configuration {
 
   private String mail;
   private String smtpMailHost;
-  private String pop3MailHost;
+  private int smtpMailPort;
+  private String imapMailHost;
+  private int imapMailPort;
   private String mailUser;
   private String mailPassword;
 
@@ -31,7 +33,9 @@ public final class TaskwolfMailConfiguration extends Configuration {
   protected void deserialize(JSONObject json) {
     mail = json.getString("mail");
     smtpMailHost = json.getString("smtpMailHost");
-    pop3MailHost = json.getString("pop3MailHost");
+    smtpMailPort = json.getInt("smtpMailPort");
+    imapMailHost = json.getString("imapMailHost");
+    imapMailPort = json.getInt("imapMailPort");
     mailUser = json.getString("mailUser");
     mailPassword = json.getString("mailPassword");
   }

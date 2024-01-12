@@ -14,16 +14,18 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class TaskwolfMail {
   public static TaskwolfMail create(
-    String mail, String smtpMailHost, String pop3MailHost, String mailUser,
-    String mailPassword
+    String mail, String smtpMailHost, int smtpMailPort, String imapMailHost,
+    int imapMailPort, String mailUser, String mailPassword
   ) {
-    return new TaskwolfMail(mail, smtpMailHost, pop3MailHost, mailUser,
-      mailPassword);
+    return new TaskwolfMail(mail, smtpMailHost, smtpMailPort, imapMailHost,
+      imapMailPort, mailUser, mailPassword);
   }
 
   private final String mail;
   private final String smtpMailHost;
-  private final String pop3MailHost;
+  private final int smtpMailPort;
+  private final String imapMailHost;
+  private final int imapMailPort;
   private final String mailUser;
   private final String mailPassword;
 
@@ -41,9 +43,9 @@ public class TaskwolfMail {
 
   private List<TaskwolfMailMessage> readInbox(boolean delete) {
     try {
-      var session = createSession("pop3", pop3MailHost, 995);
-      var store = session.getStore("pop3s");
-      store.connect(pop3MailHost, mailUser, mailPassword);
+      var session = createSession("imap", imapMailHost, imapMailPort);
+      var store = session.getStore("imap");
+      store.connect(imapMailHost, mailUser, mailPassword);
       var folder = store.getFolder("INBOX");
       folder.open(Folder.READ_WRITE);
       if (delete) {
@@ -74,10 +76,6 @@ public class TaskwolfMail {
     new Thread(() -> sendEmail(addresses, title, body)).start();
   }
 
-  public void sendReply(Message message, String body) {
-    new Thread(() -> sendEmailReply(message, body)).start();
-  }
-
   private Address createAddress(String email) {
     try {
       return new InternetAddress(email);
@@ -89,22 +87,8 @@ public class TaskwolfMail {
 
   private void sendEmail(Address[] addresses, String title, String body) {
     try {
-      var session = createSession("smtp", smtpMailHost, 465);
+      var session = createSession("smtp", smtpMailHost, smtpMailPort);
       var message = createMessage(session, addresses, title, body);
-      var transport = session.getTransport("smtp");
-      transport.connect(smtpMailHost, mailUser, mailPassword);
-      transport.sendMessage(message, message.getAllRecipients());
-      transport.close();
-    } catch (Exception exception) {
-      exception.printStackTrace();
-    }
-  }
-
-  private void sendEmailReply(Message message, String body) {
-    try {
-      message.setFrom(new InternetAddress(mail, "Taskwolf"));
-      message.setText(body);
-      var session = createSession("smtp", smtpMailHost, 465);
       var transport = session.getTransport("smtp");
       transport.connect(smtpMailHost, mailUser, mailPassword);
       transport.sendMessage(message, message.getAllRecipients());
