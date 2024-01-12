@@ -81,7 +81,7 @@ public class DatabaseTable {
     connection.session().executeAsync(query.toString());
   }
 
-  protected void insert(DatabaseRow row) {
+  protected CompletableFuture<Void> insert(DatabaseRow row) {
     var query = new StringBuilder("INSERT INTO ");
     query.append(fullName());
     query.append(" (");
@@ -89,33 +89,47 @@ public class DatabaseTable {
     query.append(") VALUES (");
     query.append(row.valuesCompilation());
     query.append(");");
-    connection.session().executeAsync(query.toString());
+    var result = connection.session().executeAsync(query.toString());
+    var futureResponse = new CompletableFuture<Void>();
+    result.thenAccept(resultSet -> futureResponse.complete(null));
+    return futureResponse;
   }
 
-  protected void update(DatabaseCell primaryKeyCell, DatabaseRow row) {
-    update(primaryKeyCondition(primaryKeyCell), row);
+  protected CompletableFuture<Void> update(
+    DatabaseCell primaryKeyCell, DatabaseRow row
+  ) {
+    return update(primaryKeyCondition(primaryKeyCell), row);
   }
 
-  protected void update(String condition, DatabaseRow row) {
+  protected CompletableFuture<Void> update(String condition, DatabaseRow row) {
     var query = new StringBuilder("UPDATE ");
-    var primaryKeyIndex = columns.indexOf(findPrimaryKeyColumn());
     query.append(fullName());
     query.append(" SET ");
+    query.append(buildUpdateKeyValuePairs(row));
+    query.append(" WHERE ");
+    query.append(condition);
+    query.append(";");
+    var result = connection.session().executeAsync(query.toString());
+    var futureResponse = new CompletableFuture<Void>();
+    result.thenAccept(resultSet -> futureResponse.complete(null));
+    return futureResponse;
+  }
+
+  private String buildUpdateKeyValuePairs(DatabaseRow row) {
+    var pairs = new StringBuilder();
+    var primaryKeyIndex = columns.indexOf(findPrimaryKeyColumn());
     for (var i = 0; i < columns.size(); i++) {
       if (i == primaryKeyIndex) {
         continue;
       }
-      query.append(columns.get(i).name());
-      query.append(" = ");
-      query.append(row.findCell(i).databaseValue());
+      pairs.append(columns.get(i).name());
+      pairs.append(" = ");
+      pairs.append(row.findCell(i).databaseValue());
       if (i < columns.size() - 1) {
-        query.append(", ");
+        pairs.append(", ");
       }
     }
-    query.append(" WHERE ");
-    query.append(condition);
-    query.append(";");
-    connection.session().executeAsync(query.toString());
+    return pairs.toString();
   }
 
   protected CompletableFuture<Boolean> exists(DatabaseCell primaryKeyCell) {
@@ -179,17 +193,20 @@ public class DatabaseTable {
     return compilation.toString();
   }
 
-  protected void delete(DatabaseCell primaryKeyCell) {
-    delete(primaryKeyCondition(primaryKeyCell));
+  protected CompletableFuture<Void> delete(DatabaseCell primaryKeyCell) {
+    return delete(primaryKeyCondition(primaryKeyCell));
   }
 
-  protected void delete(String condition) {
+  protected CompletableFuture<Void> delete(String condition) {
     var query = new StringBuilder("DELETE FROM ");
     query.append(fullName());
     query.append(" WHERE ");
     query.append(condition);
     query.append(";");
-    connection.session().executeAsync(query.toString());
+    var result = connection.session().executeAsync(query.toString());
+    var futureResponse = new CompletableFuture<Void>();
+    result.thenAccept(resultSet -> futureResponse.complete(null));
+    return futureResponse;
   }
 
   public void drop() {
