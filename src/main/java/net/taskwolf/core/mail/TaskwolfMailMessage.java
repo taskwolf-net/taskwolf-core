@@ -23,12 +23,6 @@ public final class TaskwolfMailMessage {
           body.append(bodyPart.getContent());
         }
       }
-      var abc = message.reply(false);
-      var iterator = abc.getAllHeaders().asIterator();
-      while (iterator.hasNext()) {
-        var element = iterator.next();
-        System.out.println(element.getName() + ":" + element.getValue());
-      }
       return create(message.getSubject(), body.toString(), message.getFrom()[0],
         message.getReceivedDate());
     } catch (Exception exception) {
