@@ -20,6 +20,7 @@ public final class TicketDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("title", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT));
     columns.add(DatabaseListColumn.create("messages", DatabaseDataType.UUID));
     return new TicketDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
@@ -33,14 +34,16 @@ public final class TicketDatabaseTable extends DatabaseTable {
 
   public void insertTicket(Ticket ticket) {
     insertTicket(ticket.id(), ticket.creator(), ticket.title(),
-      ticket.type().toString(), ticket.status().toString(), ticket.messages());
+      ticket.type().toString(), ticket.status().toString(),
+      ticket.expirationTime(), ticket.messages());
   }
 
   public void insertTicket(
     UUID id, UUID creator, String title, String type, String status,
-    List<UUID> messageIds
+    long expirationTime, List<UUID> messageIds
   ) {
-    insert(DatabaseRow.of(id, creator, title, type, status, messageIds));
+    insert(DatabaseRow.of(id, creator, title, type, status, expirationTime,
+      messageIds));
   }
 
   public void addTicketMessage(UUID ticketId, UUID messageId) {
@@ -76,7 +79,7 @@ public final class TicketDatabaseTable extends DatabaseTable {
   private void updateTicket(Ticket ticket) {
     update(DatabaseCell.create(ticket.id()), DatabaseRow.of(ticket.id(),
       ticket.creator(), ticket.title(), ticket.type().toString(),
-      ticket.status().toString(), ticket.messages()));
+      ticket.status().toString(), ticket.expirationTime(), ticket.messages()));
   }
 
   public CompletableFuture<UUID> generateAvailableTicketId() {

@@ -15,7 +15,8 @@ public final class Ticket {
   public static Ticket of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
       row.findCell(2).stringValue(), Type.valueOf(row.findCell(3).stringValue()),
-      Status.valueOf(row.findCell(4).stringValue()), row.findCell(5).listValue());
+      Status.valueOf(row.findCell(4).stringValue()), row.findCell(5).longValue(),
+      row.findCell(6).listValue());
   }
 
   public enum Type {
@@ -38,6 +39,8 @@ public final class Ticket {
   private final Type type;
   @Getter
   private final Status status;
+  @Getter
+  private long expirationTime;
   private final List<UUID> messages;
 
   public void rename(String newTitle) {
