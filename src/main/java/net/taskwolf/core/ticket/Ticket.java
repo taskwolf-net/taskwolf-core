@@ -55,6 +55,16 @@ public final class Ticket {
     messages.remove(message);
   }
 
+  private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 14;
+
+  public void resetExpirationTime() {
+    expirationTime = System.currentTimeMillis() + EXPIRATION_TIME;
+  }
+
+  public void disableExpirationTime() {
+    expirationTime = -1;
+  }
+
   public List<UUID> messages() {
     return List.copyOf(messages);
   }

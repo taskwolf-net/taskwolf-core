@@ -76,7 +76,7 @@ public final class TicketDatabaseTable extends DatabaseTable {
     updateTicket(ticket);
   }
 
-  private void updateTicket(Ticket ticket) {
+  public void updateTicket(Ticket ticket) {
     update(DatabaseCell.create(ticket.id()), DatabaseRow.of(ticket.id(),
       ticket.creator(), ticket.title(), ticket.type().toString(),
       ticket.status().toString(), ticket.expirationTime(), ticket.messages()));
