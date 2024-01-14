@@ -69,11 +69,15 @@ public class TaskwolfMail {
   }
 
   public void send(String target, String title, String body) {
-    send(new Address[] {createAddress(target)}, title, body);
+    send(target, title, body, "");
   }
 
-  public void send(Address[] addresses, String title, String body) {
-    new Thread(() -> sendEmail(addresses, title, body)).start();
+  public void send(String target, String title, String body, String dataType) {
+    send(new Address[] {createAddress(target)}, title, body, dataType);
+  }
+
+  public void send(Address[] addresses, String title, String body, String dataType) {
+    new Thread(() -> sendEmail(addresses, title, body, dataType)).start();
   }
 
   private Address createAddress(String email) {
@@ -85,10 +89,12 @@ public class TaskwolfMail {
     }
   }
 
-  private void sendEmail(Address[] addresses, String title, String body) {
+  private void sendEmail(
+    Address[] addresses, String title, String body, String dataType
+  ) {
     try {
       var session = createSession("smtp", smtpMailHost, smtpMailPort);
-      var message = createMessage(session, addresses, title, body);
+      var message = createMessage(session, addresses, title, body, dataType);
       var transport = session.getTransport("smtp");
       transport.connect(smtpMailHost, mailUser, mailPassword);
       transport.sendMessage(message, message.getAllRecipients());
@@ -111,14 +117,19 @@ public class TaskwolfMail {
   }
 
   private Message createMessage(
-    Session session, Address[] addresses, String title, String body
+    Session session, Address[] addresses, String title, String body,
+    String dataType
   ) throws Exception {
     var message = new MimeMessage(session);
     message.setFrom(new InternetAddress(mail, "Taskwolf"));
     message.setRecipients(Message.RecipientType.TO, addresses);
-    message.setContent(body, "text/html; charset=utf-8");
-    message.setSubject(title);
     message.setSentDate(new Date());
+    message.setSubject(title);
+    if (dataType.equals("")) {
+      message.setText(body);
+    } else {
+      message.setContent(body, dataType);
+    }
     return message;
   }
 }
