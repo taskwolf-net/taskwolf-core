@@ -116,8 +116,8 @@ public class TaskwolfMail {
     var message = new MimeMessage(session);
     message.setFrom(new InternetAddress(mail, "Taskwolf"));
     message.setRecipients(Message.RecipientType.TO, addresses);
+    message.setContent(body, "text/html; charset=utf-8");
     message.setSubject(title);
-    message.setText(body);
     message.setSentDate(new Date());
     return message;
   }
