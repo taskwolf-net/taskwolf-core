@@ -43,6 +43,13 @@ public final class DatabaseCell {
     return (long) value;
   }
 
+  public boolean booleanValue() {
+    if (!(value instanceof Boolean)) {
+      return false;
+    }
+    return (boolean) value;
+  }
+
   public String stringValue() {
     if (!(value instanceof String)) {
       return null;

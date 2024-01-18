@@ -2,18 +2,32 @@ package net.taskwolf.core.workflow;
 
 import com.google.common.collect.Multimap;
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.CoreModule;
 import net.taskwolf.core.action.Action;
 import net.taskwolf.core.condition.Condition;
+import net.taskwolf.core.mail.TaskwolfMail;
+import net.taskwolf.core.notification.NotificationDatabaseTable;
+import net.taskwolf.core.notification.NotificationSetting;
+import net.taskwolf.core.organization.OrganizationDatabaseTable;
+import net.taskwolf.core.user.User;
+import net.taskwolf.core.user.UserDatabaseTable;
+import net.taskwolf.core.workflow.notification.WorkflowFailureNotification;
 import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
 import org.json.JSONObject;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class Workflow {
+  private final CoreModule coreModule;
   private final WorkflowDatabaseTable workflowDatabaseTable;
   private final WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable;
   private final TimelineDatabaseTable timelineDatabaseTable;
+  private final UserDatabaseTable userDatabaseTable;
+  private final OrganizationDatabaseTable organizationDatabaseTable;
+  private final NotificationDatabaseTable notificationDatabaseTable;
+  private final TaskwolfMail notificationMail;
   private final WorkflowEntry workflowEntry;
   private final Map<Integer, Action> actions;
   private final Multimap<Integer, Condition> conditions;
@@ -72,5 +86,29 @@ public final class Workflow {
       timelineDatabaseTable.insertEntry(id, workflowEntry.id(), currentTime,
         "timeline-workflow-failure", new JSONObject(Map.of("message",
           failureMessage)).toString()));
+    findNotificationTarget().thenAccept(target -> notificationDatabaseTable
+      .findNotificationSettings(target.id()).thenAccept(setting ->
+        sendExecutionFailureNotification(target, setting, failureMessage)));
+  }
+
+  private CompletableFuture<User> findNotificationTarget() {
+    if (workflowEntry.affiliation().isPrivate()) {
+      return userDatabaseTable.findUser(workflowEntry.ownerId());
+    }
+    var futureResponse = new CompletableFuture<User>();
+    organizationDatabaseTable.findOrganization(workflowEntry.ownerId())
+      .thenAccept(organization -> userDatabaseTable.findUser(organization.owner())
+        .thenAccept(futureResponse::complete));
+    return futureResponse;
+  }
+
+  private void sendExecutionFailureNotification(
+    User target, NotificationSetting notificationSetting, String failureMessage
+  ) {
+    if (!notificationSetting.general() || !notificationSetting.workflowFail()) {
+      return;
+    }
+    WorkflowFailureNotification.create(notificationMail, target.email(),
+      coreModule.translate("en", failureMessage)).send();
   }
 }

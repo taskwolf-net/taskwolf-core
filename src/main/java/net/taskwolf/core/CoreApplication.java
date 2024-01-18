@@ -19,7 +19,10 @@ import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.intro.Intro;
 import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.log.Log;
+import net.taskwolf.core.mail.TaskwolfMail;
+import net.taskwolf.core.mail.TaskwolfMailConfiguration;
 import net.taskwolf.core.module.ModuleLoader;
+import net.taskwolf.core.notification.NotificationDatabaseTable;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.template.TemplateDatabaseTable;
 import net.taskwolf.core.ticket.TicketDatabaseTable;
@@ -60,6 +63,7 @@ public class CoreApplication {
     var timelineDatabaseTable = createTimelineDatabaseTable(databaseConnection, databaseKeyspace);
     var ticketDatabaseTable = createTicketDatabaseTable(databaseConnection, databaseKeyspace);
     var ticketMessageDatabaseTable = createTicketMessageDatabaseTable(databaseConnection, databaseKeyspace);
+    var notificationDatabaseTable = createNotificationDatabaseTable(databaseConnection, databaseKeyspace);
     var distributionConfiguration = DistributionConfiguration.createAndLoad();
     var distribution = Distribution.create(distributionConfiguration,
       userDatabaseTable, organizationDatabaseTable);
@@ -75,14 +79,16 @@ public class CoreApplication {
     var timelineFactory = TimelineFactory.create(timelineDatabaseTable, timelineEntryFactory);
     var englishLocale = Locale.createAndLoad("en");
     var germanLocale = Locale.createAndLoad("de");
+    var notificationMail = createNotificationMail();
     var coreModule = CoreModule.create(log, moduleLoader, databaseConnection,
       databaseKeyspace, userDatabaseTable, userVerificationDatabaseTable,
       userPasswordDatabaseTable, userEmailDatabaseTable, profilePictureDatabaseTable,
       organizationDatabaseTable, triggerDatabaseTable, actionDatabaseTable,
       conditionDatabaseTable, workflowDatabaseTable, workflowExecutionDatabaseTable,
       templateDatabaseTable, timelineDatabaseTable, ticketDatabaseTable,
-      ticketMessageDatabaseTable, distribution, commandRegistry, conditionFactory,
-      conditionRepository, timelineFactory, englishLocale, germanLocale, application);
+      ticketMessageDatabaseTable, notificationDatabaseTable, distribution,
+      commandRegistry, conditionFactory, conditionRepository, timelineFactory,
+      englishLocale, germanLocale, notificationMail, application);
     coreModule.initialize();
     registerCommands(log, commandRegistry, moduleLoader, coreModule,
       distributionConfiguration, distribution, templateDatabaseTable,
@@ -227,6 +233,14 @@ public class CoreApplication {
     return ticketMessageDatabaseTable;
   }
 
+  private static NotificationDatabaseTable createNotificationDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var notificationDatabaseTable = NotificationDatabaseTable.create(connection, keyspace);
+    notificationDatabaseTable.createIfNotExists();
+    return notificationDatabaseTable;
+  }
+
   private static SpringApplication createSpringApplication(ModuleLoader loader) {
     var application = new SpringApplication(CoreApplication.class);
     var classLoader = new URLClassLoader(loader.moduleFileUrls(),
@@ -256,5 +270,13 @@ public class CoreApplication {
     registry.register(TemplateCommand.create(log, templateDatabaseTable));
     registry.register(UserCommand.create(log, userDatabaseTable));
     registry.register(ExitCommand.create(log));
+  }
+
+  private static TaskwolfMail createNotificationMail() throws Exception {
+    var mailConfiguration = TaskwolfMailConfiguration.createAndLoad("notification");
+    return TaskwolfMail.create(mailConfiguration.mail(),
+      mailConfiguration.smtpMailHost(), mailConfiguration.smtpMailPort(),
+      mailConfiguration.imapMailHost(), mailConfiguration.imapMailPort(),
+      mailConfiguration.mailUser(), mailConfiguration.mailPassword());
   }
 }

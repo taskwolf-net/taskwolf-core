@@ -18,9 +18,11 @@ import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.iterator.AsyncAllocationIterator;
 import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.log.Log;
+import net.taskwolf.core.mail.TaskwolfMail;
 import net.taskwolf.core.module.Module;
 import net.taskwolf.core.module.ModuleInformation;
 import net.taskwolf.core.module.ModuleLoader;
+import net.taskwolf.core.notification.NotificationDatabaseTable;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.template.TemplateDatabaseTable;
 import net.taskwolf.core.ticket.TicketDatabaseTable;
@@ -66,6 +68,7 @@ public class CoreModule {
   private final TimelineDatabaseTable timelineDatabaseTable;
   private final TicketDatabaseTable ticketDatabaseTable;
   private final TicketMessageDatabaseTable ticketMessageDatabaseTable;
+  private final NotificationDatabaseTable notificationDatabaseTable;
   private final Distribution distribution;
   private final CommandRegistry commandRegistry;
   private final ConditionFactory conditionFactory;
@@ -73,6 +76,7 @@ public class CoreModule {
   private final TimelineFactory timelineFactory;
   private final Locale englishLocale;
   private final Locale germanLocale;
+  private final TaskwolfMail notificationMail;
   private final SpringApplication springApplication;
 
   void initialize() throws Exception {
@@ -129,9 +133,10 @@ public class CoreModule {
     workflowDatabaseTable.findWorkflowByTrigger(triggerId).thenAccept(workflowEntry ->
       createActions(workflowEntry.id()).thenApply(actions ->
         createConditions(workflowEntry.id()).thenApply(conditions ->
-          futureResponse.complete(Workflow.create(workflowDatabaseTable,
-            workflowExecutionDatabaseTable, timelineDatabaseTable, workflowEntry,
-            actions, conditions)))));
+          futureResponse.complete(Workflow.create(this, workflowDatabaseTable,
+            workflowExecutionDatabaseTable, timelineDatabaseTable, userDatabaseTable,
+            organizationDatabaseTable, notificationDatabaseTable, notificationMail,
+            workflowEntry, actions, conditions)))));
     return futureResponse;
   }
 
@@ -176,7 +181,11 @@ public class CoreModule {
   }
 
   public String translate(User user, String key) {
-    return switch(user.language().toLowerCase()) {
+    return translate(user.language(), key);
+  }
+
+  public String translate(String language, String key) {
+    return switch(language.toLowerCase()) {
       case "en" -> englishLocale().findText(key);
       case "de" -> germanLocale().findText(key);
       default -> "LANGUAGE NOT FOUND";
