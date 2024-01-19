@@ -243,8 +243,7 @@ public class CoreApplication {
 
   private static SpringApplication createSpringApplication(ModuleLoader loader) {
     var application = new SpringApplication(CoreApplication.class);
-    var classLoader = new URLClassLoader(loader.moduleFileUrls(),
-      application.getClassLoader());
+    var classLoader = loader.createModuleClassLoader();
     application.setResourceLoader(new DefaultResourceLoader(classLoader));
     return application;
   }

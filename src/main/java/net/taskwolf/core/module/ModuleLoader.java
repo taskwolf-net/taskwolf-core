@@ -26,8 +26,9 @@ public final class ModuleLoader {
 
   public void loadModules(CoreModule coreModule) throws Exception {
     var files = jarsInDirectory();
+    var classLoader = createModuleClassLoader(files);
     for (var moduleFile : files) {
-      findModule(moduleFile, coreModule);
+      findModule(moduleFile, classLoader, coreModule);
     }
     modules.sort(Comparator.comparingInt(module -> module.priority().value()));
     Collections.reverse(modules);
@@ -42,7 +43,7 @@ public final class ModuleLoader {
     if (modules.stream().anyMatch(module -> module.file().equals(file))) {
       return false;
     }
-    var module = findModule(file, coreModule);
+    var module = findModule(file, createModuleClassLoader(), coreModule);
     module.module().enable();
     distribution.registerModule(module.name());
     log.info("Successfully loaded module " + module.name());
@@ -58,15 +59,16 @@ public final class ModuleLoader {
     }
     var registeredModule = moduleOptional.get();
     unloadModule(registeredModule);
-    findModule(registeredModule.file(), coreModule).module().enable();
+    findModule(registeredModule.file(), createModuleClassLoader(), coreModule)
+      .module().enable();
     log.info("Successfully reloaded module " + registeredModule.name());
     return true;
   }
 
-  private RegisteredModule findModule(File file, CoreModule coreModule) throws Exception {
+  private RegisteredModule findModule(
+    File file, ClassLoader classLoader, CoreModule coreModule
+  ) throws Exception {
     var jarFile = new JarFile(file);
-    var classLoader = new URLClassLoader(new URL[] {file.toURI().toURL()},
-      this.getClass().getClassLoader());
     var entries = jarFile.entries();
     while (entries.hasMoreElements()) {
       var entry = entries.nextElement();
@@ -101,7 +103,7 @@ public final class ModuleLoader {
   }
 
   private Optional<Class<?>> findModuleClass(
-    JarEntry entry, URLClassLoader classLoader
+    JarEntry entry, ClassLoader classLoader
   ) throws Exception {
     var entryName = entry.getName();
     if (entry.isDirectory() || !entryName.endsWith(".class") ||
@@ -177,8 +179,13 @@ public final class ModuleLoader {
     return List.copyOf(modules);
   }
 
-  public URL[] moduleFileUrls() {
-    return jarsInDirectory().stream().map(this::findUrl).toArray(URL[]::new);
+  public ClassLoader createModuleClassLoader() {
+    return createModuleClassLoader(jarsInDirectory());
+  }
+
+  private ClassLoader createModuleClassLoader(List<File> jars) {
+    var urls = jars.stream().map(this::findUrl).toArray(URL[]::new);
+    return new URLClassLoader(urls, this.getClass().getClassLoader());
   }
 
   private List<File> jarsInDirectory() {
