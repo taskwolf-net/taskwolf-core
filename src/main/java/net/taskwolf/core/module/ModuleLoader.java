@@ -1,6 +1,7 @@
 package net.taskwolf.core.module;
 
 import com.google.common.collect.Lists;
+import com.google.inject.Injector;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.CoreModule;
 import net.taskwolf.core.distribution.Distribution;
@@ -23,12 +24,13 @@ public final class ModuleLoader {
   private final String directory;
   private final List<RegisteredModule> modules = Lists.newArrayList();
   private final Distribution distribution;
+  private final Injector injector;
 
-  public void loadModules(CoreModule coreModule) throws Exception {
+  public void loadModules() throws Exception {
     var files = jarsInDirectory();
     var classLoader = createModuleClassLoader(files);
     for (var moduleFile : files) {
-      findModule(moduleFile, classLoader, coreModule);
+      findModule(moduleFile, classLoader);
     }
     modules.sort(Comparator.comparingInt(module -> module.priority().value()));
     Collections.reverse(modules);
@@ -39,18 +41,18 @@ public final class ModuleLoader {
     }
   }
 
-  public boolean loadModule(File file, CoreModule coreModule) throws Exception {
+  public boolean loadModule(File file) throws Exception {
     if (modules.stream().anyMatch(module -> module.file().equals(file))) {
       return false;
     }
-    var module = findModule(file, createModuleClassLoader(), coreModule);
+    var module = findModule(file, createModuleClassLoader());
     module.module().enable();
     distribution.registerModule(module.name());
     log.info("Successfully loaded module " + module.name());
     return true;
   }
 
-  public boolean reloadModule(String name, CoreModule coreModule) throws Exception {
+  public boolean reloadModule(String name) throws Exception {
     var moduleOptional = modules.stream()
       .filter(module -> module.name().equals(name))
       .findFirst();
@@ -59,14 +61,14 @@ public final class ModuleLoader {
     }
     var registeredModule = moduleOptional.get();
     unloadModule(registeredModule);
-    findModule(registeredModule.file(), createModuleClassLoader(), coreModule)
+    findModule(registeredModule.file(), createModuleClassLoader())
       .module().enable();
     log.info("Successfully reloaded module " + registeredModule.name());
     return true;
   }
 
   private RegisteredModule findModule(
-    File file, ClassLoader classLoader, CoreModule coreModule
+    File file, ClassLoader classLoader
   ) throws Exception {
     var jarFile = new JarFile(file);
     var entries = jarFile.entries();
@@ -76,8 +78,7 @@ public final class ModuleLoader {
       if (optionalModuleClass.isEmpty()) {
         continue;
       }
-      var registeredModule = createRegisteredModule(
-        optionalModuleClass.get(), coreModule, file);
+      var registeredModule = createRegisteredModule(optionalModuleClass.get(), file);
       modules.add(registeredModule);
       return registeredModule;
     }
@@ -86,20 +87,18 @@ public final class ModuleLoader {
   }
 
   private RegisteredModule createRegisteredModule(
-    Class<?> moduleClass, CoreModule coreModule, File file
+    Class<?> moduleClass, File file
   ) throws Exception {
-    var module = createModule(moduleClass, coreModule);
+    var module = createModule(moduleClass);
     var annotation = findModuleAnnotation(moduleClass).get();
     return RegisteredModule.create(module, findAnnotationField(annotation, "name"),
       findAnnotationField(annotation, "version"),
       findAnnotationField(annotation, "priority"), file);
   }
 
-  private Module createModule(
-    Class<?> moduleClass, CoreModule coreModule
-  ) throws Exception {
-    return (Module) moduleClass.getConstructor(CoreModule.class)
-      .newInstance(coreModule);
+  private Module createModule(Class<?> moduleClass) throws Exception {
+    return (Module) moduleClass.getConstructor(Injector.class)
+      .newInstance(injector);
   }
 
   private Optional<Class<?>> findModuleClass(

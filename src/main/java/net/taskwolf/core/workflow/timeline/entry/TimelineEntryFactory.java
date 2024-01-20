@@ -1,12 +1,16 @@
 package net.taskwolf.core.workflow.timeline.entry;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.user.UserDatabaseTable;
 import org.json.JSONObject;
 
 import java.util.concurrent.CompletableFuture;
 
-@RequiredArgsConstructor(staticName = "create")
+@Singleton
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
 public final class TimelineEntryFactory {
   private final UserDatabaseTable userDatabaseTable;
 

@@ -3,41 +3,37 @@ package net.taskwolf.core;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import lombok.Getter;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 import net.taskwolf.core.action.Action;
 import net.taskwolf.core.action.ActionDatabaseTable;
 import net.taskwolf.core.action.ActionEntry;
 import net.taskwolf.core.action.ActionInformation;
-import net.taskwolf.core.command.CommandRegistry;
-import net.taskwolf.core.condition.*;
-import net.taskwolf.core.database.DatabaseConnection;
-import net.taskwolf.core.database.DatabaseKeyspace;
+import net.taskwolf.core.condition.Condition;
+import net.taskwolf.core.condition.ConditionDatabaseTable;
+import net.taskwolf.core.condition.ConditionEntry;
+import net.taskwolf.core.condition.ConditionFactory;
 import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.iterator.AsyncAllocationIterator;
 import net.taskwolf.core.locale.Locale;
-import net.taskwolf.core.log.Log;
 import net.taskwolf.core.mail.TaskwolfMail;
 import net.taskwolf.core.module.Module;
 import net.taskwolf.core.module.ModuleInformation;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.notification.NotificationDatabaseTable;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
-import net.taskwolf.core.template.TemplateDatabaseTable;
-import net.taskwolf.core.ticket.TicketDatabaseTable;
-import net.taskwolf.core.ticket.TicketMessageDatabaseTable;
 import net.taskwolf.core.trigger.Trigger;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.trigger.TriggerEntry;
 import net.taskwolf.core.trigger.TriggerInformation;
-import net.taskwolf.core.user.*;
+import net.taskwolf.core.user.User;
+import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.Workflow;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowExecutionDatabaseTable;
 import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
-import net.taskwolf.core.workflow.timeline.TimelineFactory;
-import org.springframework.boot.SpringApplication;
 
 import java.util.List;
 import java.util.Map;
@@ -45,42 +41,59 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-@Getter
-@Accessors(fluent = true)
-@RequiredArgsConstructor(staticName = "create")
+@Singleton
 public class CoreModule {
-  private final Log log;
   private final ModuleLoader moduleLoader;
-  private final DatabaseConnection databaseConnection;
-  private final DatabaseKeyspace databaseKeyspace;
   private final UserDatabaseTable userDatabaseTable;
-  private final UserVerificationDatabaseTable userVerificationDatabaseTable;
-  private final UserPasswordResetDatabaseTable userPasswordResetDatabaseTable;
-  private final UserEmailChangeDatabaseTable userEmailChangeDatabaseTable;
-  private final ProfilePictureDatabaseTable profilePictureDatabaseTable;
   private final OrganizationDatabaseTable organizationDatabaseTable;
   private final TriggerDatabaseTable triggerDatabaseTable;
   private final ActionDatabaseTable actionDatabaseTable;
   private final ConditionDatabaseTable conditionDatabaseTable;
   private final WorkflowDatabaseTable workflowDatabaseTable;
   private final WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable;
-  private final TemplateDatabaseTable templateDatabaseTable;
   private final TimelineDatabaseTable timelineDatabaseTable;
-  private final TicketDatabaseTable ticketDatabaseTable;
-  private final TicketMessageDatabaseTable ticketMessageDatabaseTable;
   private final NotificationDatabaseTable notificationDatabaseTable;
   private final Distribution distribution;
-  private final CommandRegistry commandRegistry;
   private final ConditionFactory conditionFactory;
-  private final ConditionInformationRepository conditionRepository;
-  private final TimelineFactory timelineFactory;
   private final Locale englishLocale;
   private final Locale germanLocale;
   private final TaskwolfMail notificationMail;
-  private final SpringApplication springApplication;
+
+  @Inject
+  private CoreModule(
+    ModuleLoader moduleLoader, UserDatabaseTable userDatabaseTable,
+    OrganizationDatabaseTable organizationDatabaseTable,
+    TriggerDatabaseTable triggerDatabaseTable,
+    ActionDatabaseTable actionDatabaseTable,
+    ConditionDatabaseTable conditionDatabaseTable,
+    WorkflowDatabaseTable workflowDatabaseTable,
+    WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable,
+    TimelineDatabaseTable timelineDatabaseTable,
+    NotificationDatabaseTable notificationDatabaseTable,
+    Distribution distribution, ConditionFactory conditionFactory,
+    @Named("englishLocale") Locale englishLocale,
+    @Named("germanLocale") Locale germanLocale,
+    @Named("notificationMail") TaskwolfMail notificationMail
+  ) {
+    this.moduleLoader = moduleLoader;
+    this.userDatabaseTable = userDatabaseTable;
+    this.organizationDatabaseTable = organizationDatabaseTable;
+    this.triggerDatabaseTable = triggerDatabaseTable;
+    this.actionDatabaseTable = actionDatabaseTable;
+    this.conditionDatabaseTable = conditionDatabaseTable;
+    this.workflowDatabaseTable = workflowDatabaseTable;
+    this.workflowExecutionDatabaseTable = workflowExecutionDatabaseTable;
+    this.timelineDatabaseTable = timelineDatabaseTable;
+    this.notificationDatabaseTable = notificationDatabaseTable;
+    this.distribution = distribution;
+    this.conditionFactory = conditionFactory;
+    this.englishLocale = englishLocale;
+    this.germanLocale = germanLocale;
+    this.notificationMail = notificationMail;
+  }
 
   void initialize() throws Exception {
-    moduleLoader.loadModules(this);
+    moduleLoader.loadModules();
   }
 
   public Optional<ModuleInformation> findModuleInformation(String moduleName) {
@@ -186,8 +199,8 @@ public class CoreModule {
 
   public String translate(String language, String key) {
     return switch(language.toLowerCase()) {
-      case "en" -> englishLocale().findText(key);
-      case "de" -> germanLocale().findText(key);
+      case "en" -> englishLocale.findText(key);
+      case "de" -> germanLocale.findText(key);
       default -> "LANGUAGE NOT FOUND";
     };
   }

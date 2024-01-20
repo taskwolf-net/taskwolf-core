@@ -1,5 +1,8 @@
 package net.taskwolf.core.workflow.timeline;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.iterator.AsyncIterator;
 import net.taskwolf.core.workflow.timeline.entry.TimelineEntryFactory;
@@ -7,7 +10,8 @@ import net.taskwolf.core.workflow.timeline.entry.TimelineEntryFactory;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-@RequiredArgsConstructor(staticName = "create")
+@Singleton
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
 public final class TimelineFactory {
   private final TimelineDatabaseTable timelineDatabaseTable;
   private final TimelineEntryFactory timelineEntryFactory;

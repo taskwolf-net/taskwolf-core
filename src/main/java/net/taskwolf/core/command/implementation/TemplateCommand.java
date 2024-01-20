@@ -1,6 +1,8 @@
 package net.taskwolf.core.command.implementation;
 
 import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import net.taskwolf.core.command.Command;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.template.Template;
@@ -11,6 +13,7 @@ import net.taskwolf.core.template.TemplateTrigger;
 import java.util.List;
 import java.util.UUID;
 
+@Singleton
 public final class TemplateCommand extends Command {
   public static TemplateCommand create(
     Log log, TemplateDatabaseTable templateDatabaseTable
@@ -20,10 +23,13 @@ public final class TemplateCommand extends Command {
 
   private final TemplateDatabaseTable templateDatabaseTable;
 
+  @Inject
   private TemplateCommand(
     Log log, TemplateDatabaseTable templateDatabaseTable
   ) {
-    super(log, "template", new String[] {"templates"}, new String[] {"find <module>", "add <name, description, triggerModule, triggerDescription, [{actionModule, actionDescription}, ...]>", "remove <id>"});
+    super(log, "template", new String[] {"templates"}, new String[] {"find <module>",
+      "add <name, description, triggerModule, triggerDescription, " +
+        "[{actionModule, actionDescription}, ...]>", "remove <id>"});
     this.templateDatabaseTable = templateDatabaseTable;
   }
 

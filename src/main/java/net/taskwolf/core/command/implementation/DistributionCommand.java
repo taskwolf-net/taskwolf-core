@@ -1,6 +1,8 @@
 package net.taskwolf.core.command.implementation;
 
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import net.taskwolf.core.command.Command;
 import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.distribution.DistributionConfiguration;
@@ -8,6 +10,7 @@ import net.taskwolf.core.log.Log;
 
 import java.util.List;
 
+@Singleton
 public final class DistributionCommand extends Command {
   public static DistributionCommand create(
     Log log, DistributionConfiguration distributionConfiguration,
@@ -19,6 +22,7 @@ public final class DistributionCommand extends Command {
   private final DistributionConfiguration distributionConfiguration;
   private final Distribution distribution;
 
+  @Inject
   private DistributionCommand(
     Log log, DistributionConfiguration distributionConfiguration,
     Distribution distribution

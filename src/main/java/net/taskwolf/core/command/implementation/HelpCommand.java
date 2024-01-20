@@ -1,13 +1,17 @@
 package net.taskwolf.core.command.implementation;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import net.taskwolf.core.command.Command;
 import net.taskwolf.core.log.Log;
 
+@Singleton
 public final class HelpCommand extends Command {
   public static HelpCommand create(Log log) {
     return new HelpCommand(log);
   }
 
+  @Inject
   private HelpCommand(Log log) {
     super(log, "help", new String[] {"info", "commands"}, new String[0]);
   }

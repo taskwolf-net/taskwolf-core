@@ -1,5 +1,8 @@
 package net.taskwolf.core.condition;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.condition.number.ConditionNumberGreaterThan;
 import net.taskwolf.core.condition.number.ConditionNumberSmallerThan;
@@ -8,8 +11,9 @@ import net.taskwolf.core.condition.text.ConditionTextEquals;
 import net.taskwolf.core.condition.text.ConditionTextStartsWith;
 import org.json.JSONObject;
 
-@RequiredArgsConstructor(staticName = "create")
-public class ConditionFactory {
+@Singleton
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
+public final class ConditionFactory {
   public Condition create(String type, String content) {
     var json = new JSONObject(content);
     var inputValue = json.getString("inputValue");

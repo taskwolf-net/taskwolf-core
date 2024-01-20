@@ -1,27 +1,28 @@
 package net.taskwolf.core.command.implementation;
 
-import net.taskwolf.core.CoreModule;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import net.taskwolf.core.command.Command;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
 
 import java.io.File;
 
+@Singleton
 public final class ModuleCommand extends Command {
   public static ModuleCommand create(
-    Log log, ModuleLoader moduleLoader, CoreModule coreModule
+    Log log, ModuleLoader moduleLoader
   ) {
-    return new ModuleCommand(log, moduleLoader, coreModule);
+    return new ModuleCommand(log, moduleLoader);
   }
 
   private final ModuleLoader moduleLoader;
-  private final CoreModule coreModule;
 
-  private ModuleCommand(Log log, ModuleLoader moduleLoader, CoreModule coreModule) {
+  @Inject
+  private ModuleCommand(Log log, ModuleLoader moduleLoader) {
     super(log, "module", new String[0], new String[] {"load <file>",
       "unload <name>", "reload <name>"});
     this.moduleLoader = moduleLoader;
-    this.coreModule = coreModule;
   }
 
   @Override
@@ -50,7 +51,7 @@ public final class ModuleCommand extends Command {
       log().info("File '" + file + "' does not exist");
       return true;
     }
-    if (!moduleLoader.loadModule(file, coreModule)) {
+    if (!moduleLoader.loadModule(file)) {
       log().info("Module is already loaded");
     }
     return true;
@@ -72,7 +73,7 @@ public final class ModuleCommand extends Command {
       return false;
     }
     var name = arguments[1];
-    if (!moduleLoader.reloadModule(name, coreModule)) {
+    if (!moduleLoader.reloadModule(name)) {
       log().info("Could not find module with name " + name);
     }
     return true;

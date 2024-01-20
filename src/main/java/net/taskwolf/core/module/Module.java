@@ -1,15 +1,16 @@
 package net.taskwolf.core.module;
 
 import com.google.common.collect.Lists;
+import com.google.inject.Injector;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.taskwolf.core.CoreModule;
 import net.taskwolf.core.account.AccountLink;
 import net.taskwolf.core.action.ActionFactory;
 import net.taskwolf.core.action.ActionInformation;
 import net.taskwolf.core.command.Command;
+import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.trigger.TriggerFactory;
 import net.taskwolf.core.trigger.TriggerInformation;
 
@@ -19,7 +20,7 @@ import java.util.List;
 @Accessors(fluent = true)
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Module {
-  private final CoreModule coreModule;
+  private final Injector injector;
 
   public abstract void enable() throws Exception;
 
@@ -48,10 +49,10 @@ public abstract class Module {
   }
 
   public void registerCommand(Command command) {
-    coreModule.commandRegistry().register(command);
+    injector.getInstance(CommandRegistry.class).register(command);
   }
 
   public void unregisterCommand(Command command) {
-    coreModule.commandRegistry().unregister(command);
+    injector.getInstance(CommandRegistry.class).unregister(command);
   }
 }

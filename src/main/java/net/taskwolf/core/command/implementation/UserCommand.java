@@ -1,10 +1,13 @@
 package net.taskwolf.core.command.implementation;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import net.taskwolf.core.command.Command;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.user.User;
 import net.taskwolf.core.user.UserDatabaseTable;
 
+@Singleton
 public final class UserCommand extends Command {
   public static UserCommand create(Log log, UserDatabaseTable userDatabaseTable) {
     return new UserCommand(log, userDatabaseTable);
@@ -12,6 +15,7 @@ public final class UserCommand extends Command {
 
   private final UserDatabaseTable userDatabaseTable;
 
+  @Inject
   private UserCommand(Log log, UserDatabaseTable userDatabaseTable) {
     super(log, "user", new String[0], new String[] {"find <email>"});
     this.userDatabaseTable = userDatabaseTable;
