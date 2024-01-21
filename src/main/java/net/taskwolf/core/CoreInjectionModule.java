@@ -3,6 +3,7 @@ package net.taskwolf.core;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.action.ActionInjectionModule;
 import net.taskwolf.core.command.CommandInjectionModule;
@@ -23,11 +24,14 @@ import net.taskwolf.core.workflow.WorkflowInjectionModule;
 import org.springframework.boot.SpringApplication;
 import org.springframework.core.io.DefaultResourceLoader;
 
-@RequiredArgsConstructor(staticName = "create")
-public final class CoreInjectionModule extends AbstractModule {
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+public class CoreInjectionModule extends AbstractModule {
+  public static CoreInjectionModule create() {
+    return new CoreInjectionModule();
+  }
+
   @Override
   protected void configure() {
-    configureLog();
     install(DatabaseInjectionModule.create());
     install(UserInjectionModule.create());
     install(OrganizationInjectionModule.create());
@@ -44,19 +48,17 @@ public final class CoreInjectionModule extends AbstractModule {
     install(CommandInjectionModule.create());
   }
 
-  private void configureLog() {
-    try {
-      bind(Log.class).toInstance(Log.create("Core", "/logs/"));
-    } catch (Exception exception) {
-      exception.printStackTrace();
-    }
+  @Provides
+  @Singleton
+  Log provideCoreLog() throws Exception {
+    return Log.create("Core", "/logs/");
   }
 
   @Provides
   @Singleton
   SpringApplication provideSpringApplication(ModuleLoader moduleLoader) {
     var application = new SpringApplication(CoreApplication.class);
-    var classLoader = moduleLoader.createModuleClassLoader();
+    var classLoader = moduleLoader.classLoader();
     application.setResourceLoader(new DefaultResourceLoader(classLoader));
     return application;
   }

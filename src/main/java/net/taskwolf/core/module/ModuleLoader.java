@@ -2,8 +2,10 @@ package net.taskwolf.core.module;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Injector;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.CoreModule;
+import lombok.experimental.Accessors;
 import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.log.Log;
 
@@ -18,18 +20,43 @@ import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor(staticName = "create")
+@Accessors(fluent = true)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ModuleLoader {
+  public static ModuleLoader create(
+    Log log, String directory, Distribution distribution, Injector injector
+  ) {
+    var jars = findJarsInDirectory(directory);
+    var urls = jars.stream().map(ModuleLoader::findFileUrl).toArray(URL[]::new);
+    var classLoader = new URLClassLoader(urls, ModuleLoader.class.getClassLoader());
+    return new ModuleLoader(log, jars, classLoader, distribution, injector);
+  }
+
+  private static List<File> findJarsInDirectory(String directory) {
+    return Arrays.stream(new File(directory).listFiles())
+      .filter(file -> !file.isDirectory())
+      .filter(file -> file.getName().endsWith(".jar"))
+      .collect(Collectors.toList());
+  }
+
+  private static URL findFileUrl(File file) {
+    try {
+      return file.toURI().toURL();
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private final Log log;
-  private final String directory;
+  private final List<File> jars;
+  @Getter
+  private final ClassLoader classLoader;
   private final List<RegisteredModule> modules = Lists.newArrayList();
   private final Distribution distribution;
   private final Injector injector;
 
   public void loadModules() throws Exception {
-    var files = jarsInDirectory();
-    var classLoader = createModuleClassLoader(files);
-    for (var moduleFile : files) {
+    for (var moduleFile : jars) {
       findModule(moduleFile, classLoader);
     }
     modules.sort(Comparator.comparingInt(module -> module.priority().value()));
@@ -45,7 +72,7 @@ public final class ModuleLoader {
     if (modules.stream().anyMatch(module -> module.file().equals(file))) {
       return false;
     }
-    var module = findModule(file, createModuleClassLoader());
+    var module = findModule(file, classLoader);
     module.module().enable();
     distribution.registerModule(module.name());
     log.info("Successfully loaded module " + module.name());
@@ -61,7 +88,7 @@ public final class ModuleLoader {
     }
     var registeredModule = moduleOptional.get();
     unloadModule(registeredModule);
-    findModule(registeredModule.file(), createModuleClassLoader())
+    findModule(registeredModule.file(), classLoader)
       .module().enable();
     log.info("Successfully reloaded module " + registeredModule.name());
     return true;
@@ -176,30 +203,6 @@ public final class ModuleLoader {
 
   public List<RegisteredModule> allRegisteredModules() {
     return List.copyOf(modules);
-  }
-
-  public ClassLoader createModuleClassLoader() {
-    return createModuleClassLoader(jarsInDirectory());
-  }
-
-  private ClassLoader createModuleClassLoader(List<File> jars) {
-    var urls = jars.stream().map(this::findUrl).toArray(URL[]::new);
-    return new URLClassLoader(urls, this.getClass().getClassLoader());
-  }
-
-  private List<File> jarsInDirectory() {
-    return Arrays.stream(new File(directory).listFiles())
-      .filter(file -> !file.isDirectory())
-      .filter(file -> file.getName().endsWith(".jar"))
-      .collect(Collectors.toList());
-  }
-
-  private URL findUrl(File file) {
-    try {
-      return file.toURI().toURL();
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   public List<Module> allModules() {
