@@ -2,7 +2,6 @@ package net.taskwolf.core.workflow;
 
 import com.google.common.collect.Multimap;
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.CoreModule;
 import net.taskwolf.core.action.Action;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.locale.Locale;

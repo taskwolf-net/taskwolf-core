@@ -1,7 +1,6 @@
 package net.taskwolf.core.action;
 
 import net.taskwolf.core.workflow.component.ComponentInformation;
-import net.taskwolf.core.workflow.component.ComponentVariable;
 import net.taskwolf.core.workflow.component.input.InputComponentVariable;
 import net.taskwolf.core.workflow.component.output.OutputComponentVariable;
 

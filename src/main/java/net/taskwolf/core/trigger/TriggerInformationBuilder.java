@@ -2,7 +2,6 @@ package net.taskwolf.core.trigger;
 
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.workflow.component.ComponentVariable;
 import net.taskwolf.core.workflow.component.input.InputComponentVariable;
 import net.taskwolf.core.workflow.component.output.OutputComponentVariable;
 
