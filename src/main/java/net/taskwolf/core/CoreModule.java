@@ -6,7 +6,6 @@ import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.action.Action;
 import net.taskwolf.core.action.ActionDatabaseTable;
 import net.taskwolf.core.action.ActionEntry;
@@ -18,12 +17,9 @@ import net.taskwolf.core.condition.ConditionFactory;
 import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.iterator.AsyncAllocationIterator;
 import net.taskwolf.core.locale.Locale;
-import net.taskwolf.core.mail.TaskwolfMail;
 import net.taskwolf.core.module.Module;
 import net.taskwolf.core.module.ModuleInformation;
 import net.taskwolf.core.module.ModuleLoader;
-import net.taskwolf.core.notification.NotificationDatabaseTable;
-import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.trigger.Trigger;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.trigger.TriggerEntry;
@@ -32,8 +28,7 @@ import net.taskwolf.core.user.User;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.Workflow;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
-import net.taskwolf.core.workflow.WorkflowExecutionDatabaseTable;
-import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
+import net.taskwolf.core.workflow.WorkflowFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -45,51 +40,38 @@ import java.util.concurrent.CompletableFuture;
 public class CoreModule {
   private final ModuleLoader moduleLoader;
   private final UserDatabaseTable userDatabaseTable;
-  private final OrganizationDatabaseTable organizationDatabaseTable;
   private final TriggerDatabaseTable triggerDatabaseTable;
   private final ActionDatabaseTable actionDatabaseTable;
   private final ConditionDatabaseTable conditionDatabaseTable;
   private final WorkflowDatabaseTable workflowDatabaseTable;
-  private final WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable;
-  private final TimelineDatabaseTable timelineDatabaseTable;
-  private final NotificationDatabaseTable notificationDatabaseTable;
   private final Distribution distribution;
   private final ConditionFactory conditionFactory;
+  private final WorkflowFactory workflowFactory;
   private final Locale englishLocale;
   private final Locale germanLocale;
-  private final TaskwolfMail notificationMail;
 
   @Inject
   private CoreModule(
     ModuleLoader moduleLoader, UserDatabaseTable userDatabaseTable,
-    OrganizationDatabaseTable organizationDatabaseTable,
     TriggerDatabaseTable triggerDatabaseTable,
     ActionDatabaseTable actionDatabaseTable,
     ConditionDatabaseTable conditionDatabaseTable,
     WorkflowDatabaseTable workflowDatabaseTable,
-    WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable,
-    TimelineDatabaseTable timelineDatabaseTable,
-    NotificationDatabaseTable notificationDatabaseTable,
     Distribution distribution, ConditionFactory conditionFactory,
-    @Named("englishLocale") Locale englishLocale,
-    @Named("germanLocale") Locale germanLocale,
-    @Named("notificationMail") TaskwolfMail notificationMail
+    WorkflowFactory workflowFactory, @Named("englishLocale") Locale englishLocale,
+    @Named("germanLocale") Locale germanLocale
   ) {
     this.moduleLoader = moduleLoader;
     this.userDatabaseTable = userDatabaseTable;
-    this.organizationDatabaseTable = organizationDatabaseTable;
     this.triggerDatabaseTable = triggerDatabaseTable;
     this.actionDatabaseTable = actionDatabaseTable;
     this.conditionDatabaseTable = conditionDatabaseTable;
     this.workflowDatabaseTable = workflowDatabaseTable;
-    this.workflowExecutionDatabaseTable = workflowExecutionDatabaseTable;
-    this.timelineDatabaseTable = timelineDatabaseTable;
-    this.notificationDatabaseTable = notificationDatabaseTable;
     this.distribution = distribution;
     this.conditionFactory = conditionFactory;
+    this.workflowFactory = workflowFactory;
     this.englishLocale = englishLocale;
     this.germanLocale = germanLocale;
-    this.notificationMail = notificationMail;
   }
 
   void initialize() throws Exception {
@@ -146,10 +128,8 @@ public class CoreModule {
     workflowDatabaseTable.findWorkflowByTrigger(triggerId).thenAccept(workflowEntry ->
       createActions(workflowEntry.id()).thenApply(actions ->
         createConditions(workflowEntry.id()).thenApply(conditions ->
-          futureResponse.complete(Workflow.create(this, workflowDatabaseTable,
-            workflowExecutionDatabaseTable, timelineDatabaseTable, userDatabaseTable,
-            organizationDatabaseTable, notificationDatabaseTable, notificationMail,
-            workflowEntry, actions, conditions)))));
+          futureResponse.complete(workflowFactory.create(workflowEntry, actions,
+            conditions)))));
     return futureResponse;
   }
 

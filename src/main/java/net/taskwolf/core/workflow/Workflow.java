@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.CoreModule;
 import net.taskwolf.core.action.Action;
 import net.taskwolf.core.condition.Condition;
+import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.mail.TaskwolfMail;
 import net.taskwolf.core.notification.NotificationDatabaseTable;
 import net.taskwolf.core.notification.NotificationSetting;
@@ -20,13 +21,13 @@ import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class Workflow {
-  private final CoreModule coreModule;
   private final WorkflowDatabaseTable workflowDatabaseTable;
   private final WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable;
   private final TimelineDatabaseTable timelineDatabaseTable;
   private final UserDatabaseTable userDatabaseTable;
   private final OrganizationDatabaseTable organizationDatabaseTable;
   private final NotificationDatabaseTable notificationDatabaseTable;
+  private final Locale englishLocale;
   private final TaskwolfMail notificationMail;
   private final WorkflowEntry workflowEntry;
   private final Map<Integer, Action> actions;
@@ -109,6 +110,6 @@ public final class Workflow {
       return;
     }
     WorkflowFailureNotification.create(notificationMail, target.email(),
-      coreModule.translate("en", failureMessage)).send();
+      englishLocale.findText(failureMessage)).send();
   }
 }
