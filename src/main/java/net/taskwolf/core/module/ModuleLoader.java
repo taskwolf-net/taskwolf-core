@@ -62,8 +62,8 @@ public final class ModuleLoader {
     modules.sort(Comparator.comparingInt(module -> module.priority().value()));
     Collections.reverse(modules);
     for (var module : modules) {
-      module.module().enable();
       distribution.registerModule(module.name());
+      module.module().enable();
       log.info("Successfully loaded module " + module.name());
     }
   }
@@ -73,8 +73,8 @@ public final class ModuleLoader {
       return false;
     }
     var module = findModule(file, classLoader);
-    module.module().enable();
     distribution.registerModule(module.name());
+    module.module().enable();
     log.info("Successfully loaded module " + module.name());
     return true;
   }
