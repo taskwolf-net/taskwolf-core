@@ -41,7 +41,8 @@ public final class UserDatabaseTable extends DatabaseTable {
     UUID id, String name, String email, String passwordHash, String language,
     List<UUID> organizations
   ) {
-    insert(DatabaseRow.of(id, name, email, passwordHash, language, organizations));
+    insert(DatabaseRow.of(id, name, email.toLowerCase(), passwordHash,
+      language, organizations));
   }
 
   public void addUserOrganization(UUID userId, UUID organizationId) {
@@ -100,8 +101,8 @@ public final class UserDatabaseTable extends DatabaseTable {
 
   private void updateUser(User user) {
     update(DatabaseCell.create(user.id()), DatabaseRow.of(user.id(),
-      user.name(), user.email(), user.passwordHash(), user.language(),
-      user.organizations()));
+      user.name(), user.email().toLowerCase(), user.passwordHash(),
+      user.language(), user.organizations()));
   }
 
   public CompletableFuture<UUID> generateAvailableUserId() {
@@ -118,7 +119,7 @@ public final class UserDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> userExists(String email) {
-    return exists("email='" + email + "' ALLOW FILTERING");
+    return exists("email='" + email.toLowerCase() + "' ALLOW FILTERING");
   }
 
   public void deleteUser(UUID userId) {
@@ -146,7 +147,8 @@ public final class UserDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<User> findUser(String email) {
-    return selectRow("email='" + email + "' ALLOW FILTERING").thenApply(User::of);
+    return selectRow("email='" + email.toLowerCase() + "' ALLOW FILTERING")
+      .thenApply(User::of);
   }
 
   public CompletableFuture<List<User>> findAllUsers() {
