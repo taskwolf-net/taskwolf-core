@@ -1,12 +1,12 @@
 {
+  "target.you": "You / Personal",
+
   "condition.text.equals": "Is equals",
   "condition.text.ends.with": "Ends with",
   "condition.text.starts.with": "Starts with",
   "condition.number.greater.than": "Is greater",
   "condition.number.smaller.than": "Is smaller",
   "condition.not.a.number": "An error occurred while checking a condition. The error occurred because the input or comparison value did not correspond to a number.",
-
-  "workflow.owner.you": "You / Personal",
 
   "workflow.timeline.entry.created.title": "Workflow was created",
   "workflow.timeline.entry.created.description": "The workflow was published by %CREATOR%.",
