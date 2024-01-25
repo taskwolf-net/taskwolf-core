@@ -20,6 +20,7 @@ import net.taskwolf.core.template.TemplateInjectionModule;
 import net.taskwolf.core.ticket.TicketInjectionModule;
 import net.taskwolf.core.trigger.TriggerInjectionModule;
 import net.taskwolf.core.user.UserInjectionModule;
+import net.taskwolf.core.whitelist.WhitelistInjectionModule;
 import net.taskwolf.core.workflow.WorkflowInjectionModule;
 import org.springframework.boot.SpringApplication;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -43,6 +44,7 @@ public class CoreInjectionModule extends AbstractModule {
     install(TicketInjectionModule.create());
     install(NotificationInjectionModule.create());
     install(DistributionInjectionModule.create());
+    install(WhitelistInjectionModule.create());
     install(LocaleInjectionModule.create());
     install(ModuleInjectionModule.create());
     install(CommandInjectionModule.create());
