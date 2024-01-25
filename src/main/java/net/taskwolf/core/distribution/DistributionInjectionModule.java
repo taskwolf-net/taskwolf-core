@@ -11,7 +11,7 @@ import net.taskwolf.core.user.UserDatabaseTable;
 public final class DistributionInjectionModule extends AbstractModule {
   @Provides
   @Singleton
-  DistributionConfiguration provideDistribution() throws Exception {
+  DistributionConfiguration provideDistributionConfiguration() throws Exception {
     return DistributionConfiguration.createAndLoad();
   }
 
