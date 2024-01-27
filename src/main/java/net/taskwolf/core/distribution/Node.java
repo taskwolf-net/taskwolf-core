@@ -12,5 +12,5 @@ public final class Node {
   private final int redisPort;
   private final int distributionPort;
   private final int restPort;
-  private final NodeType nodeType;
+  private final NodeType type;
 }
