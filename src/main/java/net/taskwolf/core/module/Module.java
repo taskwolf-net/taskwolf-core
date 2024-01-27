@@ -11,6 +11,8 @@ import net.taskwolf.core.action.ActionFactory;
 import net.taskwolf.core.action.ActionInformation;
 import net.taskwolf.core.command.Command;
 import net.taskwolf.core.command.CommandRegistry;
+import net.taskwolf.core.event.Hook;
+import net.taskwolf.core.event.HookRegistry;
 import net.taskwolf.core.trigger.TriggerFactory;
 import net.taskwolf.core.trigger.TriggerInformation;
 
@@ -54,5 +56,13 @@ public abstract class Module {
 
   public void unregisterCommand(Command command) {
     injector.getInstance(CommandRegistry.class).unregister(command);
+  }
+
+  public void registerHook(Hook hook) {
+    injector.getInstance(HookRegistry.class).register(hook);
+  }
+
+  public void unregisterHook(Hook hook) {
+    injector.getInstance(HookRegistry.class).unregister(hook);
   }
 }
