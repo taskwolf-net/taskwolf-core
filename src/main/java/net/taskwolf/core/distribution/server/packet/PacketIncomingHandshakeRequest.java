@@ -1,4 +1,4 @@
-package net.taskwolf.core.distribution.server.packet.inbound;
+package net.taskwolf.core.distribution.server.packet;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -6,17 +6,19 @@ import net.taskwolf.core.distribution.packet.PacketBuffer;
 
 @Getter
 @Accessors(fluent = true)
-public final class PacketIncomingHandshake extends PacketIncoming {
+public final class PacketIncomingHandshakeRequest extends PacketIncoming {
   private String hostname;
+  private int port;
   private String key;
 
-  public PacketIncomingHandshake() {
+  public PacketIncomingHandshakeRequest() {
     super(0x00);
   }
 
   @Override
   public void read(PacketBuffer buffer) throws Exception {
     hostname = buffer.readString();
+    port = buffer.readVarInt();
     key = buffer.readString();
   }
 }
