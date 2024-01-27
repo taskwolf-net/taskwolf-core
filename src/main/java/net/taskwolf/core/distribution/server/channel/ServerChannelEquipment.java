@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.distribution.server.packet.PacketDecoder;
 import net.taskwolf.core.distribution.server.packet.PacketRegistry;
+import net.taskwolf.core.event.EventExecutor;
 
 import java.net.InetSocketAddress;
 
@@ -13,6 +14,7 @@ import java.net.InetSocketAddress;
 public final class ServerChannelEquipment extends ChannelInitializer<Channel> {
   private final DistributionConfiguration distributionConfiguration;
   private final PacketRegistry packetRegistry;
+  private final EventExecutor eventExecutor;
 
   @Override
   protected void initChannel(Channel channel) {
@@ -24,7 +26,9 @@ public final class ServerChannelEquipment extends ChannelInitializer<Channel> {
       channel.close();
       return;
     }
-    channel.pipeline().addLast("channel-decoder", PacketDecoder.create(packetRegistry));
-    channel.pipeline().addLast("chanel-inbox", ServerChannelInbox.create());
+    channel.pipeline().addLast("channel-decoder",
+      PacketDecoder.create(packetRegistry));
+    channel.pipeline().addLast("chanel-inbox",
+      ServerChannelInbox.create(eventExecutor));
   }
 }

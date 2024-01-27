@@ -11,12 +11,14 @@ import lombok.experimental.Accessors;
 import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.distribution.server.channel.ServerChannelEquipment;
 import net.taskwolf.core.distribution.server.packet.PacketRegistry;
+import net.taskwolf.core.event.EventExecutor;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public final class DistributionServer {
   private final DistributionConfiguration distributionConfiguration;
   private final PacketRegistry packetRegistry;
+  private final EventExecutor eventExecutor;
   @Getter
   private final int port;
   @Getter
@@ -37,7 +39,8 @@ public final class DistributionServer {
     channel = new ServerBootstrap()
       .group(group)
       .channel(NioServerSocketChannel.class)
-      .childHandler(ServerChannelEquipment.create(distributionConfiguration, packetRegistry))
+      .childHandler(ServerChannelEquipment.create(distributionConfiguration,
+        packetRegistry, eventExecutor))
       .bind(port)
       .syncUninterruptibly().channel();
   }
