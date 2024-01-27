@@ -1,11 +1,11 @@
-package net.taskwolf.core.distribution.server.packet;
+package net.taskwolf.core.distribution.packet;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.distribution.server.packet.inbound.PacketIncoming;
+import net.taskwolf.core.distribution.server.packet.PacketIncoming;
 
 import java.util.List;
 import java.util.Optional;

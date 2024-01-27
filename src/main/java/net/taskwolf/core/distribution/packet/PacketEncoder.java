@@ -1,12 +1,11 @@
-package net.taskwolf.core.distribution.client.packet;
+package net.taskwolf.core.distribution.packet;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.distribution.client.packet.outbound.PacketOutgoing;
-import net.taskwolf.core.distribution.packet.PacketBuffer;
+import net.taskwolf.core.distribution.client.packet.PacketOutgoing;
 
 @RequiredArgsConstructor(staticName = "create")
 public class PacketEncoder extends MessageToByteEncoder<PacketOutgoing> {

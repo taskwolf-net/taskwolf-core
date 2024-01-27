@@ -37,8 +37,9 @@ public final class DistributionConfiguration extends Configuration {
   }
 
   private Node createNode(JSONObject json) {
-    return Node.create(json.getString("hostname"), json.getInt("redisPort"),
-      json.getInt("distributionPort"), json.getInt("restPort"),
-      NodeType.valueOf(json.getString("nodeType")));
+    return Node.create(NodeType.valueOf(json.getString("type")),
+      json.getString("hostname"), json.getInt("redisPort"),
+      json.getInt("restPort"), json.getInt("distributionPort"),
+      json.getString("distributionKey"));
   }
 }

@@ -1,10 +1,9 @@
-package net.taskwolf.core.distribution.server.packet;
+package net.taskwolf.core.distribution.packet;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.distribution.packet.PacketBuffer;
 
 import java.util.List;
 

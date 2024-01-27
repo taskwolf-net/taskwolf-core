@@ -8,9 +8,10 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public final class Node {
+  private final NodeType type;
   private final String hostname;
   private final int redisPort;
-  private final int distributionPort;
   private final int restPort;
-  private final NodeType type;
+  private final int distributionPort;
+  private final String distributionKey;
 }

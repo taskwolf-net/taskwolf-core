@@ -8,21 +8,57 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.distribution.Node;
-import net.taskwolf.core.distribution.client.channel.ClientChannelEquipment;
-import net.taskwolf.core.distribution.client.packet.outbound.PacketOutgoing;
+import net.taskwolf.core.distribution.channel.ChannelEquipment;
+import net.taskwolf.core.distribution.client.packet.PacketOutgoing;
+import net.taskwolf.core.distribution.packet.PacketRegistry;
+import net.taskwolf.core.event.EventExecutor;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public final class DistributionClient {
+  public static DistributionClient of(
+    DistributionConfiguration distributionConfiguration,
+    PacketRegistry packetRegistry, EventExecutor eventExecutor,
+    DistributionClientRegistry distributionClientRegistry, Node node,
+    Channel channel
+  ) {
+    return new DistributionClient(distributionConfiguration, packetRegistry,
+      eventExecutor, distributionClientRegistry, node, channel);
+  }
+
+  private final DistributionConfiguration distributionConfiguration;
+  private final PacketRegistry packetRegistry;
+  private final EventExecutor eventExecutor;
+  private final DistributionClientRegistry distributionClientRegistry;
   @Getter
   private final Node node;
   @Getter
   private Channel channel;
   private EventLoopGroup group;
 
-  public void connectAsync() {
-    new Thread(this::connect).start();
+  private DistributionClient(
+    DistributionConfiguration distributionConfiguration,
+    PacketRegistry packetRegistry, EventExecutor eventExecutor,
+    DistributionClientRegistry distributionClientRegistry, Node node,
+    Channel channel
+  ) {
+    this.distributionConfiguration = distributionConfiguration;
+    this.packetRegistry = packetRegistry;
+    this.eventExecutor = eventExecutor;
+    this.distributionClientRegistry = distributionClientRegistry;
+    this.node = node;
+    this.channel = channel;
+  }
+
+  public void connectAsync(Runnable callback) {
+    new Thread(() -> connect(callback)).start();
+  }
+
+  private void connect(Runnable callback) {
+    connect();
+    callback.run();
   }
 
   public void connect() {
@@ -30,7 +66,9 @@ public final class DistributionClient {
     channel = new Bootstrap()
       .group(group)
       .channel(NioSocketChannel.class)
-      .handler(ClientChannelEquipment.create())
+      .handler(ChannelEquipment.create(distributionConfiguration,
+        packetRegistry, eventExecutor, distributionClientRegistry,
+        ChannelEquipment.Type.INTERNAL))
       .connect(node.hostname(), node.distributionPort())
       .syncUninterruptibly().channel();
   }

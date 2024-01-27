@@ -1,4 +1,4 @@
-package net.taskwolf.core.distribution.server.packet.inbound;
+package net.taskwolf.core.distribution.server.packet;
 
 import net.taskwolf.core.distribution.packet.Packet;
 import net.taskwolf.core.distribution.packet.PacketBuffer;
