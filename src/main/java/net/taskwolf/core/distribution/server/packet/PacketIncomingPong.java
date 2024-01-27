@@ -1,4 +1,4 @@
-package net.taskwolf.core.distribution.server.packet.inbound;
+package net.taskwolf.core.distribution.server.packet;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -6,11 +6,11 @@ import net.taskwolf.core.distribution.packet.PacketBuffer;
 
 @Getter
 @Accessors(fluent = true)
-public final class PacketIncomingPing extends PacketIncoming {
+public final class PacketIncomingPong extends PacketIncoming {
   private int value;
 
-  public PacketIncomingPing() {
-    super(0x01);
+  public PacketIncomingPong() {
+    super(0x03);
   }
 
   @Override

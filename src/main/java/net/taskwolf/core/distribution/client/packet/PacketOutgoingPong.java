@@ -1,12 +1,12 @@
-package net.taskwolf.core.distribution.client.packet.outbound;
+package net.taskwolf.core.distribution.client.packet;
 
 import net.taskwolf.core.distribution.packet.PacketBuffer;
 
-public final class PacketOutgoingPing extends PacketOutgoing {
+public final class PacketOutgoingPong extends PacketOutgoing {
   private final int value;
 
-  public PacketOutgoingPing(int value) {
-    super(0x01);
+  public PacketOutgoingPong(int value) {
+    super(0x03);
     this.value = value;
   }
 
