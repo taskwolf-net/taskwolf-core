@@ -29,6 +29,8 @@ public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncomi
       processPingPacket(context, packet);
     } else if (incomingPacket instanceof PacketIncomingPong packet) {
       processPongPacket(context, packet);
+    } else if (incomingPacket instanceof PacketIncomingDisconnect packet) {
+      processDisconnectPacket(context, packet);
     }
   }
 
@@ -60,10 +62,17 @@ public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncomi
       findClientByContext(context), packet.value()));
   }
 
+  private void processDisconnectPacket(
+    ChannelHandlerContext context, PacketIncomingDisconnect packet
+  ) {
+    eventExecutor.execute(NodeDisconnectEvent.create(findClientByContext(context),
+      NodeDisconnectEvent.DisconnectType.NATURALLY));
+  }
+
   @Override
   public void channelInactive(ChannelHandlerContext context) {
-    eventExecutor.execute(NodeDisconnectEvent.create(
-      findClientByContext(context)));
+    eventExecutor.execute(NodeDisconnectEvent.create(findClientByContext(context),
+      NodeDisconnectEvent.DisconnectType.TIME_OUT));
   }
 
   private Node findNodeByContext(String hostname, int port) {

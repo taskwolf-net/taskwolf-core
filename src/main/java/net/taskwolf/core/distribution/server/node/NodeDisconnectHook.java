@@ -1,0 +1,26 @@
+package net.taskwolf.core.distribution.server.node;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.distribution.client.DistributionClientRegistry;
+import net.taskwolf.core.event.EventHook;
+import net.taskwolf.core.event.Hook;
+import net.taskwolf.core.event.node.NodeDisconnectEvent;
+import net.taskwolf.core.log.Log;
+
+@Singleton
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
+public final class NodeDisconnectHook implements Hook {
+  private final DistributionClientRegistry distributionClientRegistry;
+  private final Log log;
+
+  @EventHook
+  private void nodeDisconnect(NodeDisconnectEvent event) {
+    distributionClientRegistry.unregisterClient(event.client());
+    var suffix = event.type().isNaturally() ? "disconnected" : "timed out";
+    log.warning("The node " + event.client().node().information() + " has " +
+      suffix);
+  }
+}

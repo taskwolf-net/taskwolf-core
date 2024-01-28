@@ -14,4 +14,8 @@ public final class Node {
   private final int restPort;
   private final int distributionPort;
   private final String distributionKey;
+
+  public String information() {
+    return hostname + " [" + type.toString() + "]";
+  }
 }
