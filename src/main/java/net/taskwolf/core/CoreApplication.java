@@ -14,11 +14,15 @@ import net.taskwolf.core.condition.text.ConditionTextStartsWith;
 import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.distribution.client.DistributionClient;
 import net.taskwolf.core.distribution.client.DistributionClientRegistry;
-import net.taskwolf.core.distribution.client.packet.PacketOutgoingHandshakeRequest;
+import net.taskwolf.core.distribution.client.packet.node.PacketOutgoingHandshakeRequest;
 import net.taskwolf.core.distribution.server.DistributionServer;
 import net.taskwolf.core.distribution.server.node.*;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
-import net.taskwolf.core.distribution.server.packet.*;
+import net.taskwolf.core.distribution.server.packet.node.*;
+import net.taskwolf.core.distribution.server.packet.user.PacketIncomingUserDelete;
+import net.taskwolf.core.distribution.server.packet.user.PacketIncomingUsersReorganize;
+import net.taskwolf.core.distribution.server.user.UserDeleteHook;
+import net.taskwolf.core.distribution.server.user.UsersReorganizeHook;
 import net.taskwolf.core.event.EventExecutor;
 import net.taskwolf.core.event.HookRegistry;
 import net.taskwolf.core.intro.Intro;
@@ -71,6 +75,8 @@ public class CoreApplication {
     registry.registerPacket(PacketIncomingPing.class);
     registry.registerPacket(PacketIncomingPong.class);
     registry.registerPacket(PacketIncomingDisconnect.class);
+    registry.registerPacket(PacketIncomingUsersReorganize.class);
+    registry.registerPacket(PacketIncomingUserDelete.class);
   }
 
   private static void registerHooks(HookRegistry hookRegistry, Injector injector) {
@@ -79,6 +85,8 @@ public class CoreApplication {
     hookRegistry.register(injector.getInstance(NodePingHook.class));
     hookRegistry.register(injector.getInstance(NodePongHook.class));
     hookRegistry.register(injector.getInstance(NodeDisconnectHook.class));
+    hookRegistry.register(injector.getInstance(UsersReorganizeHook.class));
+    hookRegistry.register(injector.getInstance(UserDeleteHook.class));
   }
 
   private static void setupDistribution(

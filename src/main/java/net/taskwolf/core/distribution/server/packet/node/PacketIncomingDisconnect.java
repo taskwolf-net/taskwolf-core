@@ -1,8 +1,9 @@
-package net.taskwolf.core.distribution.server.packet;
+package net.taskwolf.core.distribution.server.packet.node;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.distribution.packet.PacketBuffer;
+import net.taskwolf.core.distribution.server.packet.PacketIncoming;
 
 @Getter
 @Accessors(fluent = true)

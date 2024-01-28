@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.distribution.client.packet.PacketOutgoingPong;
+import net.taskwolf.core.distribution.client.packet.node.PacketOutgoingPong;
 import net.taskwolf.core.event.EventHook;
 import net.taskwolf.core.event.Hook;
 import net.taskwolf.core.event.node.NodePingEvent;

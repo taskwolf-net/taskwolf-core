@@ -7,9 +7,14 @@ import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.distribution.Node;
 import net.taskwolf.core.distribution.client.DistributionClient;
 import net.taskwolf.core.distribution.client.DistributionClientRegistry;
-import net.taskwolf.core.distribution.server.packet.*;
+import net.taskwolf.core.distribution.server.packet.PacketIncoming;
+import net.taskwolf.core.distribution.server.packet.node.*;
+import net.taskwolf.core.distribution.server.packet.user.PacketIncomingUserDelete;
+import net.taskwolf.core.distribution.server.packet.user.PacketIncomingUsersReorganize;
 import net.taskwolf.core.event.EventExecutor;
 import net.taskwolf.core.event.node.*;
+import net.taskwolf.core.event.user.UserDeleteEvent;
+import net.taskwolf.core.event.user.UsersReorganizeEvent;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncoming> {
@@ -31,6 +36,10 @@ public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncomi
       processPongPacket(context, packet);
     } else if (incomingPacket instanceof PacketIncomingDisconnect packet) {
       processDisconnectPacket(context, packet);
+    } else if (incomingPacket instanceof PacketIncomingUsersReorganize packet) {
+      processUsersReorganizePacket(packet);
+    } else if (incomingPacket instanceof PacketIncomingUserDelete packet) {
+      processUserDeletePacket(packet);
     }
   }
 
@@ -67,6 +76,15 @@ public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncomi
   ) {
     eventExecutor.execute(NodeDisconnectEvent.create(findClientByContext(context),
       NodeDisconnectEvent.DisconnectType.NATURALLY));
+  }
+
+  private void processUsersReorganizePacket(PacketIncomingUsersReorganize packet) {
+    eventExecutor.execute(UsersReorganizeEvent.create(packet.module(),
+      packet.users()));
+  }
+
+  private void processUserDeletePacket(PacketIncomingUserDelete packet) {
+    eventExecutor.execute(UserDeleteEvent.create(packet.user()));
   }
 
   @Override

@@ -6,7 +6,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.distribution.client.DistributionClient;
 import net.taskwolf.core.distribution.client.DistributionClientRegistry;
-import net.taskwolf.core.distribution.client.packet.PacketOutgoingPing;
+import net.taskwolf.core.distribution.client.packet.node.PacketOutgoingPing;
 import net.taskwolf.core.log.Log;
 
 import java.util.Random;

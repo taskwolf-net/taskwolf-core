@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.distribution.client.DistributionClient;
 import net.taskwolf.core.distribution.client.DistributionClientRegistry;
-import net.taskwolf.core.distribution.client.packet.PacketOutgoingHandshakeResponse;
+import net.taskwolf.core.distribution.client.packet.node.PacketOutgoingHandshakeResponse;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
 import net.taskwolf.core.event.EventExecutor;
 import net.taskwolf.core.event.EventHook;
