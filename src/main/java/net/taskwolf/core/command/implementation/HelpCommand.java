@@ -22,6 +22,10 @@ public final class HelpCommand extends Command {
     log().info("- module");
     log().info("- distribution");
     log().info("- template");
+    log().info("- user");
+    log().info("- group");
+    log().info("- team");
+    log().info("- permission");
     log().info("- exit");
     return true;
   }
