@@ -30,6 +30,8 @@ import net.taskwolf.core.log.Log;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.Collections;
+
 @SpringBootApplication(scanBasePackages = {"net.taskwolf"},
   exclude = {org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration.class})
 public class CoreApplication {
@@ -54,6 +56,8 @@ public class CoreApplication {
     coreModule.initialize();
     var commandRegistry = injector.getInstance(CommandRegistry.class);
     registerCommands(commandRegistry, injector);
+    application.setDefaultProperties(Collections.singletonMap("server.port",
+      distributionConfiguration.self().restPort()));
     application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
     log.info("Successfully booted Taskwolf - Core");
