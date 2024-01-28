@@ -20,6 +20,10 @@ public final class DistributionUserAssignment {
     assignment.put(module, user);
   }
 
+  public void assignUsers(String module, List<UUID> users) {
+    assignment.putAll(module, users);
+  }
+
   public void removeUser(String module, UUID user) {
     assignment.remove(module, user);
   }
