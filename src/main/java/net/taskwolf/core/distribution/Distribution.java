@@ -8,6 +8,7 @@ import net.taskwolf.core.distribution.client.DistributionClient;
 import net.taskwolf.core.distribution.client.DistributionClientRegistry;
 import net.taskwolf.core.distribution.client.packet.node.PacketOutgoingDisconnect;
 import net.taskwolf.core.distribution.client.packet.node.PacketOutgoingHandshakeRequest;
+import net.taskwolf.core.distribution.client.packet.user.PacketOutgoingUserDelete;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
 import net.taskwolf.core.distribution.server.DistributionServer;
 import net.taskwolf.core.event.EventExecutor;
@@ -46,11 +47,16 @@ public final class Distribution {
   }
 
   public void addUser(UUID user) {
-
+    for (var module : userAssignment.findAllModules()) {
+      userAssignment.assignUser(module, user);
+    }
   }
 
   public void removeUser(UUID user) {
-
+    for (var module : userAssignment.findModulesAssignedTo(user)) {
+      userAssignment.removeUser(module, user);
+    }
+    server.broadcastPacket(new PacketOutgoingUserDelete(user));
   }
 
   public void unregisterModule(String module) {
@@ -58,15 +64,16 @@ public final class Distribution {
   }
 
   public boolean isAssignedUser(String module, UUID user) {
-    return false;
+    return userAssignment.isAssignedUser(module, user);
   }
 
   public List<UUID> findAssignedUsers(String module) {
-    return null;
+    return userAssignment.findAssignedUsers(module);
   }
 
   public List<String> findConnectedNodes() {
-    return null;
+    return clientRegistry.findAllClients().stream().map(DistributionClient::node)
+      .map(node -> node.hostname() + " [" + node.type() + "]").toList();
   }
 
   public void disconnect() {

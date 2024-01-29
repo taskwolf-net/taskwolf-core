@@ -36,6 +36,10 @@ public final class DistributionUserAssignment {
     return Lists.newArrayList(assignment.get(module));
   }
 
+  public boolean isAssignedUser(String module, UUID user) {
+    return assignment.containsEntry(module, user);
+  }
+
   public List<String> findModulesAssignedTo(UUID user) {
     var modules = Lists.<String>newArrayList();
     for (var module : assignment.keys()) {
