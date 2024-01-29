@@ -21,17 +21,17 @@ public final class DistributionClient {
   public static DistributionClient of(
     DistributionConfiguration distributionConfiguration,
     PacketRegistry packetRegistry, EventExecutor eventExecutor,
-    DistributionClientRegistry distributionClientRegistry, Node node,
+    DistributionClientRegistry clientRegistry, Node node,
     Channel channel
   ) {
     return new DistributionClient(distributionConfiguration, packetRegistry,
-      eventExecutor, distributionClientRegistry, node, channel);
+      eventExecutor, clientRegistry, node, channel);
   }
 
   private final DistributionConfiguration distributionConfiguration;
   private final PacketRegistry packetRegistry;
   private final EventExecutor eventExecutor;
-  private final DistributionClientRegistry distributionClientRegistry;
+  private final DistributionClientRegistry clientRegistry;
   @Getter
   private final Node node;
   @Getter
@@ -41,13 +41,13 @@ public final class DistributionClient {
   private DistributionClient(
     DistributionConfiguration distributionConfiguration,
     PacketRegistry packetRegistry, EventExecutor eventExecutor,
-    DistributionClientRegistry distributionClientRegistry, Node node,
+    DistributionClientRegistry clientRegistry, Node node,
     Channel channel
   ) {
     this.distributionConfiguration = distributionConfiguration;
     this.packetRegistry = packetRegistry;
     this.eventExecutor = eventExecutor;
-    this.distributionClientRegistry = distributionClientRegistry;
+    this.clientRegistry = clientRegistry;
     this.node = node;
     this.channel = channel;
   }
@@ -67,7 +67,7 @@ public final class DistributionClient {
       .group(group)
       .channel(NioSocketChannel.class)
       .handler(ChannelEquipment.create(distributionConfiguration,
-        packetRegistry, eventExecutor, distributionClientRegistry,
+        packetRegistry, eventExecutor, clientRegistry,
         ChannelEquipment.Type.INTERNAL))
       .connect(node.hostname(), node.distributionPort())
       .syncUninterruptibly().channel();
