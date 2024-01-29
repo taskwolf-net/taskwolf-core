@@ -18,6 +18,7 @@ public final class NodeDisconnectHook implements Hook {
 
   @EventHook
   private void nodeDisconnect(NodeDisconnectEvent event) {
+    //TODO: REORGANIZE USERS WHEN NODE DISCONNECTS
     distributionClientRegistry.unregisterClient(event.client());
     var suffix = event.type().isNaturally() ? "disconnected" : "timed out";
     log.warning("The node " + event.client().node().information() + " has " +
