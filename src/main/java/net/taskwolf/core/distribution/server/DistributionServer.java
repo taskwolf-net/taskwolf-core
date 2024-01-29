@@ -11,6 +11,7 @@ import lombok.experimental.Accessors;
 import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.distribution.client.DistributionClientRegistry;
 import net.taskwolf.core.distribution.channel.ChannelEquipment;
+import net.taskwolf.core.distribution.client.packet.PacketOutgoing;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
 import net.taskwolf.core.event.EventExecutor;
 
@@ -20,7 +21,7 @@ public final class DistributionServer {
   private final DistributionConfiguration distributionConfiguration;
   private final PacketRegistry packetRegistry;
   private final EventExecutor eventExecutor;
-  private final DistributionClientRegistry distributionClientRegistry;
+  private final DistributionClientRegistry clientRegistry;
   @Getter
   private final int port;
   @Getter
@@ -42,10 +43,16 @@ public final class DistributionServer {
       .group(group)
       .channel(NioServerSocketChannel.class)
       .childHandler(ChannelEquipment.create(distributionConfiguration,
-        packetRegistry, eventExecutor, distributionClientRegistry,
+        packetRegistry, eventExecutor, clientRegistry,
         ChannelEquipment.Type.EXTERNAL))
       .bind(port)
       .syncUninterruptibly().channel();
+  }
+
+  public void broadcastPacket(PacketOutgoing packet) {
+    for (var client : clientRegistry.findAllClients()) {
+      client.sendPacket(packet);
+    }
   }
 
   public void close() {
