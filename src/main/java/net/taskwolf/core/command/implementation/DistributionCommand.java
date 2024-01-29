@@ -4,7 +4,7 @@ package net.taskwolf.core.command.implementation;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.taskwolf.core.command.Command;
-import net.taskwolf.core.distribution.Distribution;
+import net.taskwolf.core.distribution.DistributionOld;
 import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.log.Log;
 
@@ -14,18 +14,18 @@ import java.util.List;
 public final class DistributionCommand extends Command {
   public static DistributionCommand create(
     Log log, DistributionConfiguration distributionConfiguration,
-    Distribution distribution
+    DistributionOld distribution
   ) {
     return new DistributionCommand(log, distributionConfiguration, distribution);
   }
 
   private final DistributionConfiguration distributionConfiguration;
-  private final Distribution distribution;
+  private final DistributionOld distribution;
 
   @Inject
   private DistributionCommand(
     Log log, DistributionConfiguration distributionConfiguration,
-    Distribution distribution
+    DistributionOld distribution
   ) {
     super(log, "distribution", new String[] {"cluster"}, new String[0]);
     this.distributionConfiguration = distributionConfiguration;

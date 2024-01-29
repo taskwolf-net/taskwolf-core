@@ -17,12 +17,12 @@ public final class DistributionInjectionModule extends AbstractModule {
 
   @Provides
   @Singleton
-  Distribution provideDistribution(
+  DistributionOld provideDistribution(
     DistributionConfiguration distributionConfiguration,
     UserDatabaseTable userDatabaseTable,
     OrganizationDatabaseTable organizationDatabaseTable
   ) {
-    var distribution = Distribution.create(distributionConfiguration,
+    var distribution = DistributionOld.create(distributionConfiguration,
       userDatabaseTable, organizationDatabaseTable);
     distribution.initialize();
     return distribution;

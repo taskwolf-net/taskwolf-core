@@ -14,7 +14,7 @@ import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.condition.ConditionDatabaseTable;
 import net.taskwolf.core.condition.ConditionEntry;
 import net.taskwolf.core.condition.ConditionFactory;
-import net.taskwolf.core.distribution.Distribution;
+import net.taskwolf.core.distribution.DistributionOld;
 import net.taskwolf.core.iterator.AsyncAllocationIterator;
 import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.module.Module;
@@ -44,7 +44,7 @@ public class CoreModule {
   private final ActionDatabaseTable actionDatabaseTable;
   private final ConditionDatabaseTable conditionDatabaseTable;
   private final WorkflowDatabaseTable workflowDatabaseTable;
-  private final Distribution distribution;
+  private final DistributionOld distribution;
   private final ConditionFactory conditionFactory;
   private final WorkflowFactory workflowFactory;
   private final Locale englishLocale;
@@ -57,7 +57,7 @@ public class CoreModule {
     ActionDatabaseTable actionDatabaseTable,
     ConditionDatabaseTable conditionDatabaseTable,
     WorkflowDatabaseTable workflowDatabaseTable,
-    Distribution distribution, ConditionFactory conditionFactory,
+    DistributionOld distribution, ConditionFactory conditionFactory,
     WorkflowFactory workflowFactory, @Named("englishLocale") Locale englishLocale,
     @Named("germanLocale") Locale germanLocale
   ) {
