@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.distribution.client.DistributionClient;
 import net.taskwolf.core.distribution.client.DistributionClientRegistry;
+import net.taskwolf.core.distribution.client.packet.node.PacketOutgoingDisconnect;
 import net.taskwolf.core.distribution.client.packet.node.PacketOutgoingHandshakeRequest;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
 import net.taskwolf.core.distribution.server.DistributionServer;
@@ -69,6 +70,7 @@ public final class Distribution {
   }
 
   public void disconnect() {
-
+    server.broadcastPacket(new PacketOutgoingDisconnect());
+    server.close();
   }
 }
