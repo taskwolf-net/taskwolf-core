@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.distribution.DistributionConfiguration;
+import net.taskwolf.core.distribution.DistributionNodeCondition;
 import net.taskwolf.core.distribution.client.DistributionClientRegistry;
 import net.taskwolf.core.distribution.channel.ChannelEquipment;
 import net.taskwolf.core.distribution.client.packet.PacketOutgoing;
@@ -22,6 +23,9 @@ public final class DistributionServer {
   private final PacketRegistry packetRegistry;
   private final EventExecutor eventExecutor;
   private final DistributionClientRegistry clientRegistry;
+  @Getter
+  private final DistributionNodeCondition condition =
+    DistributionNodeCondition.create();
   @Getter
   private final int port;
   @Getter

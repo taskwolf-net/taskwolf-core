@@ -58,6 +58,7 @@ public final class Distribution {
   }
 
   public void registerModule(String module) {
+    server.condition().addModule(module);
     server.broadcastPacket(new PacketOutgoingModuleLoad(module));
     reorganizeUsers(module);
   }
@@ -76,36 +77,41 @@ public final class Distribution {
   }
 
   public void unregisterModule(String module) {
+    server.condition().removeModule(module);
     server.broadcastPacket(new PacketOutgoingModuleUnload(module));
     reorganizeUsers(module);
   }
 
   private void reorganizeUsers(String module) {
-    reassignUsers(module).thenAccept(assignment -> assignment.keySet().forEach(
-      client -> client.sendPacket(new PacketOutgoingUsersReorganize(module,
-        Lists.newArrayList(assignment.get(client))))));
+    findAllPossibleUser().thenAccept(users -> reorganizeUsers(module, users));
   }
 
-  private CompletableFuture<Multimap<DistributionClient, UUID>> reassignUsers(
-    String module
-  ) {
-    return findAllPossibleUser().thenApply(users -> reassignUsers(module, users));
+  private void reorganizeUsers(String module, List<UUID> allUsers) {
+    var clients = clientRegistry.findAllClients();
+    var nodeConditions = Lists.newArrayList(clients.stream()
+      .map(DistributionClient::condition).toList());
+    nodeConditions.add(server.condition());
+    var nodeCount = nodeConditions.stream().filter(condition ->
+      condition.isModuleLoaded(module)).count();
+    var dividedUsers = divideUsers(allUsers, nodeCount);
+    if (server.condition().isModuleLoaded(module)) {
+      userAssignment.deleteModule(module);
+      userAssignment.assignUsers(module, dividedUsers.get(dividedUsers.size() - 1));
+    }
+    for (int i = 0; i < clients.size(); i++) {
+      clients.get(i).sendPacket(new PacketOutgoingUsersReorganize(module,
+        dividedUsers.get(i)));
+    }
   }
 
-  private Multimap<DistributionClient, UUID> reassignUsers(
-    String module, List<UUID> allUsers
-  ) {
-    /*var result = HashMultimap.<DistributionClient, UUID>create();
-    int size = (int) Math.floor((double) allUsers.size() / moduleNodes.size());
-    int currentNode = 0;
+  private List<List<UUID>> divideUsers(List<UUID> allUsers, long nodes) {
+    var result = Lists.<List<UUID>>newArrayList();
+    int size = (int) Math.floor((double) allUsers.size() / nodes);
     for (var start = 0; start < allUsers.size(); start += size) {
       var end = Math.min(start + size, allUsers.size());
-      assignUsersToModule(moduleNodes.get(currentNode), module,
-        allPossibleUsers.subList(start, end));
-      currentNode++;
+      result.add(allUsers.subList(start, end));
     }
-    return result;*/
-    return null;
+    return result;
   }
 
   private CompletableFuture<List<UUID>> findAllPossibleUser() {

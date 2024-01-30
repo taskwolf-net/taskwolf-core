@@ -8,6 +8,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.taskwolf.core.distribution.DistributionNodeCondition;
 import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.distribution.Node;
 import net.taskwolf.core.distribution.channel.ChannelEquipment;
@@ -33,8 +34,8 @@ public final class DistributionClient {
   private final EventExecutor eventExecutor;
   private final DistributionClientRegistry clientRegistry;
   @Getter
-  private final DistributionClientCondition condition =
-    DistributionClientCondition.create();
+  private final DistributionNodeCondition condition =
+    DistributionNodeCondition.create();
   @Getter
   private final Node node;
   @Getter

@@ -1,4 +1,4 @@
-package net.taskwolf.core.distribution.client;
+package net.taskwolf.core.distribution;
 
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 @RequiredArgsConstructor(staticName = "create")
-public final class DistributionClientCondition {
+public final class DistributionNodeCondition {
   private final List<String> modules = Lists.newArrayList();
 
   public void addModule(String module) {
@@ -15,6 +15,10 @@ public final class DistributionClientCondition {
 
   public void removeModule(String module) {
     modules.remove(module);
+  }
+
+  public boolean isModuleLoaded(String module) {
+    return modules.contains(module);
   }
 
   public List<String> findLoadedModules() {
