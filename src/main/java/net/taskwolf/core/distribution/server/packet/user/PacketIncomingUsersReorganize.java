@@ -16,7 +16,7 @@ public final class PacketIncomingUsersReorganize extends PacketIncoming {
   private List<UUID> users;
 
   public PacketIncomingUsersReorganize() {
-    super(0x05);
+    super(0x07);
   }
 
   @Override

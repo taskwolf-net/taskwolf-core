@@ -11,7 +11,7 @@ public final class PacketOutgoingUsersReorganize extends PacketOutgoing {
   private final List<UUID> users;
 
   public PacketOutgoingUsersReorganize(String module, List<UUID> users) {
-    super(0x05);
+    super(0x07);
     this.module = module;
     this.users = users;
   }

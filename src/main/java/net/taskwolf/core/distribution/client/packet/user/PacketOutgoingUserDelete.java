@@ -9,7 +9,7 @@ public final class PacketOutgoingUserDelete extends PacketOutgoing {;
   private final UUID user;
 
   public PacketOutgoingUserDelete(UUID user) {
-    super(0x06);
+    super(0x08);
     this.user = user;
   }
 

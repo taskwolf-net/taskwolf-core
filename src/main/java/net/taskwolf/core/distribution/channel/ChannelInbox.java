@@ -36,6 +36,10 @@ public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncomi
       processPongPacket(context, packet);
     } else if (incomingPacket instanceof PacketIncomingDisconnect packet) {
       processDisconnectPacket(context, packet);
+    } else if (incomingPacket instanceof PacketIncomingModuleLoad packet) {
+      processModuleLoadPacket(context, packet);
+    } else if (incomingPacket instanceof PacketIncomingModuleUnload packet) {
+      processModuleUnloadPacket(context, packet);
     } else if (incomingPacket instanceof PacketIncomingUsersReorganize packet) {
       processUsersReorganizePacket(packet);
     } else if (incomingPacket instanceof PacketIncomingUserDelete packet) {
@@ -76,6 +80,20 @@ public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncomi
   ) {
     eventExecutor.execute(NodeDisconnectEvent.create(findClientByContext(context),
       NodeDisconnectEvent.DisconnectType.NATURALLY));
+  }
+
+  private void processModuleLoadPacket(
+    ChannelHandlerContext context, PacketIncomingModuleLoad packet
+  ) {
+    eventExecutor.execute(NodeModuleLoadEvent.create(findClientByContext(context),
+      packet.module()));
+  }
+
+  private void processModuleUnloadPacket(
+    ChannelHandlerContext context, PacketIncomingModuleUnload packet
+  ) {
+    eventExecutor.execute(NodeModuleUnloadEvent.create(
+      findClientByContext(context), packet.module()));
   }
 
   private void processUsersReorganizePacket(PacketIncomingUsersReorganize packet) {
