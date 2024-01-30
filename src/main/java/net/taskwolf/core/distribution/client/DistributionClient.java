@@ -33,6 +33,9 @@ public final class DistributionClient {
   private final EventExecutor eventExecutor;
   private final DistributionClientRegistry clientRegistry;
   @Getter
+  private final DistributionClientCondition condition =
+    DistributionClientCondition.create();
+  @Getter
   private final Node node;
   @Getter
   private Channel channel;
