@@ -25,7 +25,7 @@ public final class NodePingSchedule {
   private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
   private ScheduledFuture<?> scheduler;
 
-  private static final int PING_DELAY = 5;
+  private static final int PING_DELAY = 1;
   private static final TimeUnit PING_TIME_UNIT = TimeUnit.MINUTES;
 
   public void start() {
