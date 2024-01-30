@@ -79,6 +79,8 @@ public class CoreApplication {
     registry.registerPacket(PacketIncomingPing.class);
     registry.registerPacket(PacketIncomingPong.class);
     registry.registerPacket(PacketIncomingDisconnect.class);
+    registry.registerPacket(PacketIncomingModuleLoad.class);
+    registry.registerPacket(PacketIncomingModuleUnload.class);
     registry.registerPacket(PacketIncomingUsersReorganize.class);
     registry.registerPacket(PacketIncomingUserDelete.class);
   }
@@ -88,6 +90,8 @@ public class CoreApplication {
     hookRegistry.register(injector.getInstance(NodeHandshakeResponseHook.class));
     hookRegistry.register(injector.getInstance(NodePingHook.class));
     hookRegistry.register(injector.getInstance(NodePongHook.class));
+    hookRegistry.register(injector.getInstance(NodeModuleLoadHook.class));
+    hookRegistry.register(injector.getInstance(NodeModuleUnloadHook.class));
     hookRegistry.register(injector.getInstance(NodeDisconnectHook.class));
     hookRegistry.register(injector.getInstance(UsersReorganizeHook.class));
     hookRegistry.register(injector.getInstance(UserDeleteHook.class));
