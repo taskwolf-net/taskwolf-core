@@ -33,10 +33,7 @@ public class CoreApplication {
     registerConditions(injector.getInstance(ConditionInformationRepository.class));
     var distributionConfiguration = injector.getInstance(
       DistributionConfiguration.class);
-    var distribution = injector.getInstance(Distribution.class);
-    distribution.initialize();
-    var nodePingScheduler = injector.getInstance(NodePingSchedule.class);
-    nodePingScheduler.start();
+    setupDistribution(injector);
     var coreModule = injector.getInstance(CoreModule.class);
     coreModule.initialize();
     var commandRegistry = injector.getInstance(CommandRegistry.class);
@@ -46,6 +43,13 @@ public class CoreApplication {
     application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
     log.info("Successfully booted Taskwolf - Core");
+  }
+
+  private static void setupDistribution(Injector injector) throws Exception {
+    var distribution = injector.getInstance(Distribution.class);
+    distribution.initialize();
+    var nodePingScheduler = injector.getInstance(NodePingSchedule.class);
+    nodePingScheduler.start();
   }
 
   private static void registerConditions(ConditionInformationRepository repository) {
