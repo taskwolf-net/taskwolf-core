@@ -14,8 +14,7 @@ import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.condition.ConditionDatabaseTable;
 import net.taskwolf.core.condition.ConditionEntry;
 import net.taskwolf.core.condition.ConditionFactory;
-import net.taskwolf.core.distribution.DistributionOld;
-import net.taskwolf.core.iterator.AsyncAllocationIterator;
+import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.module.Module;
 import net.taskwolf.core.module.ModuleInformation;
@@ -44,7 +43,7 @@ public class CoreModule {
   private final ActionDatabaseTable actionDatabaseTable;
   private final ConditionDatabaseTable conditionDatabaseTable;
   private final WorkflowDatabaseTable workflowDatabaseTable;
-  private final DistributionOld distribution;
+  private final Distribution distribution;
   private final ConditionFactory conditionFactory;
   private final WorkflowFactory workflowFactory;
   private final Locale englishLocale;
@@ -57,7 +56,7 @@ public class CoreModule {
     ActionDatabaseTable actionDatabaseTable,
     ConditionDatabaseTable conditionDatabaseTable,
     WorkflowDatabaseTable workflowDatabaseTable,
-    DistributionOld distribution, ConditionFactory conditionFactory,
+    Distribution distribution, ConditionFactory conditionFactory,
     WorkflowFactory workflowFactory, @Named("englishLocale") Locale englishLocale,
     @Named("germanLocale") Locale germanLocale
   ) {
@@ -115,11 +114,9 @@ public class CoreModule {
   ) {
     var futureResponse = new CompletableFuture<List<TriggerEntry>>();
     triggerDatabaseTable.findTriggersByModuleAndType(module, type)
-      .thenApply(entries -> AsyncAllocationIterator.execute(entries, entry ->
-          distribution.isAssignedUser(module, entry.ownerId()), entries.size(),
-        triggers -> futureResponse.complete(triggers.entrySet().stream()
-          .filter(Map.Entry::getValue).map(Map.Entry::getKey)
-          .filter(entry -> entry.state().isArmed()).toList())));
+      .thenApply(entries -> entries.stream()
+        .filter(entry -> distribution.isAssignedUser(module, entry.ownerId()))
+        .filter(entry -> entry.state().isArmed()).toList());
     return futureResponse;
   }
 

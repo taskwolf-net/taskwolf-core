@@ -4,45 +4,39 @@ package net.taskwolf.core.command.implementation;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.taskwolf.core.command.Command;
-import net.taskwolf.core.distribution.DistributionOld;
+import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.log.Log;
-
-import java.util.List;
 
 @Singleton
 public final class DistributionCommand extends Command {
   public static DistributionCommand create(
     Log log, DistributionConfiguration distributionConfiguration,
-    DistributionOld distribution
+    Distribution distribution
   ) {
     return new DistributionCommand(log, distributionConfiguration, distribution);
   }
 
   private final DistributionConfiguration distributionConfiguration;
-  private final DistributionOld distribution;
+  private final Distribution distribution;
 
   @Inject
   private DistributionCommand(
     Log log, DistributionConfiguration distributionConfiguration,
-    DistributionOld distribution
+    Distribution distribution
   ) {
     super(log, "distribution", new String[] {"cluster"}, new String[0]);
     this.distributionConfiguration = distributionConfiguration;
     this.distribution = distribution;
   }
 
-  @Override
-  public boolean execute(String[] arguments) {
-    distribution.findConnectedNodes().thenAccept(this::printDistribution);
-    return true;
-  }
-
   private static final String COLOR_RESET = "\u001b[32m";
   private static final String COLOR_RED = "\u001b[31m";
   private static final String COLOR_GREEN = "\u001b[32m";
 
-  private void printDistribution(List<String> connectedNodes) {
+  @Override
+  public boolean execute(String[] arguments) {
+    var connectedNodes = distribution.findConnectedNodes();
     var self = distributionConfiguration.self();
     log().info("Self (" + self.hostname()  + ":" + self.redisPort() + "): " +
       COLOR_GREEN + "CONNECTED" + COLOR_RESET);
@@ -50,8 +44,11 @@ public final class DistributionCommand extends Command {
     log().info("Nodes (" + nodes.size() + "):");
     for (var node : nodes) {
       var address = node.hostname() + ":" + node.redisPort();
-      log().info(" - " + address + " " + (connectedNodes.contains(address) ?
-        COLOR_GREEN + "CONNECTED" : COLOR_RED + "DISCONNECTED") + COLOR_RESET);
+      var isConnected = connectedNodes.stream().anyMatch(connectedNode ->
+        connectedNode.contains(node.hostname()));
+      log().info(" - " + address + " " + (isConnected ? COLOR_GREEN + "CONNECTED" :
+        COLOR_RED + "DISCONNECTED") + COLOR_RESET);
     }
+    return true;
   }
 }

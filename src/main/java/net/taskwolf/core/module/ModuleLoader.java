@@ -6,7 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.taskwolf.core.distribution.DistributionOld;
+import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.log.Log;
 
 import java.io.File;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ModuleLoader {
   public static ModuleLoader create(
-    Log log, String directory, DistributionOld distribution, Injector injector
+    Log log, String directory, Distribution distribution, Injector injector
   ) {
     var jars = findJarsInDirectory(directory);
     var urls = jars.stream().map(ModuleLoader::findFileUrl).toArray(URL[]::new);
@@ -52,7 +52,7 @@ public final class ModuleLoader {
   @Getter
   private final ClassLoader classLoader;
   private final List<RegisteredModule> modules = Lists.newArrayList();
-  private final DistributionOld distribution;
+  private final Distribution distribution;
   private final Injector injector;
 
   public void loadModules() throws Exception {
