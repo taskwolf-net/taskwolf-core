@@ -2,9 +2,10 @@ package net.taskwolf.core.user;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
-import org.jboss.marshalling.Pair;
 
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -45,8 +46,9 @@ public final class UserEmailChangeDatabaseTable extends DatabaseTable {
     delete(DatabaseCell.create(userId));
   }
 
-  public CompletableFuture<Pair<String, String >> findChange(UUID userId) {
+  public CompletableFuture<Map.Entry<String, String>> findChange(UUID userId) {
     return selectRow(DatabaseCell.create(userId)).thenApply(row ->
-      new Pair<>(row.findCell(1).stringValue(), row.findCell(2).stringValue()));
+      new AbstractMap.SimpleEntry<>(row.findCell(1).stringValue(),
+        row.findCell(2).stringValue()));
   }
 }
