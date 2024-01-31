@@ -16,6 +16,8 @@ import net.taskwolf.core.event.node.*;
 import net.taskwolf.core.event.user.UserDeleteEvent;
 import net.taskwolf.core.event.user.UsersReorganizeEvent;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor(staticName = "create")
 public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncoming> {
   private final EventExecutor eventExecutor;
@@ -26,24 +28,23 @@ public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncomi
   protected void channelRead0(
     ChannelHandlerContext context, PacketIncoming incomingPacket
   ) {
+    var client = findClientByContext(context);
+    if (client.isEmpty() || client.get().state().isUnauthorized()) {
+      processUnauthorizedChannel(context, client, incomingPacket);
+      return;
+    }
+    processAuthorizedChannel(client.get(), incomingPacket);
+  }
+
+  private void processUnauthorizedChannel(
+    ChannelHandlerContext context, Optional<DistributionClient> client,
+    PacketIncoming incomingPacket
+  ) {
     if (incomingPacket instanceof PacketIncomingHandshakeRequest packet) {
       processHandshakeRequestPacket(context, packet);
     } else if (incomingPacket instanceof PacketIncomingHandshakeResponse packet) {
-      processHandshakeResponsePacket(context, packet);
-    } else if (incomingPacket instanceof PacketIncomingPing packet) {
-      processPingPacket(context, packet);
-    } else if (incomingPacket instanceof PacketIncomingPong packet) {
-      processPongPacket(context, packet);
-    } else if (incomingPacket instanceof PacketIncomingDisconnect packet) {
-      processDisconnectPacket(context, packet);
-    } else if (incomingPacket instanceof PacketIncomingModuleLoad packet) {
-      processModuleLoadPacket(context, packet);
-    } else if (incomingPacket instanceof PacketIncomingModuleUnload packet) {
-      processModuleUnloadPacket(context, packet);
-    } else if (incomingPacket instanceof PacketIncomingUsersReorganize packet) {
-      processUsersReorganizePacket(packet);
-    } else if (incomingPacket instanceof PacketIncomingUserDelete packet) {
-      processUserDeletePacket(packet);
+        client.ifPresent(distributionClient ->
+          processHandshakeResponsePacket(distributionClient, packet));
     }
   }
 
@@ -55,51 +56,66 @@ public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncomi
       packet.nodeId()));
   }
 
-  private void processHandshakeResponsePacket(
-    ChannelHandlerContext context, PacketIncomingHandshakeResponse packet
+  private void processAuthorizedChannel(
+    DistributionClient client, PacketIncoming incomingPacket
   ) {
-    var client = findClientByContext(context);
+    if (incomingPacket instanceof PacketIncomingPing packet) {
+      processPingPacket(client, packet);
+    } else if (incomingPacket instanceof PacketIncomingPong packet) {
+      processPongPacket(client, packet);
+    } else if (incomingPacket instanceof PacketIncomingDisconnect packet) {
+      processDisconnectPacket(client, packet);
+    } else if (incomingPacket instanceof PacketIncomingModuleLoad packet) {
+      processModuleLoadPacket(client, packet);
+    } else if (incomingPacket instanceof PacketIncomingModuleUnload packet) {
+      processModuleUnloadPacket(client, packet);
+    } else if (incomingPacket instanceof PacketIncomingUsersReorganize packet) {
+      processUsersReorganizePacket(packet);
+    } else if (incomingPacket instanceof PacketIncomingUserDelete packet) {
+      processUserDeletePacket(packet);
+    }
+  }
+
+  private void processHandshakeResponsePacket(
+    DistributionClient client, PacketIncomingHandshakeResponse packet
+  ) {
     if (packet.success()) {
       eventExecutor.execute(NodeHandshakeResponseEvent.create(client,
-        true, packet.nodeId()));
+        true, packet.nodeId(), packet.loadedModules()));
       return;
     }
     eventExecutor.execute(NodeHandshakeResponseEvent.create(client, false));
   }
 
   private void processPingPacket(
-    ChannelHandlerContext context, PacketIncomingPing packet
+    DistributionClient client, PacketIncomingPing packet
   ) {
-    eventExecutor.execute(NodePingEvent.create(
-      findClientByContext(context), packet.value()));
+    eventExecutor.execute(NodePingEvent.create(client, packet.value()));
   }
 
   private void processPongPacket(
-    ChannelHandlerContext context, PacketIncomingPong packet
+    DistributionClient client, PacketIncomingPong packet
   ) {
-    eventExecutor.execute(NodePongEvent.create(
-      findClientByContext(context), packet.value()));
+    eventExecutor.execute(NodePongEvent.create(client, packet.value()));
   }
 
   private void processDisconnectPacket(
-    ChannelHandlerContext context, PacketIncomingDisconnect packet
+    DistributionClient client, PacketIncomingDisconnect packet
   ) {
-    eventExecutor.execute(NodeDisconnectEvent.create(findClientByContext(context),
-      NodeDisconnectEvent.DisconnectType.NATURALLY));
+    eventExecutor.execute(NodeDisconnectEvent.create(client,
+      NodeDisconnectEvent.DisconnectReason.SHUTDOWN));
   }
 
   private void processModuleLoadPacket(
-    ChannelHandlerContext context, PacketIncomingModuleLoad packet
+    DistributionClient client, PacketIncomingModuleLoad packet
   ) {
-    eventExecutor.execute(NodeModuleLoadEvent.create(findClientByContext(context),
-      packet.module()));
+    eventExecutor.execute(NodeModuleLoadEvent.create(client, packet.module()));
   }
 
   private void processModuleUnloadPacket(
-    ChannelHandlerContext context, PacketIncomingModuleUnload packet
+    DistributionClient client, PacketIncomingModuleUnload packet
   ) {
-    eventExecutor.execute(NodeModuleUnloadEvent.create(
-      findClientByContext(context), packet.module()));
+    eventExecutor.execute(NodeModuleUnloadEvent.create(client, packet.module()));
   }
 
   private void processUsersReorganizePacket(PacketIncomingUsersReorganize packet) {
@@ -113,8 +129,12 @@ public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncomi
 
   @Override
   public void channelInactive(ChannelHandlerContext context) {
-    eventExecutor.execute(NodeDisconnectEvent.create(findClientByContext(context),
-      NodeDisconnectEvent.DisconnectType.TIME_OUT));
+    var client = findClientByContext(context);
+    if (client.isEmpty()) {
+      return;
+    }
+    eventExecutor.execute(NodeDisconnectEvent.create(client.get(),
+      NodeDisconnectEvent.DisconnectReason.TIME_OUT));
   }
 
   private Node findNodeByContext(String hostname, int port) {
@@ -123,11 +143,11 @@ public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncomi
       .findFirst().get();
   }
 
-  private DistributionClient findClientByContext(ChannelHandlerContext context) {
+  private Optional<DistributionClient> findClientByContext(ChannelHandlerContext context) {
     var channel = context.channel();
     return distributionClientRegistry.findAllClients().stream()
       .filter(client -> client.channel().equals(channel))
-      .findFirst().get();
+      .findFirst();
   }
 }
 

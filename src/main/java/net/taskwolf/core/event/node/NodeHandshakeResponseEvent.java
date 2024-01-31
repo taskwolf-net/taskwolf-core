@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import net.taskwolf.core.distribution.client.DistributionClient;
 import net.taskwolf.core.event.Event;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -17,4 +18,5 @@ public final class NodeHandshakeResponseEvent extends Event {
   private final DistributionClient client;
   private final boolean success;
   private UUID nodeId;
+  private List<String> loadedModules;
 }

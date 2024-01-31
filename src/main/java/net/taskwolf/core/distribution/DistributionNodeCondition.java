@@ -13,8 +13,16 @@ public final class DistributionNodeCondition {
     modules.add(module);
   }
 
+  public void addMultipleModules(List<String> targetModules) {
+    modules.addAll(targetModules);
+  }
+
   public void removeModule(String module) {
     modules.remove(module);
+  }
+
+  public void removeMultipleModules(List<String> targetModules) {
+    modules.removeAll(targetModules);
   }
 
   public boolean isModuleLoaded(String module) {

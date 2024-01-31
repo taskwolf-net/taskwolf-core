@@ -10,19 +10,24 @@ import net.taskwolf.core.event.Event;
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public final class NodeDisconnectEvent extends Event {
-  public enum DisconnectType {
-    NATURALLY,
+  public enum DisconnectReason {
+    CONNECTION_FAILED,
+    SHUTDOWN,
     TIME_OUT;
 
-    public boolean isNaturally() {
-      return this == DisconnectType.NATURALLY;
+    public boolean isConnectionFailed() {
+      return this == DisconnectReason.CONNECTION_FAILED;
+    }
+
+    public boolean isShutdown() {
+      return this == DisconnectReason.SHUTDOWN;
     }
 
     public boolean isTimeOut() {
-      return this == DisconnectType.TIME_OUT;
+      return this == DisconnectReason.TIME_OUT;
     }
   }
 
   private final DistributionClient client;
-  private final DisconnectType type;
+  private final DisconnectReason reason;
 }

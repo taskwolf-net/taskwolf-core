@@ -15,6 +15,7 @@ import net.taskwolf.core.distribution.channel.ChannelEquipment;
 import net.taskwolf.core.distribution.client.packet.PacketOutgoing;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
 import net.taskwolf.core.event.EventExecutor;
+import net.taskwolf.core.event.node.NodeDisconnectEvent;
 
 import java.util.UUID;
 
@@ -39,6 +40,8 @@ public final class DistributionClient {
   private UUID nodeId;
   @Getter
   private final Node node;
+  @Getter
+  private DistributionClientState state = DistributionClientState.UNAUTHORIZED;
   @Getter
   private final DistributionNodeCondition condition =
     DistributionNodeCondition.create();
@@ -71,18 +74,26 @@ public final class DistributionClient {
   }
 
   public void connect() {
-    group = new NioEventLoopGroup();
-    channel = new Bootstrap()
-      .group(group)
-      .channel(NioSocketChannel.class)
-      .handler(ChannelEquipment.create(distributionConfiguration,
-        packetRegistry, eventExecutor, clientRegistry,
-        ChannelEquipment.Type.INTERNAL))
-      .connect(node.hostname(), node.distributionPort())
-      .syncUninterruptibly().channel();
+    try {
+      group = new NioEventLoopGroup();
+      channel = new Bootstrap()
+        .group(group)
+        .channel(NioSocketChannel.class)
+        .handler(ChannelEquipment.create(distributionConfiguration,
+          packetRegistry, eventExecutor, clientRegistry,
+          ChannelEquipment.Type.INTERNAL))
+        .connect(node.hostname(), node.distributionPort())
+        .syncUninterruptibly().channel();
+    } catch (Exception exception) {
+      eventExecutor.execute(NodeDisconnectEvent.create(this,
+        NodeDisconnectEvent.DisconnectReason.CONNECTION_FAILED));
+    }
   }
 
   public <T extends PacketOutgoing> void sendPacket(T packet) {
+    if (channel == null) {
+      return;
+    }
     channel.writeAndFlush(packet);
   }
 
@@ -93,5 +104,9 @@ public final class DistributionClient {
 
   public void updateNodeId(UUID newNodeId) {
     nodeId = newNodeId;
+  }
+
+  public void authorize() {
+    state = DistributionClientState.AUTHORIZED;
   }
 }

@@ -31,7 +31,8 @@ public final class NodeHandshakeRequestHook implements Hook {
       eventExecutor, distributionClientRegistry, event.nodeId(), event.node(),
       event.channel());
     distributionClientRegistry.registerClient(client);
+    client.authorize();
     event.channel().writeAndFlush(new PacketOutgoingHandshakeResponse(true,
-      server.nodeId()));
+      server.nodeId(), server.condition().findLoadedModules()));
   }
 }

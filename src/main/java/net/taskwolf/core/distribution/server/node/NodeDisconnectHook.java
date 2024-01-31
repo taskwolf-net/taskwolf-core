@@ -21,7 +21,11 @@ public final class NodeDisconnectHook implements Hook {
   @EventHook
   private void nodeDisconnect(NodeDisconnectEvent event) {
     distributionClientRegistry.unregisterClient(event.client());
-    var suffix = event.type().isNaturally() ? "disconnected" : "timed out";
+    var reason = event.reason();
+    if (reason.isConnectionFailed()) {
+      return;
+    }
+    var suffix = reason.isShutdown() ? "disconnected" : "timed out";
     log.warning("The node " + event.client().node().information() + " has " +
       suffix);
     distribution.findLoadedModules().forEach(distribution::reorganizeUsers);

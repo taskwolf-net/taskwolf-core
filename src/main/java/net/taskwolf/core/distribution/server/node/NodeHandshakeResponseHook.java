@@ -16,10 +16,13 @@ public final class NodeHandshakeResponseHook implements Hook {
 
   @EventHook
   private void nodeHandshakeResponse(NodeHandshakeResponseEvent event) {
+    var client = event.client();
     if (!event.success()) {
-      distributionClientRegistry.unregisterClient(event.client());
+      distributionClientRegistry.unregisterClient(client);
       return;
     }
-    event.client().updateNodeId(event.nodeId());
+    client.authorize();
+    client.updateNodeId(event.nodeId());
+    client.condition().addMultipleModules(event.loadedModules());
   }
 }
