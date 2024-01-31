@@ -1,9 +1,8 @@
 package net.taskwolf.core.distribution;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,14 @@ import net.taskwolf.core.distribution.client.packet.user.PacketOutgoingUserDelet
 import net.taskwolf.core.distribution.client.packet.user.PacketOutgoingUsersReorganize;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
 import net.taskwolf.core.distribution.server.DistributionServer;
+import net.taskwolf.core.distribution.server.node.*;
+import net.taskwolf.core.distribution.server.packet.node.*;
+import net.taskwolf.core.distribution.server.packet.user.PacketIncomingUserDelete;
+import net.taskwolf.core.distribution.server.packet.user.PacketIncomingUsersReorganize;
+import net.taskwolf.core.distribution.server.user.UserDeleteHook;
+import net.taskwolf.core.distribution.server.user.UsersReorganizeHook;
 import net.taskwolf.core.event.EventExecutor;
+import net.taskwolf.core.event.HookRegistry;
 import net.taskwolf.core.organization.Organization;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.user.User;
@@ -32,18 +38,23 @@ import java.util.stream.Stream;
 @Singleton
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
 public final class Distribution {
+  private final Injector injector;
   private final UserDatabaseTable userDatabaseTable;
   private final OrganizationDatabaseTable organizationDatabaseTable;
   private final DistributionConfiguration configuration;
   private final PacketRegistry packetRegistry;
   private final EventExecutor eventExecutor;
+  private final HookRegistry hookRegistry;
   private final DistributionClientRegistry clientRegistry;
   private final DistributionUserAssignment userAssignment;
   private DistributionServer server;
 
-  public void initialize() {
+  public void initialize() throws Exception {
+    registerPackets();
+    registerHooks();
     server = DistributionServer.create(configuration, packetRegistry,
-      eventExecutor, clientRegistry, configuration.self().distributionPort());
+      eventExecutor, clientRegistry, UUID.randomUUID(),
+      configuration.self().distributionPort());
     server.openAsync(this::connectToNodes);
   }
 
@@ -53,8 +64,34 @@ public final class Distribution {
         eventExecutor, clientRegistry, node);
       clientRegistry.registerClient(client);
       client.connectAsync(() -> client.sendPacket(new PacketOutgoingHandshakeRequest(
-        node.hostname(), node.distributionPort(), node.distributionKey())));
+        node.hostname(), node.distributionPort(), node.distributionKey(),
+        server.nodeId())));
     }
+  }
+
+  private void registerPackets() throws Exception {
+    packetRegistry.registerPacket(PacketIncomingHandshakeRequest.class);
+    packetRegistry.registerPacket(PacketIncomingHandshakeResponse.class);
+    packetRegistry.registerPacket(PacketIncomingPing.class);
+    packetRegistry.registerPacket(PacketIncomingPong.class);
+    packetRegistry.registerPacket(PacketIncomingDisconnect.class);
+    packetRegistry.registerPacket(PacketIncomingModuleLoad.class);
+    packetRegistry.registerPacket(PacketIncomingModuleUnload.class);
+    packetRegistry.registerPacket(PacketIncomingUsersReorganize.class);
+    packetRegistry.registerPacket(PacketIncomingUserDelete.class);
+  }
+
+  private void registerHooks() {
+    hookRegistry.register(NodeHandshakeRequestHook.create(configuration,
+      packetRegistry, eventExecutor, clientRegistry, server));
+    hookRegistry.register(injector.getInstance(NodeHandshakeResponseHook.class));
+    hookRegistry.register(injector.getInstance(NodePingHook.class));
+    hookRegistry.register(injector.getInstance(NodePongHook.class));
+    hookRegistry.register(injector.getInstance(NodeModuleLoadHook.class));
+    hookRegistry.register(injector.getInstance(NodeModuleUnloadHook.class));
+    hookRegistry.register(injector.getInstance(NodeDisconnectHook.class));
+    hookRegistry.register(injector.getInstance(UsersReorganizeHook.class));
+    hookRegistry.register(injector.getInstance(UserDeleteHook.class));
   }
 
   public void registerModule(String module) {

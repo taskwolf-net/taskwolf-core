@@ -16,17 +16,19 @@ import net.taskwolf.core.distribution.client.packet.PacketOutgoing;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
 import net.taskwolf.core.event.EventExecutor;
 
+import java.util.UUID;
+
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public final class DistributionClient {
   public static DistributionClient of(
     DistributionConfiguration distributionConfiguration,
     PacketRegistry packetRegistry, EventExecutor eventExecutor,
-    DistributionClientRegistry clientRegistry, Node node,
+    DistributionClientRegistry clientRegistry, UUID nodeId, Node node,
     Channel channel
   ) {
     return new DistributionClient(distributionConfiguration, packetRegistry,
-      eventExecutor, clientRegistry, node, channel);
+      eventExecutor, clientRegistry, nodeId, node, channel);
   }
 
   private final DistributionConfiguration distributionConfiguration;
@@ -34,10 +36,12 @@ public final class DistributionClient {
   private final EventExecutor eventExecutor;
   private final DistributionClientRegistry clientRegistry;
   @Getter
-  private final DistributionNodeCondition condition =
-    DistributionNodeCondition.create();
+  private UUID nodeId;
   @Getter
   private final Node node;
+  @Getter
+  private final DistributionNodeCondition condition =
+    DistributionNodeCondition.create();
   @Getter
   private Channel channel;
   private EventLoopGroup group;
@@ -45,13 +49,14 @@ public final class DistributionClient {
   private DistributionClient(
     DistributionConfiguration distributionConfiguration,
     PacketRegistry packetRegistry, EventExecutor eventExecutor,
-    DistributionClientRegistry clientRegistry, Node node,
+    DistributionClientRegistry clientRegistry, UUID nodeId, Node node,
     Channel channel
   ) {
     this.distributionConfiguration = distributionConfiguration;
     this.packetRegistry = packetRegistry;
     this.eventExecutor = eventExecutor;
     this.clientRegistry = clientRegistry;
+    this.nodeId = nodeId;
     this.node = node;
     this.channel = channel;
   }
@@ -84,5 +89,9 @@ public final class DistributionClient {
   public void disconnect() {
     group.shutdownGracefully();
     channel.close();
+  }
+
+  public void updateNodeId(UUID newNodeId) {
+    nodeId = newNodeId;
   }
 }

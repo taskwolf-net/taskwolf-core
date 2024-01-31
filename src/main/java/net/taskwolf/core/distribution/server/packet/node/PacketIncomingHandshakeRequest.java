@@ -5,12 +5,15 @@ import lombok.experimental.Accessors;
 import net.taskwolf.core.distribution.packet.PacketBuffer;
 import net.taskwolf.core.distribution.server.packet.PacketIncoming;
 
+import java.util.UUID;
+
 @Getter
 @Accessors(fluent = true)
 public final class PacketIncomingHandshakeRequest extends PacketIncoming {
   private String hostname;
   private int port;
   private String key;
+  private UUID nodeId;
 
   public PacketIncomingHandshakeRequest() {
     super(0x00);
@@ -21,5 +24,6 @@ public final class PacketIncomingHandshakeRequest extends PacketIncoming {
     hostname = buffer.readString();
     port = buffer.readVarInt();
     key = buffer.readString();
+    nodeId = buffer.readUUID();
   }
 }

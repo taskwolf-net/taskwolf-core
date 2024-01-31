@@ -16,6 +16,8 @@ import net.taskwolf.core.distribution.client.packet.PacketOutgoing;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
 import net.taskwolf.core.event.EventExecutor;
 
+import java.util.UUID;
+
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public final class DistributionServer {
@@ -24,10 +26,12 @@ public final class DistributionServer {
   private final EventExecutor eventExecutor;
   private final DistributionClientRegistry clientRegistry;
   @Getter
-  private final DistributionNodeCondition condition =
-    DistributionNodeCondition.create();
+  private final UUID nodeId;
   @Getter
   private final int port;
+  @Getter
+  private final DistributionNodeCondition condition =
+    DistributionNodeCondition.create();
   @Getter
   private Channel channel;
   private EventLoopGroup group;

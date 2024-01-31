@@ -18,6 +18,8 @@ public final class NodeHandshakeResponseHook implements Hook {
   private void nodeHandshakeResponse(NodeHandshakeResponseEvent event) {
     if (!event.success()) {
       distributionClientRegistry.unregisterClient(event.client());
+      return;
     }
+    event.client().updateNodeId(event.nodeId());
   }
 }

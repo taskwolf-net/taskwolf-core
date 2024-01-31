@@ -11,20 +11,9 @@ import net.taskwolf.core.condition.number.ConditionNumberSmallerThan;
 import net.taskwolf.core.condition.text.ConditionTextEndsWith;
 import net.taskwolf.core.condition.text.ConditionTextEquals;
 import net.taskwolf.core.condition.text.ConditionTextStartsWith;
+import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.distribution.DistributionConfiguration;
-import net.taskwolf.core.distribution.client.DistributionClient;
-import net.taskwolf.core.distribution.client.DistributionClientRegistry;
-import net.taskwolf.core.distribution.client.packet.node.PacketOutgoingHandshakeRequest;
-import net.taskwolf.core.distribution.server.DistributionServer;
-import net.taskwolf.core.distribution.server.node.*;
-import net.taskwolf.core.distribution.packet.PacketRegistry;
-import net.taskwolf.core.distribution.server.packet.node.*;
-import net.taskwolf.core.distribution.server.packet.user.PacketIncomingUserDelete;
-import net.taskwolf.core.distribution.server.packet.user.PacketIncomingUsersReorganize;
-import net.taskwolf.core.distribution.server.user.UserDeleteHook;
-import net.taskwolf.core.distribution.server.user.UsersReorganizeHook;
-import net.taskwolf.core.event.EventExecutor;
-import net.taskwolf.core.event.HookRegistry;
+import net.taskwolf.core.distribution.server.node.NodePingSchedule;
 import net.taskwolf.core.intro.Intro;
 import net.taskwolf.core.log.Log;
 import org.springframework.boot.SpringApplication;
@@ -42,14 +31,10 @@ public class CoreApplication {
     log.info("Initializing Taskwolf - Core");
     var application = injector.getInstance(SpringApplication.class);
     registerConditions(injector.getInstance(ConditionInformationRepository.class));
-    var packetRegistry = injector.getInstance(PacketRegistry.class);
-    registerDistributionPackets(packetRegistry);
-    var hookRegistry = injector.getInstance(HookRegistry.class);
-    registerHooks(hookRegistry, injector);
-    var distributionConfiguration = injector.getInstance(DistributionConfiguration.class);
-    setupDistribution(distributionConfiguration, packetRegistry,
-      injector.getInstance(EventExecutor.class),
-      injector.getInstance(DistributionClientRegistry.class));
+    var distributionConfiguration = injector.getInstance(
+      DistributionConfiguration.class);
+    var distribution = injector.getInstance(Distribution.class);
+    distribution.initialize();
     var nodePingScheduler = injector.getInstance(NodePingSchedule.class);
     nodePingScheduler.start();
     var coreModule = injector.getInstance(CoreModule.class);
@@ -69,55 +54,6 @@ public class CoreApplication {
     repository.register(ConditionTextEndsWith.information());
     repository.register(ConditionNumberGreaterThan.information());
     repository.register(ConditionNumberSmallerThan.information());
-  }
-
-  private static void registerDistributionPackets(
-    PacketRegistry registry
-  ) throws Exception {
-    registry.registerPacket(PacketIncomingHandshakeRequest.class);
-    registry.registerPacket(PacketIncomingHandshakeResponse.class);
-    registry.registerPacket(PacketIncomingPing.class);
-    registry.registerPacket(PacketIncomingPong.class);
-    registry.registerPacket(PacketIncomingDisconnect.class);
-    registry.registerPacket(PacketIncomingModuleLoad.class);
-    registry.registerPacket(PacketIncomingModuleUnload.class);
-    registry.registerPacket(PacketIncomingUsersReorganize.class);
-    registry.registerPacket(PacketIncomingUserDelete.class);
-  }
-
-  private static void registerHooks(HookRegistry hookRegistry, Injector injector) {
-    hookRegistry.register(injector.getInstance(NodeHandshakeRequestHook.class));
-    hookRegistry.register(injector.getInstance(NodeHandshakeResponseHook.class));
-    hookRegistry.register(injector.getInstance(NodePingHook.class));
-    hookRegistry.register(injector.getInstance(NodePongHook.class));
-    hookRegistry.register(injector.getInstance(NodeModuleLoadHook.class));
-    hookRegistry.register(injector.getInstance(NodeModuleUnloadHook.class));
-    hookRegistry.register(injector.getInstance(NodeDisconnectHook.class));
-    hookRegistry.register(injector.getInstance(UsersReorganizeHook.class));
-    hookRegistry.register(injector.getInstance(UserDeleteHook.class));
-  }
-
-  private static void setupDistribution(
-    DistributionConfiguration configuration, PacketRegistry registry,
-    EventExecutor eventExecutor, DistributionClientRegistry clientRegistry
-  ) {
-    var server = DistributionServer.create(configuration, registry,
-      eventExecutor, clientRegistry, configuration.self().distributionPort());
-    server.openAsync(() -> connectToNodes(configuration, registry, eventExecutor,
-      clientRegistry));
-  }
-
-  private static void connectToNodes(
-    DistributionConfiguration configuration, PacketRegistry registry,
-    EventExecutor eventExecutor, DistributionClientRegistry clientRegistry
-  ) {
-    for (var node : configuration.nodes()) {
-      var client = DistributionClient.create(configuration, registry,
-        eventExecutor, clientRegistry, node);
-      clientRegistry.registerClient(client);
-      client.connectAsync(() -> client.sendPacket(new PacketOutgoingHandshakeRequest(
-        node.hostname(), node.distributionPort(), node.distributionKey())));
-    }
   }
 
   private static void registerCommands(

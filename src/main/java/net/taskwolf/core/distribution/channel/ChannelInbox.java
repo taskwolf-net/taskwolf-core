@@ -51,14 +51,20 @@ public final class ChannelInbox extends SimpleChannelInboundHandler<PacketIncomi
     ChannelHandlerContext context, PacketIncomingHandshakeRequest packet
   ) {
     eventExecutor.execute(NodeHandshakeRequestEvent.create(findNodeByContext(
-      packet.hostname(), packet.port()), context.channel(), packet.key()));
+      packet.hostname(), packet.port()), context.channel(), packet.key(),
+      packet.nodeId()));
   }
 
   private void processHandshakeResponsePacket(
     ChannelHandlerContext context, PacketIncomingHandshakeResponse packet
   ) {
-    eventExecutor.execute(NodeHandshakeResponseEvent.create(
-      findClientByContext(context), packet.success()));
+    var client = findClientByContext(context);
+    if (packet.success()) {
+      eventExecutor.execute(NodeHandshakeResponseEvent.create(client,
+        true, packet.nodeId()));
+      return;
+    }
+    eventExecutor.execute(NodeHandshakeResponseEvent.create(client, false));
   }
 
   private void processPingPacket(
