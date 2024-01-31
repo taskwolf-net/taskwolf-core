@@ -112,12 +112,10 @@ public class CoreModule {
   public CompletableFuture<List<TriggerEntry>> findTriggerEntries(
     String module, String type
   ) {
-    var futureResponse = new CompletableFuture<List<TriggerEntry>>();
-    triggerDatabaseTable.findTriggersByModuleAndType(module, type)
+    return triggerDatabaseTable.findTriggersByModuleAndType(module, type)
       .thenApply(entries -> entries.stream()
         .filter(entry -> distribution.isAssignedUser(module, entry.ownerId()))
         .filter(entry -> entry.state().isArmed()).toList());
-    return futureResponse;
   }
 
   public CompletableFuture<Workflow> createWorkflow(UUID triggerId) {
