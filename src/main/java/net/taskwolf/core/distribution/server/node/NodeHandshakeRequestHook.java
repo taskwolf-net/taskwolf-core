@@ -11,6 +11,7 @@ import net.taskwolf.core.event.EventExecutor;
 import net.taskwolf.core.event.EventHook;
 import net.taskwolf.core.event.Hook;
 import net.taskwolf.core.event.node.NodeHandshakeRequestEvent;
+import net.taskwolf.core.log.Log;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class NodeHandshakeRequestHook implements Hook {
@@ -18,21 +19,24 @@ public final class NodeHandshakeRequestHook implements Hook {
   private final PacketRegistry packetRegistry;
   private final EventExecutor eventExecutor;
   private final DistributionClientRegistry distributionClientRegistry;
+  private final Log log;
   private final DistributionServer server;
 
   @EventHook
   private void nodeHandshake(NodeHandshakeRequestEvent event) {
-    if (!event.key().equals(event.node().distributionKey())) {
+    var node = event.node();
+    if (!event.key().equals(node.distributionKey())) {
       event.channel().writeAndFlush(new PacketOutgoingHandshakeResponse(false));
       event.channel().close();
       return;
     }
     var client = DistributionClient.of(distributionConfiguration, packetRegistry,
-      eventExecutor, distributionClientRegistry, event.nodeId(), event.node(),
+      eventExecutor, distributionClientRegistry, event.nodeId(), node,
       event.channel());
     distributionClientRegistry.registerClient(client);
     client.authorize();
     event.channel().writeAndFlush(new PacketOutgoingHandshakeResponse(true,
       server.nodeId(), server.condition().findLoadedModules()));
+    log.info("Node " + node.information() + " has connected");
   }
 }

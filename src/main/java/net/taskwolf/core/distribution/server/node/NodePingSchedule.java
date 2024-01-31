@@ -42,9 +42,9 @@ public final class NodePingSchedule {
     var nonRespondingClient = pingCache.findPendingPingClients();
     for (var client : nonRespondingClient) {
       client.disconnect();
-      log.severe("The node " + client.node().information() + " has not " +
+      log.warning("The node " + client.node().information() + " has not " +
         "responded to a ping. The connection to the node was therefore " +
-        "interrupted. Manual intervention is required to resolve the problem");
+        "interrupted.");
     }
     pingCache.clear();
   }

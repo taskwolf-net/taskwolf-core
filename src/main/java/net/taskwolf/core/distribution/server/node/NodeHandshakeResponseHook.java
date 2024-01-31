@@ -8,11 +8,13 @@ import net.taskwolf.core.distribution.client.DistributionClientRegistry;
 import net.taskwolf.core.event.EventHook;
 import net.taskwolf.core.event.Hook;
 import net.taskwolf.core.event.node.NodeHandshakeResponseEvent;
+import net.taskwolf.core.log.Log;
 
 @Singleton
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
 public final class NodeHandshakeResponseHook implements Hook {
   private final DistributionClientRegistry distributionClientRegistry;
+  private final Log log;
 
   @EventHook
   private void nodeHandshakeResponse(NodeHandshakeResponseEvent event) {
@@ -24,5 +26,6 @@ public final class NodeHandshakeResponseHook implements Hook {
     client.authorize();
     client.updateNodeId(event.nodeId());
     client.condition().addMultipleModules(event.loadedModules());
+    log.info("Successfully connected to node " + client.node().information());
   }
 }

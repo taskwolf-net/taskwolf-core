@@ -24,6 +24,7 @@ import net.taskwolf.core.distribution.server.user.UserDeleteHook;
 import net.taskwolf.core.distribution.server.user.UsersReorganizeHook;
 import net.taskwolf.core.event.EventExecutor;
 import net.taskwolf.core.event.HookRegistry;
+import net.taskwolf.core.log.Log;
 import net.taskwolf.core.organization.Organization;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.user.User;
@@ -47,6 +48,7 @@ public final class Distribution {
   private final HookRegistry hookRegistry;
   private final DistributionClientRegistry clientRegistry;
   private final DistributionUserAssignment userAssignment;
+  private final Log log;
   private DistributionServer server;
 
   public void initialize() throws Exception {
@@ -84,7 +86,7 @@ public final class Distribution {
 
   private void registerHooks() {
     hookRegistry.register(NodeHandshakeRequestHook.create(configuration,
-      packetRegistry, eventExecutor, clientRegistry, server));
+      packetRegistry, eventExecutor, clientRegistry, log, server));
     hookRegistry.register(injector.getInstance(NodeHandshakeResponseHook.class));
     hookRegistry.register(injector.getInstance(NodePingHook.class));
     hookRegistry.register(injector.getInstance(NodePongHook.class));
