@@ -119,24 +119,22 @@ public final class Distribution {
     reorganizeUsers(module);
   }
 
-  private void reorganizeUsers(String module) {
+  public void reorganizeUsers(String module) {
     findAllPossibleUser().thenAccept(users -> reorganizeUsers(module, users));
   }
 
   private void reorganizeUsers(String module, List<UUID> allUsers) {
-    var clients = clientRegistry.findAllClients();
-    var nodeConditions = Lists.newArrayList(clients.stream()
-      .map(DistributionClient::condition).toList());
-    nodeConditions.add(server.condition());
-    var nodeCount = nodeConditions.stream().filter(condition ->
-      condition.isModuleLoaded(module)).count();
+    var nodes = clientRegistry.findAllClients().stream().filter(client ->
+      client.condition().isModuleLoaded(module)).toList();
+    var serverLoadedModule = server.condition().isModuleLoaded(module);
+    var nodeCount = nodes.size() + (serverLoadedModule ? 1 : 0);
     var dividedUsers = divideUsers(allUsers, nodeCount);
-    if (server.condition().isModuleLoaded(module)) {
+    if (serverLoadedModule) {
       userAssignment.deleteModule(module);
       userAssignment.assignUsers(module, dividedUsers.get(dividedUsers.size() - 1));
     }
-    for (int i = 0; i < clients.size(); i++) {
-      clients.get(i).sendPacket(new PacketOutgoingUsersReorganize(module,
+    for (int i = 0; i < nodes.size(); i++) {
+      nodes.get(i).sendPacket(new PacketOutgoingUsersReorganize(module,
         dividedUsers.get(i)));
     }
   }
