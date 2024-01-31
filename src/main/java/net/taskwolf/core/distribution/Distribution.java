@@ -50,22 +50,23 @@ public final class Distribution {
   private DistributionServer server;
 
   public void initialize() throws Exception {
-    registerPackets();
-    registerHooks();
     server = DistributionServer.create(configuration, packetRegistry,
       eventExecutor, clientRegistry, UUID.randomUUID(),
       configuration.self().distributionPort());
+    registerPackets();
+    registerHooks();
     server.openAsync(this::connectToNodes);
   }
 
   private void connectToNodes() {
+    var hostname = configuration.self().hostname();
+    var port = configuration.self().distributionPort();
     for (var node : configuration.nodes()) {
       var client = DistributionClient.create(configuration, packetRegistry,
         eventExecutor, clientRegistry, node);
       clientRegistry.registerClient(client);
       client.connectAsync(() -> client.sendPacket(new PacketOutgoingHandshakeRequest(
-        node.hostname(), node.distributionPort(), node.distributionKey(),
-        server.nodeId())));
+        hostname, port, node.distributionKey(), server.nodeId())));
     }
   }
 
