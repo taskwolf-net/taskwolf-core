@@ -1,6 +1,5 @@
 package net.taskwolf.core.command.implementation;
 
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.taskwolf.core.command.Command;
@@ -31,16 +30,15 @@ public final class DistributionCommand extends Command {
   public boolean execute(String[] arguments) {
     var connectedNodes = distribution.findConnectedNodes();
     var self = distributionConfiguration.self();
-    log().info("Self (" + self.hostname()  + ":" + self.redisPort() + "): " +
-      COLOR_GREEN + "CONNECTED" + COLOR_RESET);
+    log().info("Self " + self.information() + ": " + COLOR_GREEN + "CONNECTED" +
+      COLOR_RESET);
     var nodes = distributionConfiguration.nodes();
     log().info("Nodes (" + nodes.size() + "):");
     for (var node : nodes) {
-      var address = node.hostname() + ":" + node.redisPort();
       var isConnected = connectedNodes.stream().anyMatch(connectedNode ->
         connectedNode.contains(node.hostname()));
-      log().info(" - " + address + " " + (isConnected ? COLOR_GREEN + "CONNECTED" :
-        COLOR_RED + "DISCONNECTED") + COLOR_RESET);
+      log().info(" - " + node.information() + " " + (isConnected ?
+        COLOR_GREEN + "CONNECTED" : COLOR_RED + "DISCONNECTED") + COLOR_RESET);
     }
     return true;
   }
