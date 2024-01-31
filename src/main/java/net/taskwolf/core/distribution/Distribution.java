@@ -171,6 +171,15 @@ public final class Distribution {
       .map(node -> node.hostname() + " [" + node.type() + "]").toList();
   }
 
+  public List<String> findLoadedModules() {
+    var loadedModule = Lists.<String>newArrayList();
+    for (var client : clientRegistry.findAllClients()) {
+      loadedModule.addAll(client.condition().findLoadedModules());
+    }
+    loadedModule.addAll(server.condition().findLoadedModules());
+    return loadedModule.stream().distinct().toList();
+  }
+
   public void disconnect() {
     server.broadcastPacket(new PacketOutgoingDisconnect());
     server.close();
