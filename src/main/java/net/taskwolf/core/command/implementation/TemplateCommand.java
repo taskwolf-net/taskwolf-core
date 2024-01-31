@@ -15,12 +15,6 @@ import java.util.UUID;
 
 @Singleton
 public final class TemplateCommand extends Command {
-  public static TemplateCommand create(
-    Log log, TemplateDatabaseTable templateDatabaseTable
-  ) {
-    return new TemplateCommand(log, templateDatabaseTable);
-  }
-
   private final TemplateDatabaseTable templateDatabaseTable;
 
   @Inject

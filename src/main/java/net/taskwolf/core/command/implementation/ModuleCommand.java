@@ -10,12 +10,6 @@ import java.io.File;
 
 @Singleton
 public final class ModuleCommand extends Command {
-  public static ModuleCommand create(
-    Log log, ModuleLoader moduleLoader
-  ) {
-    return new ModuleCommand(log, moduleLoader);
-  }
-
   private final ModuleLoader moduleLoader;
 
   @Inject

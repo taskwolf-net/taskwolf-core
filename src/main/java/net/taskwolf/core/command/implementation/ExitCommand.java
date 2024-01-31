@@ -8,10 +8,6 @@ import net.taskwolf.core.log.Log;
 
 @Singleton
 public final class ExitCommand extends Command {
-  public static ExitCommand create(Log log, Distribution distribution) {
-    return new ExitCommand(log, distribution);
-  }
-
   private final Distribution distribution;
 
   @Inject

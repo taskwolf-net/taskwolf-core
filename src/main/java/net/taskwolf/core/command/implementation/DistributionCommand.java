@@ -10,13 +10,6 @@ import net.taskwolf.core.log.Log;
 
 @Singleton
 public final class DistributionCommand extends Command {
-  public static DistributionCommand create(
-    Log log, DistributionConfiguration distributionConfiguration,
-    Distribution distribution
-  ) {
-    return new DistributionCommand(log, distributionConfiguration, distribution);
-  }
-
   private final DistributionConfiguration distributionConfiguration;
   private final Distribution distribution;
 

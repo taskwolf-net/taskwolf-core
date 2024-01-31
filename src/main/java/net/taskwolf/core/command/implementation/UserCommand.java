@@ -9,10 +9,6 @@ import net.taskwolf.core.user.UserDatabaseTable;
 
 @Singleton
 public final class UserCommand extends Command {
-  public static UserCommand create(Log log, UserDatabaseTable userDatabaseTable) {
-    return new UserCommand(log, userDatabaseTable);
-  }
-
   private final UserDatabaseTable userDatabaseTable;
 
   @Inject
