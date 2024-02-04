@@ -92,7 +92,8 @@ public final class Distribution {
     hookRegistry.register(injector.getInstance(NodePongHook.class));
     hookRegistry.register(injector.getInstance(NodeModuleLoadHook.class));
     hookRegistry.register(injector.getInstance(NodeModuleUnloadHook.class));
-    hookRegistry.register(injector.getInstance(NodeDisconnectHook.class));
+    hookRegistry.register(NodeDisconnectHook.create(this, clientRegistry,
+      server, log));
     hookRegistry.register(injector.getInstance(UsersReorganizeHook.class));
     hookRegistry.register(injector.getInstance(UserDeleteHook.class));
   }

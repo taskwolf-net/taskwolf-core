@@ -15,8 +15,7 @@ import net.taskwolf.core.log.Log;
 
 import java.util.UUID;
 
-@Singleton
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
+@RequiredArgsConstructor(staticName = "create")
 public final class NodeDisconnectHook implements Hook {
   private final Distribution distribution;
   private final DistributionClientRegistry distributionClientRegistry;
