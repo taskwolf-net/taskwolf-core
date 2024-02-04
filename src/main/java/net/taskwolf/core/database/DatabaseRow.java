@@ -48,4 +48,8 @@ public final class DatabaseRow {
   public DatabaseCell findCell(int index) {
     return cells[index];
   }
+
+  public int cellNumber() {
+    return cells.length;
+  }
 }
