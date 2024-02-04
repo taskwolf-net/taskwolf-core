@@ -210,6 +210,31 @@ public class DatabaseTable {
     return futureResponse;
   }
 
+  protected CompletableFuture<List<DatabaseRow>> selectPagesRows(
+    int pageSize, int pageNumber
+  ) {
+    var query = new StringBuilder("SELECT ");
+    query.append(columnNameCompilation());
+    query.append(" FROM ");
+    query.append(fullName());
+    query.append(";");
+    var statement = SimpleStatement.builder(query.toString())
+      .setPageSize(pageSize).build();
+    var result = connection.session().executeAsync(statement);
+    var futureResponse = new CompletableFuture<List<DatabaseRow>>();
+    result.thenAccept(resultSet -> findCorrectPage(pageSize, pageNumber,
+      resultSet).thenAccept(futureResponse::complete));
+    return futureResponse;
+  }
+
+  private CompletionStage<List<DatabaseRow>> findCorrectPage(
+    int pageSize, int pageNumber, AsyncResultSet resultSet
+  ) {
+    var pager = new OffsetPager(pageSize);
+    return pager.getPage(resultSet, pageNumber).thenApply(page ->
+      DatabaseRow.multiple(page.getElements(), columns.size()));
+  }
+
   private String columnNameCompilation() {
     var compilation = new StringBuilder();
     for (var i = 0; i < columns.size(); i++) {
