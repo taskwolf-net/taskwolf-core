@@ -1,16 +1,27 @@
 package net.taskwolf.core.database;
 
+import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
+import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import com.datastax.oss.driver.api.core.paging.OffsetPager;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
+@Accessors(fluent = true)
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class DatabaseTable {
+  @Getter(AccessLevel.PROTECTED)
   private final DatabaseConnection connection;
+  @Getter(AccessLevel.PROTECTED)
   private final DatabaseKeyspace keyspace;
+  @Getter
   private final String name;
+  @Getter
   private final List<DatabaseColumn> columns;
 
   public void create() {
@@ -150,6 +161,23 @@ public class DatabaseTable {
     return futureResponse;
   }
 
+  protected CompletableFuture<Long> count() {
+    return count("");
+  }
+
+  protected CompletableFuture<Long> count(String addition) {
+    var query = new StringBuilder("SELECT COUNT(*) FROM ");
+    query.append(fullName());
+    query.append(" ");
+    query.append(addition);
+    query.append(";");
+    var result = connection.session().executeAsync(query.toString());
+    var futureResponse = new CompletableFuture<Long>();
+    result.thenAccept(resultSet -> DatabaseRow.of(resultSet.one())
+      .findCell(0).longValue());
+    return futureResponse;
+  }
+
   protected CompletableFuture<List<DatabaseRow>> selectAllRows() {
     return selectRowsWithAddition("");
   }
@@ -239,6 +267,11 @@ public class DatabaseTable {
       }
     }
     return null;
+  }
+
+  protected void fillColumns(List<DatabaseColumn> newColumns) {
+    columns.clear();
+    columns.addAll(newColumns);
   }
 
   public String fullName() {
