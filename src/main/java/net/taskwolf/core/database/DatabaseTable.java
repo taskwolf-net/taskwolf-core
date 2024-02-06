@@ -83,6 +83,17 @@ public class DatabaseTable {
     connection.session().executeAsync(query.toString());
   }
 
+  public void renameColumn(String oldColumnName, String newColumnName) {
+    var query = new StringBuilder("ALTER TABLE ");
+    query.append(fullName());
+    query.append(" RENAME ");
+    query.append(oldColumnName);
+    query.append(" TO ");
+    query.append(newColumnName);
+    query.append(";");
+    connection.session().executeAsync(query.toString());
+  }
+
   public void dropColumn(String columnName) {
     var query = new StringBuilder("ALTER TABLE ");
     query.append(fullName());
