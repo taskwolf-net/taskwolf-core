@@ -184,8 +184,8 @@ public class DatabaseTable {
     query.append(";");
     var result = connection.session().executeAsync(query.toString());
     var futureResponse = new CompletableFuture<Long>();
-    result.thenAccept(resultSet -> DatabaseRow.of(resultSet.one())
-      .findCell(0).longValue());
+    result.thenAccept(resultSet -> futureResponse.complete(
+      resultSet.one().get(0, Long.class)));
     return futureResponse;
   }
 
