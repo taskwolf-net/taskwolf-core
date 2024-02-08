@@ -172,7 +172,7 @@ public class DatabaseTable {
     return futureResponse;
   }
 
-  protected CompletableFuture<Long> count() {
+  public CompletableFuture<Long> count() {
     return count("");
   }
 
@@ -187,6 +187,37 @@ public class DatabaseTable {
     result.thenAccept(resultSet -> futureResponse.complete(
       resultSet.one().get(0, Long.class)));
     return futureResponse;
+  }
+
+  public CompletableFuture<Long> averageRowSize() {
+    return averageRowSize(10);
+  }
+
+  protected CompletableFuture<Long> averageRowSize(int samples) {
+    var query = new StringBuilder("SELECT * FROM ");
+    query.append(fullName());
+    query.append(" LIMIT ");
+    query.append(samples);
+    query.append(";");
+    var result = connection.session().executeAsync(query.toString());
+    var futureResponse = new CompletableFuture<Long>();
+    result.thenAccept(resultSet -> futureResponse.complete(
+      calculateAverageRowSize(resultSet)));
+    return futureResponse;
+  }
+
+  private long calculateAverageRowSize(AsyncResultSet resultSet) {
+    var rows = resultSet.currentPage();
+    var rowsNumber = 0;
+    var sum = 0D;
+    for (var row : rows) {
+      rowsNumber++;
+      var columnsNumber = row.size();
+      for (var i = 0; i < columnsNumber; i++) {
+        sum += row.getBytesUnsafe(i).remaining();
+      }
+    }
+    return rowsNumber > 0 ? Math.round(sum / rowsNumber) : 0;
   }
 
   protected CompletableFuture<List<DatabaseRow>> selectAllRows() {
