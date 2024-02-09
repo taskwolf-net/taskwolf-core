@@ -2,41 +2,131 @@ package net.taskwolf.core.command;
 
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.log.Log;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.logging.Level;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class CommandTask {
   private final Log log;
   private final CommandRegistry commandRegistry;
+  private final CommandHistory commandHistory = CommandHistory.create();
+  private Terminal terminal;
+  private String currentInput = "";
+  private int horizontalCursorPosition = 0;
 
   public void start() {
-    var reader = new BufferedReader(new InputStreamReader(System.in));
     try {
-      monitorInput(reader);
+      terminal = TerminalBuilder.builder().jna(true).system(true).build();
+      terminal.enterRawMode();
+      monitorInput();
     } catch (Exception exception) {
       exception.printStackTrace();
     }
   }
 
-  private void monitorInput(BufferedReader reader) throws Exception {
-    var line = "";
-    while((line = reader.readLine()) != null) {
-      if(line.isEmpty()) {
-        printNewLine();
-        continue;
-      }
-      superviseInput(line);
+  private void monitorInput() throws Exception {
+    var reader = terminal.reader();
+    while (true) {
+      var input = reader.read();
+      interpretInput(input);
     }
   }
 
-  private void superviseInput(String line) {
-    var input = line.split(" ");
+  private static final int ENTER_KEY_CODE = 13;
+  private static final int BACKSPACE_KEY_CODE = 127;
+
+  private void interpretInput(int code) {
+    if (code == ENTER_KEY_CODE) {
+      submitInput();
+      return;
+    }
+    if (code == BACKSPACE_KEY_CODE) {
+      submitBackspace();
+      return;
+    }
+    storeInput(code);
+    checkEscapeCodeInput();
+  }
+
+  private void storeInput(int code) {
+    var input = (char) code;
+    currentInput = currentInput.substring(0, horizontalCursorPosition) +
+      input + currentInput.substring(horizontalCursorPosition);
+    resetLine();
+    horizontalCursorPosition += 1;
+    repositionCursor();
+  }
+
+  private void checkEscapeCodeInput() {
+    if (inputContainsEscapeCode('A') || inputContainsEscapeCode('B')) {
+      processVerticalInput();
+    } else if (inputContainsEscapeCode('C') || inputContainsEscapeCode('D')) {
+      processHorizontalInput();
+    }
+  }
+
+  private void processVerticalInput() {
+    var isUp = inputContainsEscapeCode('A');
+    currentInput = isUp ? commandHistory.previousCommand() :
+      commandHistory.nextCommand();
+    horizontalCursorPosition = currentInput.length();
+    if (isUp) {
+      printNewLine();
+    } else {
+      resetLine();
+    }
+  }
+
+  private void processHorizontalInput() {
+    var isLeft = inputContainsEscapeCode('D');
+    currentInput = currentInput.replace(isLeft ? formatEscapeCode('D') :
+      formatEscapeCode('C'), "");
+    horizontalCursorPosition -= 3;
+    if (!(isLeft && horizontalCursorPosition - 1 < 0 ||
+      !isLeft && horizontalCursorPosition + 1 > currentInput.length())
+    ) {
+      horizontalCursorPosition += isLeft ? -1 : 1;
+    }
+    resetLineAndRepositionCursor();
+  }
+
+  private boolean inputContainsEscapeCode(char value) {
+    return currentInput.contains(formatEscapeCode(value));
+  }
+
+  private static final char ESCAPE_CODE = (char) 27;
+
+  private String formatEscapeCode(char value) {
+    return ESCAPE_CODE + "[" + value;
+  }
+
+  private void submitBackspace() {
+    if (currentInput.isEmpty() || horizontalCursorPosition <= 0) {
+      return;
+    }
+    currentInput = currentInput.substring(0, horizontalCursorPosition - 1) +
+      currentInput.substring(horizontalCursorPosition);
+    resetLine();
+    horizontalCursorPosition -= 1;
+    repositionCursor();
+  }
+
+  private void submitInput() {
+    if (currentInput.isEmpty()) {
+      printNewLine();
+      return;
+    }
+    var input = currentInput.split(" ");;
     var commandName = input[0];
     commandRegistry.find(commandName).ifPresentOrElse(command ->
-      executeCommand(command, line, input), () -> printCommandNotFound(commandName));
+        executeCommand(command, currentInput, input),
+      () -> printCommandNotFound(commandName));
+    commandHistory.storeCommand(currentInput);
+    commandHistory.resetCurrentCommand();
+    currentInput = "";
+    horizontalCursorPosition = 0;
   }
 
   private void executeCommand(Command command, String line, String[] input) {
@@ -67,6 +157,22 @@ public final class CommandTask {
   }
 
   private void printNewLine() {
-    System.out.print(" > ");
+    System.out.println();
+    resetLine();
+  }
+
+  private void resetLineAndRepositionCursor() {
+    resetLine();
+    repositionCursor();
+  }
+
+  private void resetLine() {
+    System.out.print("\r\033[2K > " + currentInput);
+  }
+
+  private void repositionCursor() {
+    for (var i = 0; i < currentInput.length() - horizontalCursorPosition; i++) {
+      System.out.print("\u001b[1D");
+    }
   }
 }
