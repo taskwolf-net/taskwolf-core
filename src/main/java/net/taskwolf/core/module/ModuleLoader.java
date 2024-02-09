@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.log.Log;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -54,6 +56,8 @@ public final class ModuleLoader {
   private final List<RegisteredModule> modules = Lists.newArrayList();
   private final Distribution distribution;
   private final Injector injector;
+  private SpringApplication springApplication;
+  private ConfigurableApplicationContext springContext;
 
   public void loadModules() throws Exception {
     for (var moduleFile : jars) {
@@ -75,6 +79,7 @@ public final class ModuleLoader {
     var module = findModule(file, classLoader);
     distribution.registerModule(module.name());
     module.module().enable();
+    reloadSpring();
     log.info("Successfully loaded module " + module.name());
     return true;
   }
@@ -90,6 +95,7 @@ public final class ModuleLoader {
     unloadModule(registeredModule);
     findModule(registeredModule.file(), classLoader)
       .module().enable();
+    reloadSpring();
     log.info("Successfully reloaded module " + registeredModule.name());
     return true;
   }
@@ -209,5 +215,26 @@ public final class ModuleLoader {
     return modules.stream()
       .map(RegisteredModule::module)
       .collect(Collectors.toList());
+  }
+
+  public void initializeSpring(
+    SpringApplication application, ConfigurableApplicationContext context
+  ) {
+    springApplication = application;
+    springContext = context;
+  }
+
+  private void reloadSpring() {
+    springContext.close();
+    new Thread(this::rerunSpring).start();
+  }
+
+  private void rerunSpring() {
+    try {
+      Thread.sleep(1000);
+      springContext = springApplication.run();
+    } catch (Exception exception) {
+      exception.printStackTrace();
+    }
   }
 }

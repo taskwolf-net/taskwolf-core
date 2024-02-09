@@ -16,6 +16,7 @@ import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.distribution.server.node.NodePingSchedule;
 import net.taskwolf.core.intro.Intro;
 import net.taskwolf.core.log.Log;
+import net.taskwolf.core.module.ModuleLoader;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -40,7 +41,9 @@ public class CoreApplication {
     registerCommands(commandRegistry, injector);
     application.setDefaultProperties(Collections.singletonMap("server.port",
       distributionConfiguration.self().restPort()));
-    application.run(args);
+    var context = application.run(args);
+    var moduleLoader = injector.getInstance(ModuleLoader.class);
+    moduleLoader.initializeSpring(application, context);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
     log.info("Successfully booted Taskwolf - Core");
   }
