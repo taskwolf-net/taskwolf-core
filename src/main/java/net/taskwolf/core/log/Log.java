@@ -1,10 +1,14 @@
 package net.taskwolf.core.log;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.*;
 
+@Accessors(fluent = true)
 public final class Log extends Logger {
   public static Log create(String name, String path) throws Exception {
     var consoleHandler = new ConsoleHandler();
@@ -12,7 +16,7 @@ public final class Log extends Logger {
     consoleHandler.setLevel(Level.ALL);
     var fileHandler = new FileHandler(buildLogFilePath(path));
     fileHandler.setFormatter(LogFormat.create(LogFormat.FormatType.FILE));
-    var log = new Log(name, consoleHandler, fileHandler);
+    var log = new Log(name, null, consoleHandler, fileHandler);
     log.setLevel(Level.ALL);
     log.addHandler(consoleHandler);
     log.addHandler(fileHandler);
@@ -20,7 +24,7 @@ public final class Log extends Logger {
     return log;
   }
 
-  private static String buildLogFilePath(String basePath) throws Exception {
+  private static String buildLogFilePath(String basePath) {
     var logPath = System.getProperty("user.dir") + basePath +
       new SimpleDateFormat("yyyy-MM-dd-HHmmss").format(new Date()) + ".log";
     var logFile = new File(logPath);
@@ -30,11 +34,18 @@ public final class Log extends Logger {
     return logPath;
   }
 
+  private final Log parentLog;
   private final ConsoleHandler consoleHandler;
   private final FileHandler fileHandler;
+  @Getter
+  private int currentLogLine = 0;
 
-  private Log(String name, ConsoleHandler consoleHandler, FileHandler fileHandler) {
+  private Log(
+    String name, Log parentLog, ConsoleHandler consoleHandler,
+    FileHandler fileHandler
+  ) {
     super(name, null);
+    this.parentLog = parentLog;
     this.consoleHandler = consoleHandler;
     this.fileHandler = fileHandler;
   }
@@ -42,10 +53,20 @@ public final class Log extends Logger {
   @Override
   public void log(LogRecord record) {
     super.log(formatRecord(record));
+    if (parentLog != null) {
+      parentLog.increaseCurrentLogLine();
+    } else {
+      increaseCurrentLogLine();
+    }
   }
 
   public void consoleLog(Level level, String message) {
     restrictedLog(consoleHandler, new LogRecord(level, message));
+    if (parentLog != null) {
+      parentLog.increaseCurrentLogLine();
+    } else {
+      increaseCurrentLogLine();
+    }
   }
 
   public void fileLog(Level level, String message) {
@@ -67,8 +88,16 @@ public final class Log extends Logger {
     }
   }
 
+  public void increaseCurrentLogLine() {
+    currentLogLine += 1;
+  }
+
+  public void resetCurrentLogLine() {
+    currentLogLine = 0;
+  }
+
   public Log subLog(String name) {
-    var log = new Log(name, consoleHandler, fileHandler);
+    var log = new Log(name, this, consoleHandler, fileHandler);
     log.setLevel(Level.ALL);
     log.addHandler(consoleHandler);
     log.addHandler(fileHandler);

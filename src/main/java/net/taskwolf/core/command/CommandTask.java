@@ -72,11 +72,7 @@ public final class CommandTask {
     currentInput = isUp ? commandHistory.previousCommand() :
       commandHistory.nextCommand();
     horizontalCursorPosition = currentInput.length();
-    if (isUp) {
-      printNewLine();
-    } else {
-      resetLine();
-    }
+    resetLineAndRepositionCursor();
   }
 
   private void processHorizontalInput() {
@@ -158,6 +154,7 @@ public final class CommandTask {
 
   private void printNewLine() {
     System.out.println();
+    log.increaseCurrentLogLine();
     resetLine();
   }
 
@@ -171,8 +168,7 @@ public final class CommandTask {
   }
 
   private void repositionCursor() {
-    for (var i = 0; i < currentInput.length() - horizontalCursorPosition; i++) {
-      System.out.print("\u001b[1D");
-    }
+    System.out.print(String.format("%c[%d;%df", 0x1B, log.currentLogLine() + 1,
+      horizontalCursorPosition + 4));
   }
 }

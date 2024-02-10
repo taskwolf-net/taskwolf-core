@@ -19,6 +19,7 @@ public final class ClearCommand extends Command {
   @Override
   public boolean execute(String[] arguments) {
     System.out.print("\033c");
+    log().resetCurrentLogLine();
     intro.print();
     log().info("The screen has been cleared");
     return true;

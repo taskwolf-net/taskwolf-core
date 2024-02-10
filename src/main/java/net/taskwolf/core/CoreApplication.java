@@ -27,6 +27,7 @@ import java.util.Collections;
 public class CoreApplication {
   public static void main(String[] args) throws Exception {
     var injector = Guice.createInjector(CoreInjectionModule.create());
+    System.out.print("\033c");
     injector.getInstance(Intro.class).print();
     var log = injector.getInstance(Log.class);
     log.info("Initializing Taskwolf - Core");
