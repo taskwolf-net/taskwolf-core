@@ -72,34 +72,6 @@ public final class ModuleLoader {
     }
   }
 
-  public boolean loadModule(File file) throws Exception {
-    if (modules.stream().anyMatch(module -> module.file().equals(file))) {
-      return false;
-    }
-    var module = findModule(file, classLoader);
-    distribution.registerModule(module.name());
-    module.module().enable();
-    reloadSpring();
-    log.info("Successfully loaded module " + module.name());
-    return true;
-  }
-
-  public boolean reloadModule(String name) throws Exception {
-    var moduleOptional = modules.stream()
-      .filter(module -> module.name().equals(name))
-      .findFirst();
-    if (moduleOptional.isEmpty()) {
-      return false;
-    }
-    var registeredModule = moduleOptional.get();
-    unloadModule(registeredModule);
-    findModule(registeredModule.file(), classLoader)
-      .module().enable();
-    reloadSpring();
-    log.info("Successfully reloaded module " + registeredModule.name());
-    return true;
-  }
-
   private RegisteredModule findModule(
     File file, ClassLoader classLoader
   ) throws Exception {
@@ -174,26 +146,6 @@ public final class ModuleLoader {
     return Arrays.stream(suspect.getAnnotations())
       .filter(annotation -> annotation.annotationType()
         .equals(ModuleDescription.class)).findFirst();
-  }
-
-  public boolean unloadModule(String name) throws Exception {
-    var moduleOptional = modules.stream()
-      .filter(module -> module.name().equals(name))
-      .findFirst();
-    if (moduleOptional.isEmpty()) {
-      return false;
-    }
-    var registeredModule = moduleOptional.get();
-    registeredModule.module().disable();
-    unloadModule(registeredModule);
-    log.info("Successfully unloaded module " + registeredModule.name());
-    return true;
-  }
-
-  public void unloadModule(RegisteredModule registeredModule) throws Exception {
-    distribution.unregisterModule(registeredModule.name());
-    registeredModule.module().disable();
-    modules.remove(registeredModule);
   }
 
   public Optional<RegisteredModule> findRegisteredModule(String name) {

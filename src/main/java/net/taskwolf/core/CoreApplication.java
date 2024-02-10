@@ -67,7 +67,6 @@ public class CoreApplication {
     CommandRegistry registry, Injector injector
   ) {
     registry.register(injector.getInstance(HelpCommand.class));
-    registry.register(injector.getInstance(ModuleCommand.class));
     registry.register(injector.getInstance(DistributionCommand.class));
     registry.register(injector.getInstance(TemplateCommand.class));
     registry.register(injector.getInstance(UserCommand.class));
