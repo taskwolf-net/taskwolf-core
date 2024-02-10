@@ -27,7 +27,7 @@ import java.util.Collections;
 public class CoreApplication {
   public static void main(String[] args) throws Exception {
     var injector = Guice.createInjector(CoreInjectionModule.create());
-    Intro.create("1.0.0").print();
+    injector.getInstance(Intro.class).print();
     var log = injector.getInstance(Log.class);
     log.info("Initializing Taskwolf - Core");
     var application = injector.getInstance(SpringApplication.class);
@@ -66,6 +66,7 @@ public class CoreApplication {
   private static void registerCommands(
     CommandRegistry registry, Injector injector
   ) {
+    registry.register(injector.getInstance(ClearCommand.class));
     registry.register(injector.getInstance(HelpCommand.class));
     registry.register(injector.getInstance(DistributionCommand.class));
     registry.register(injector.getInstance(TemplateCommand.class));
