@@ -1,5 +1,6 @@
 package net.taskwolf.core.distribution.server.node;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
@@ -42,8 +43,8 @@ public final class NodeDisconnectHook implements Hook {
   }
 
   private boolean shouldReorganizeUsers() {
-    var nodes = distributionClientRegistry.findAllClients().stream()
-      .map(DistributionClient::nodeId).toList();
+    var nodes = Lists.newArrayList(distributionClientRegistry.findAllClients()
+      .stream().map(DistributionClient::nodeId).toList());
     var ownId = distributionServer.nodeId();
     nodes.add(ownId);
     nodes.sort(UUID::compareTo);
