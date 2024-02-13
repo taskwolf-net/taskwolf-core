@@ -214,7 +214,10 @@ public class DatabaseTable {
       rowsNumber++;
       var columnsNumber = row.size();
       for (var i = 0; i < columnsNumber; i++) {
-        sum += row.getBytesUnsafe(i).remaining();
+        var bytes = row.getBytesUnsafe(i);
+        if (bytes != null) {
+          sum += bytes.remaining();
+        }
       }
     }
     return rowsNumber > 0 ? Math.round(sum / rowsNumber) : 0;
