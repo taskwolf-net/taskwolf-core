@@ -48,7 +48,7 @@ dependencies {
 
   implementation("org.jline:jline:3.25.1")
 
-  implementation("org.json:json:20231013")
+  implementation("org.json:json:20240205")
   implementation("commons-io:commons-io:2.15.1")
 
   implementation("io.netty:netty-all:4.1.106.Final")
