@@ -149,8 +149,8 @@ public final class ModuleLoader {
   }
 
   public Optional<RegisteredModule> findRegisteredModule(String name) {
-    return modules.stream()
-      .filter(module -> module.name().equals(name))
+    return modules.stream().filter(module ->
+        module.module().moduleInformation().name().equalsIgnoreCase(name))
       .findFirst();
   }
 
