@@ -3,6 +3,7 @@ package net.taskwolf.core.workflow;
 import com.google.common.collect.Multimap;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.action.Action;
+import net.taskwolf.core.action.ActionResult;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.mail.TaskwolfMail;
@@ -31,20 +32,35 @@ public final class Workflow {
   private final WorkflowEntry workflowEntry;
   private final Map<Integer, Action> actions;
   private final Multimap<Integer, Condition> conditions;
+  private int currentActionIndex = 0;
 
   public void trigger(Map<String, Object> information) {
-    for (var i = 0; i < actions.size(); i++) {
-      if (!checkConditions(i, information)) {
-        return;
-      }
-      var result = actions.get(i).execute(information);
-      if (result.isFailure()) {
-        postExecutionFailure(result.failureMessage());
-        return;
-      }
-      information.putAll(result.information());
+    executeNextAction(information);
+  }
+
+  private void executeNextAction(Map<String, Object> information) {
+    if (currentActionIndex >= actions.size()) {
+      postExecutionSuccess();
+      return;
     }
-    postExecutionSuccess();
+    if (!checkConditions(currentActionIndex, information)) {
+      return;
+    }
+    var action = actions.get(currentActionIndex);
+    currentActionIndex++;
+    action.execute(information).thenAccept(result ->
+      processActionResult(result, information));
+  }
+
+  private void processActionResult(
+    ActionResult result, Map<String, Object> information
+  ) {
+    if (result.isFailure()) {
+      postExecutionFailure(result.failureMessage());
+      return;
+    }
+    information.putAll(result.information());
+    executeNextAction(information);
   }
 
   private void postExecutionSuccess() {

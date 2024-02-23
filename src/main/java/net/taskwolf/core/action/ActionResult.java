@@ -5,9 +5,22 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Accessors(fluent = true)
 public class ActionResult {
+  public static CompletableFuture<ActionResult> futureSuccess(
+    Map<String, Object> information
+  ) {
+    return CompletableFuture.completedFuture(success(information));
+  }
+
+  public static CompletableFuture<ActionResult> futureFailure(
+    String failureMessage
+  ) {
+    return CompletableFuture.completedFuture(failure(failureMessage));
+  }
+
   public static ActionResult success(Map<String, Object> information) {
     return new ActionResult(Status.SUCCESS, information);
   }
