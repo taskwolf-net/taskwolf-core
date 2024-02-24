@@ -98,10 +98,10 @@ public final class Distribution {
     hookRegistry.register(injector.getInstance(UserDeleteHook.class));
   }
 
-  public void registerModule(String module) {
+  public void registerModule(String module, List<UUID> users) {
     server.condition().addModule(module);
     server.broadcastPacket(new PacketOutgoingModuleLoad(module));
-    reorganizeUsers(module);
+    reorganizeUsers(module, users);
   }
 
   public void addUser(UUID user) {
@@ -153,7 +153,7 @@ public final class Distribution {
     return result;
   }
 
-  private CompletableFuture<List<UUID>> findAllPossibleUser() {
+  public CompletableFuture<List<UUID>> findAllPossibleUser() {
     var futureResponse = new CompletableFuture<List<UUID>>();
     userDatabaseTable.findAllUsers().thenAccept(users ->
       organizationDatabaseTable.findAllOrganization().thenAccept(organizations ->

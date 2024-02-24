@@ -66,9 +66,17 @@ public final class ModuleLoader {
     modules.sort(Comparator.comparingInt(module -> module.priority().value()));
     Collections.reverse(modules);
     for (var module : modules) {
-      distribution.registerModule(module.name());
       module.module().enable();
       log.info("Successfully loaded module " + module.name());
+    }
+    distribution.findAllPossibleUser()
+      .thenAccept(this::distributionRegisterModules);
+  }
+
+  private void distributionRegisterModules(List<UUID> users) {
+    for (var module : modules) {
+      distribution.registerModule(module.module().moduleInformation().name()
+        .toLowerCase(), users);
     }
   }
 
