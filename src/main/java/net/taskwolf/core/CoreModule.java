@@ -29,11 +29,9 @@ import net.taskwolf.core.workflow.Workflow;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 @Singleton
 public class CoreModule {
@@ -107,6 +105,17 @@ public class CoreModule {
     var module = moduleOptional.get();
     return module.actionInformation().stream().filter(actionInformation ->
       actionInformation.identifier().equals(actionType)).findFirst();
+  }
+
+  public void triggerWorkflows(
+    String moduleName, String triggerType,
+    Function<TriggerEntry, Boolean> triggerSuitableFunction,
+    Map<String, Object> information
+  ) {
+    findTriggerEntries(moduleName, triggerType).thenApply(entries ->
+        entries.stream().filter(triggerSuitableFunction::apply).toList())
+      .thenAccept(entries -> entries.forEach(entry -> createWorkflow(entry.id())
+        .thenAccept(workflow -> workflow.trigger(information))));
   }
 
   public CompletableFuture<List<TriggerEntry>> findTriggerEntries(
