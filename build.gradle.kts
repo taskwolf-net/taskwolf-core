@@ -53,7 +53,7 @@ dependencies {
 
   implementation("io.netty:netty-all:4.1.107.Final")
 
-  implementation("org.springframework.boot:spring-boot-starter-web:3.2.2")
+  implementation("org.springframework.boot:spring-boot-starter-web:3.2.3")
 
   implementation("io.jsonwebtoken:jjwt:0.12.5")
 
