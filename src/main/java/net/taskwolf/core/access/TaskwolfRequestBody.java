@@ -1,9 +1,11 @@
 package net.taskwolf.core.access;
 
+import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 
+import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor(staticName = "create")
@@ -25,6 +27,14 @@ public final class TaskwolfRequestBody {
     return body.getString(key);
   }
 
+  public int getInt(String key) {
+    if (!body.has(key)) {
+      failure();
+      return -1;
+    }
+    return body.getInt(key);
+  }
+
   public boolean getBoolean(String key) {
     if (!body.has(key)) {
       failure();
@@ -41,6 +51,27 @@ public final class TaskwolfRequestBody {
       failure();
       return null;
     }
+  }
+
+  public TaskwolfRequestBody getObject(String key) {
+    if (!body.has(key)) {
+      failure();
+      return TaskwolfRequestBody.create(new JSONObject(), response);
+    }
+    return TaskwolfRequestBody.create(body.getJSONObject(key), response);
+  }
+
+  public List<TaskwolfRequestBody> getObjectList(String key) {
+    if (!body.has(key)) {
+      failure();
+      return Lists.newArrayList();
+    }
+    var array = body.getJSONArray(key);
+    var result = Lists.<TaskwolfRequestBody>newArrayList();
+    for (var i = 0; i < array.length(); i++) {
+      result.add(TaskwolfRequestBody.create(array.getJSONObject(i), response));
+    }
+    return result;
   }
 
   private void failure() {
