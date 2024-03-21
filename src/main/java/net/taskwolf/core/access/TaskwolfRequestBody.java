@@ -74,6 +74,10 @@ public final class TaskwolfRequestBody {
     return result;
   }
 
+  public JSONObject raw() {
+    return body;
+  }
+
   private void failure() {
     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     response.setContentLength(0);
