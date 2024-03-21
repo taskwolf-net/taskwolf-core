@@ -70,4 +70,8 @@ public final class DatabaseCell {
     }
     return (List<T>) value;
   }
+
+  public Object rawValue() {
+    return value;
+  }
 }

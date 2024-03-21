@@ -155,6 +155,9 @@ public class DatabaseTable {
   }
 
   protected CompletableFuture<Boolean> exists(DatabaseCell primaryKeyCell) {
+    if (primaryKeyCell.rawValue() == null) {
+      return CompletableFuture.completedFuture(false);
+    }
     return exists(primaryKeyCondition(primaryKeyCell));
   }
 
