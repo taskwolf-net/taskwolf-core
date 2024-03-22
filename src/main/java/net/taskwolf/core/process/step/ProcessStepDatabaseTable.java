@@ -1,11 +1,13 @@
 package net.taskwolf.core.process.step;
 
 import com.google.common.collect.Lists;
+import net.taskwolf.core.action.ActionEntry;
 import net.taskwolf.core.database.*;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public final class ProcessStepDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "process_step";
@@ -65,5 +67,13 @@ public final class ProcessStepDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<ProcessStep> findProcessStep(UUID stepId) {
     return selectRow(DatabaseCell.create(stepId)).thenApply(ProcessStep::of);
+  }
+
+  public CompletableFuture<List<ProcessStep>> findProcessStepsByProcess(
+    UUID processId
+  ) {
+    return selectRows("process=" + processId + " ALLOW FILTERING")
+      .thenApply(rows -> rows.stream().map(ProcessStep::of)
+        .collect(Collectors.toList()));
   }
 }

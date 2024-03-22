@@ -7,6 +7,7 @@ import net.taskwolf.core.process.step.ProcessStep;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public final class ProcessConnectionDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "process_connection";
@@ -60,5 +61,14 @@ public final class ProcessConnectionDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<ProcessStep> findProcessConnection(UUID connectionId) {
     return selectRow(DatabaseCell.create(connectionId)).thenApply(ProcessStep::of);
+  }
+
+
+  public CompletableFuture<List<ProcessConnection>> findProcessConnectionsByProcess(
+    UUID processId
+  ) {
+    return selectRows("process=" + processId + " ALLOW FILTERING")
+      .thenApply(rows -> rows.stream().map(ProcessConnection::of)
+        .collect(Collectors.toList()));
   }
 }
