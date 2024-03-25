@@ -14,7 +14,7 @@ public final class ProcessStep {
   public static ProcessStep of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
       row.findCell(2).stringValue(), row.findCell(3).stringValue(),
-      ProcessStepType.valueOf(row.findCell(4).stringValue()),
+      ProcessStepType.valueOf(row.findCell(4).stringValue().toUpperCase()),
       row.findCell(5).integerValue(), row.findCell(6).integerValue());
   }
 
