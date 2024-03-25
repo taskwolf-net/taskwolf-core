@@ -1,7 +1,7 @@
 plugins {
   id("java")
   id("maven-publish")
-  id("org.springframework.boot") version "3.2.3"
+  id("org.springframework.boot") version "3.2.4"
 }
 
 group = "net.taskwolf"
