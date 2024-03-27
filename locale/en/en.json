@@ -82,5 +82,13 @@
   "table.action.entry.remove.output.table": "Database name",
   "table.action.entry.remove.failure.table.not.found": "An error occurred while removing an entry from a database. The error occurred because the selected database could not be found.",
   "table.action.entry.remove.failure.entry.wrong.format": "An error occurred while removing an entry from a database. The error occurred because the id of the entry has the wrong format.",
-  "table.action.entry.remove.failure.entry.not.found": "An error occurred while removing an entry from a database. The error occurred because the selected entry / row could not be found."
+  "table.action.entry.remove.failure.entry.not.found": "An error occurred while removing an entry from a database. The error occurred because the selected entry / row could not be found.",
+
+  "webhook.link.description": "Great news! You don't need to link an account to use this module. Just click on \"skip\" to go to the next page.",
+  "webhook.trigger.name": "Webhook",
+  "webhook.trigger.description": "Webhook",
+  "webhook.trigger.input.webhook.name": "Webhook",
+  "webhook.trigger.input.webhook.description": "The webhook that is to trigger the workflow",
+  "webhook.trigger.output.webhook.id": "Webhook ID",
+  "webhook.trigger.output.webhook.url": "Webhook URL"
 }

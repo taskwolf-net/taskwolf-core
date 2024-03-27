@@ -82,5 +82,13 @@
   "table.action.entry.remove.output.table": "Datenbank Name",
   "table.action.entry.remove.failure.table.not.found": "Beim Entfernen eines Eintrags aus einer Datenbank ist ein Fehler aufgetreten. Der Fehler trat auf, weil die ausgewählte Datenbank nicht gefunden werden konnte.",
   "table.action.entry.remove.failure.entry.wrong.format": "Beim Entfernen eines Eintrags aus einer Datenbank ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil die ID des Eintrags das falsche Format hat.",
-  "table.action.entry.remove.failure.entry.not.found": "Beim Entfernen eines Eintrags aus einer Datenbank ist ein Fehler aufgetreten. Der Fehler trat auf, weil der ausgewählte Eintrag / die ausgewählte Zeile nicht gefunden werden konnte."
+  "table.action.entry.remove.failure.entry.not.found": "Beim Entfernen eines Eintrags aus einer Datenbank ist ein Fehler aufgetreten. Der Fehler trat auf, weil der ausgewählte Eintrag / die ausgewählte Zeile nicht gefunden werden konnte.",
+
+  "webhook.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen.",
+  "webhook.trigger.name": "Webhook",
+  "webhook.trigger.description": "Webhook",
+  "webhook.trigger.input.webhook.name": "Webhook",
+  "webhook.trigger.input.webhook.description": "Der Webhook, der den Workflow auslösen soll",
+  "webhook.trigger.output.webhook.id": "Webhook ID",
+  "webhook.trigger.output.webhook.url": "Webhook URL"
 }
