@@ -112,8 +112,17 @@ public class CoreModule {
     Function<TriggerEntry, Boolean> triggerSuitableFunction,
     Map<String, Object> information
   ) {
-    findTriggerEntries(moduleName, triggerType).thenApply(entries ->
-        entries.stream().filter(triggerSuitableFunction::apply).toList())
+    triggerWorkflows(moduleName, triggerType, triggerSuitableFunction,
+      information, true);
+  }
+
+  public void triggerWorkflows(
+    String moduleName, String triggerType,
+    Function<TriggerEntry, Boolean> triggerSuitableFunction,
+    Map<String, Object> information, boolean checkDistribution
+  ) {
+    findTriggerEntries(moduleName, triggerType, checkDistribution).thenApply(
+      entries -> entries.stream().filter(triggerSuitableFunction::apply).toList())
       .thenAccept(entries -> entries.forEach(entry -> createWorkflow(entry.id())
         .thenAccept(workflow -> workflow.trigger(information))));
   }
@@ -121,10 +130,26 @@ public class CoreModule {
   public CompletableFuture<List<TriggerEntry>> findTriggerEntries(
     String module, String type
   ) {
+    return findTriggerEntries(module, type, true);
+  }
+
+  public CompletableFuture<List<TriggerEntry>> findTriggerEntries(
+    String module, String type, boolean checkDistribution
+  ) {
     return triggerDatabaseTable.findTriggersByModuleAndType(module, type)
-      .thenApply(entries -> entries.stream()
-        .filter(entry -> distribution.isAssignedUser(module, entry.ownerId()))
-        .filter(entry -> entry.state().isArmed()).toList());
+      .thenApply(entries -> filterTriggerEntries(entries, module, checkDistribution));
+  }
+
+  private List<TriggerEntry> filterTriggerEntries(
+    List<TriggerEntry> entries, String module, boolean checkDistribution
+  ) {
+    var stream = entries.stream();
+    if (checkDistribution) {
+      stream = stream.filter(entry ->
+        distribution.isAssignedUser(module, entry.ownerId()));
+    }
+    stream = stream.filter(entry -> entry.state().isArmed());
+    return stream.toList();
   }
 
   public CompletableFuture<Workflow> createWorkflow(UUID triggerId) {
