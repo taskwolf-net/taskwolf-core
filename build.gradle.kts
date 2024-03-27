@@ -1,7 +1,7 @@
 plugins {
   id("java")
   id("maven-publish")
-  id("org.springframework.boot") version "3.2.3"
+  id("org.springframework.boot") version "3.2.4"
 }
 
 group = "net.taskwolf"
@@ -39,10 +39,10 @@ dependencies {
 
   implementation("com.google.guava:guava:33.1.0-jre")
 
-  implementation("org.projectlombok:lombok:1.18.30")
-  annotationProcessor("org.projectlombok:lombok:1.18.30")
-  testImplementation("org.projectlombok:lombok:1.18.30")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+  implementation("org.projectlombok:lombok:1.18.32")
+  annotationProcessor("org.projectlombok:lombok:1.18.32")
+  testImplementation("org.projectlombok:lombok:1.18.32")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.32")
 
   implementation("com.datastax.oss:java-driver-core:4.17.0")
 
@@ -51,9 +51,9 @@ dependencies {
   implementation("org.json:json:20240303")
   implementation("commons-io:commons-io:2.15.1")
 
-  implementation("io.netty:netty-all:4.1.107.Final")
+  implementation("io.netty:netty-all:4.1.108.Final")
 
-  implementation("org.springframework.boot:spring-boot-starter-web:3.2.3")
+  implementation("org.springframework.boot:spring-boot-starter-web:3.2.4")
 
   implementation("io.jsonwebtoken:jjwt:0.12.5")
 
