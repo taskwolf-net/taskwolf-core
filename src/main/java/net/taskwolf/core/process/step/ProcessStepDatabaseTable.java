@@ -1,7 +1,6 @@
 package net.taskwolf.core.process.step;
 
 import com.google.common.collect.Lists;
-import net.taskwolf.core.action.ActionEntry;
 import net.taskwolf.core.database.*;
 
 import java.util.List;

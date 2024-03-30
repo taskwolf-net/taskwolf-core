@@ -1,9 +1,6 @@
 package net.taskwolf.core.distribution.server.node;
 
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.distribution.client.DistributionClient;
