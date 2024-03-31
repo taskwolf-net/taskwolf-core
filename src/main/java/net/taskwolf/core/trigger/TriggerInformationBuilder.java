@@ -2,6 +2,7 @@ package net.taskwolf.core.trigger;
 
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.workflow.component.ComponentNovelty;
 import net.taskwolf.core.workflow.component.input.InputComponentVariable;
 import net.taskwolf.core.workflow.component.output.OutputComponentVariable;
 
@@ -12,6 +13,7 @@ public final class TriggerInformationBuilder {
   private String name = "Unknown";
   private String description = "";
   private String identifier = "";
+  private ComponentNovelty novelty = ComponentNovelty.OLD;
   private final List<InputComponentVariable> inputVariables = Lists.newArrayList();
   private final List<OutputComponentVariable> outputVariables = Lists.newArrayList();
 
@@ -30,6 +32,11 @@ public final class TriggerInformationBuilder {
     return this;
   }
 
+  public TriggerInformationBuilder withNovelty(ComponentNovelty novelty) {
+    this.novelty = novelty;
+    return this;
+  }
+
   public TriggerInformationBuilder withInputVariable(InputComponentVariable variable) {
     inputVariables.add(variable);
     return this;
@@ -41,7 +48,7 @@ public final class TriggerInformationBuilder {
   }
 
   public TriggerInformation build() {
-    return TriggerInformation.create(name, description, identifier,
+    return TriggerInformation.create(name, description, identifier, novelty,
       inputVariables, outputVariables);
   }
 }
