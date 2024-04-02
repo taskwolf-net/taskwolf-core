@@ -172,5 +172,7 @@
   "webhook.trigger.input.webhook.name": "Webhook",
   "webhook.trigger.input.webhook.description": "Der Webhook, der den Workflow auslösen soll",
   "webhook.trigger.output.webhook.id": "Webhook ID",
-  "webhook.trigger.output.webhook.url": "Webhook URL"
+  "webhook.trigger.output.webhook.url": "Webhook URL",
+
+  "device.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen."
 }
