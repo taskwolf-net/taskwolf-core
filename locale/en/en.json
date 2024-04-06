@@ -174,5 +174,20 @@
   "webhook.trigger.output.webhook.id": "Webhook ID",
   "webhook.trigger.output.webhook.url": "Webhook URL",
 
-  "device.link.description": "Great news! You don't need to link an account to use this module. Just click on \"skip\" to go to the next page."
+  "device.link.description": "Great news! You don't need to link an account to use this module. Just click on \"skip\" to go to the next page.",
+
+  "device.action.notification.name": "Device Notification",
+  "device.action.notification.description": "Sends a notification to one of your devices",
+  "device.action.notification.input.device.name": "Device",
+  "device.action.notification.input.device.description": "The device to which the notification is to be sent",
+  "device.action.notification.input.notification.title.name": "Notification title",
+  "device.action.notification.input.notification.title.description": "The title of the notification",
+  "device.action.notification.input.notification.body.name": "Notification body",
+  "device.action.notification.input.notification.body.description": "The content of the notification",
+  "device.action.notification.output.device.id": "Device ID",
+  "device.action.notification.output.device.name": "Device Name",
+  "device.action.notification.output.device.platform": "Device Platform",
+  "device.action.notification.output.notification.title": "Notification Title",
+  "device.action.notification.output.notification.body": "Notification Body",
+  "device.action.notification.failure.device.not.found": "An error occurred while sending a notification to one of your devices. The error has occurred because the device could not be found. Could it be that you have removed the device?"
 }

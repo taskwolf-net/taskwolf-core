@@ -174,5 +174,20 @@
   "webhook.trigger.output.webhook.id": "Webhook ID",
   "webhook.trigger.output.webhook.url": "Webhook URL",
 
-  "device.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen."
+  "device.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen.",
+
+  "device.action.notification.name": "Geräte Benachrichtung",
+  "device.action.notification.description": "Sendet eine Benachrichtigung an eines Ihrer Geräte",
+  "device.action.notification.input.device.name": "Gerät",
+  "device.action.notification.input.device.description": "Das Gerät, an das die Benachrichtigung gesendet werden soll",
+  "device.action.notification.input.notification.title.name": "Titel der Benachrichtung",
+  "device.action.notification.input.notification.title.description": "Der Titel der Benachrichtung",
+  "device.action.notification.input.notification.body.name": "Inhalt der Benachrichtung",
+  "device.action.notification.input.notification.body.description": "Der Inhalt der Benachrichtung",
+  "device.action.notification.output.device.id": "Geräte ID",
+  "device.action.notification.output.device.name": "Geräte Name",
+  "device.action.notification.output.device.platform": "Geräte Platform",
+  "device.action.notification.output.notification.title": "Titel der Benachrichtung",
+  "device.action.notification.output.notification.body": "Inhalt der Benachrichtung",
+  "device.action.notification.failure.device.not.found": "Beim Senden einer Benachrichtigung an eines Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das Gerät nicht gefunden werden konnte. Könnte es sein, dass Sie das Gerät entfernt haben?"
 }
