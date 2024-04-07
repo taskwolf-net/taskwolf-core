@@ -189,5 +189,6 @@
   "device.action.notification.output.device.platform": "Geräte Platform",
   "device.action.notification.output.notification.title": "Titel der Benachrichtung",
   "device.action.notification.output.notification.body": "Inhalt der Benachrichtung",
-  "device.action.notification.failure.device.not.found": "Beim Senden einer Benachrichtigung an eines Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das Gerät nicht gefunden werden konnte. Könnte es sein, dass Sie das Gerät entfernt haben?"
+  "device.action.notification.failure.device.not.found": "Beim Senden einer Benachrichtigung an eines Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das Gerät nicht gefunden werden konnte. Könnte es sein, dass Sie das Gerät entfernt haben?",
+  "device.action.notification.failure.device.permission": "Beim Senden einer Benachrichtigung an eines Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil der Empfang von Workflow-Benachrichtigungen auf dem Gerät deaktiviert wurde. Sie können dies jederzeit in den Benachrichtigungseinstellungen des Geräts ändern."
 }

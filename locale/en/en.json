@@ -189,5 +189,6 @@
   "device.action.notification.output.device.platform": "Device Platform",
   "device.action.notification.output.notification.title": "Notification Title",
   "device.action.notification.output.notification.body": "Notification Body",
-  "device.action.notification.failure.device.not.found": "An error occurred while sending a notification to one of your devices. The error has occurred because the device could not be found. Could it be that you have removed the device?"
+  "device.action.notification.failure.device.not.found": "An error occurred while sending a notification to one of your devices. The error has occurred because the device could not be found. Could it be that you have removed the device?",
+  "device.action.notification.failure.device.permission": "An error occurred while sending a notification to one of your devices. The error has occurred because the receipt of workflow notifications has been disabled by the device. You can change this at any time in the notification settings of the device."
 }
