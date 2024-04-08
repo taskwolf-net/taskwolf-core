@@ -20,7 +20,7 @@ public final class Organization {
   @Getter
   private final UUID id;
   @Getter
-  private final String name;
+  private String name;
   @Getter
   private final UUID owner;
   private final List<UUID> members;
@@ -33,6 +33,10 @@ public final class Organization {
 
   public void removeMember(UUID member) {
     members.remove(member);
+  }
+
+  public void rename(String name) {
+    this.name = name;
   }
 
   public void changeInvitationToken(String token) {

@@ -62,13 +62,13 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
     updateOrganization(organization);
   }
 
-  public void changeOrganizationInvitationToken(UUID organizationId, String token) {
-    findOrganization(organizationId).thenAccept(organization ->
-      changeOrganizationInvitationToken(organization, token));
+  public void changeOrganizationInvitationToken(Organization organization, String token) {
+    organization.changeInvitationToken(token);
+    updateOrganization(organization);
   }
 
-  private void changeOrganizationInvitationToken(Organization organization, String token) {
-    organization.changeInvitationToken(token);
+  public void renameOrganization(Organization organization, String name) {
+    organization.rename(name);
     updateOrganization(organization);
   }
 
