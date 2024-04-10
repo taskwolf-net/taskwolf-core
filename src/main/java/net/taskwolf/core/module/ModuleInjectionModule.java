@@ -15,7 +15,7 @@ public final class ModuleInjectionModule extends AbstractModule {
   ModuleLoader provideModuleLoader(
     Log log, Distribution distribution, Injector injector
   ) {
-    return  ModuleLoader.create(log, System.getProperty("user.dir") +
+    return ModuleLoader.create(log, System.getProperty("user.dir") +
       "/modules/", distribution, injector);
   }
 }
