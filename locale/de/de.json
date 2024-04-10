@@ -190,5 +190,22 @@
   "device.action.notification.output.notification.title": "Titel der Benachrichtung",
   "device.action.notification.output.notification.body": "Inhalt der Benachrichtung",
   "device.action.notification.failure.device.not.found": "Beim Senden einer Benachrichtigung an eines Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das Gerät nicht gefunden werden konnte. Könnte es sein, dass Sie das Gerät entfernt haben?",
-  "device.action.notification.failure.device.permission": "Beim Senden einer Benachrichtigung an eines Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil der Empfang von Workflow-Benachrichtigungen auf dem Gerät deaktiviert wurde. Sie können dies jederzeit in den Benachrichtigungseinstellungen des Geräts ändern."
+  "device.action.notification.failure.device.permission": "Beim Senden einer Benachrichtigung an eines Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil der Empfang von Workflow-Benachrichtigungen auf dem Gerät deaktiviert wurde. Sie können dies jederzeit in den Benachrichtigungseinstellungen des Geräts ändern.",
+
+  "device.action.command.name": "Geräte Befehl",
+  "device.action.command.description": "Führt einen Kommandozeilenbefehl auf einem Ihrer Geräte aus",
+  "device.action.command.input.device.name": "Gerät",
+  "device.action.command.input.device.description": "Das Gerät, auf dem der Befehl ausgeführt werden soll",
+  "device.action.command.input.notification.title.name": "Befehl",
+  "device.action.command.input.notification.title.description": "Der auszuführende Shell-Befehl",
+  "device.action.command.output.device.id": "Geräte ID",
+  "device.action.command.output.device.name": "Geräte Name",
+  "device.action.command.output.device.platform": "Geräte Platform",
+  "device.action.command.output.command": "Befehl",
+  "device.action.command.output.command.output": "Befehlsausgabe",
+  "device.action.command.output.command.error.message": "Befehlsfehlermeldung",
+  "device.action.command.output.command.exit.code": "Befehl Exit-Code",
+  "device.action.command.output.command.execution.time": "Befehlsausführungszeit",
+  "device.action.command.failure.device.not.found": "Bei der Ausführung eines Kommandozeilenbefehls auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das Gerät nicht gefunden werden konnte. Könnte es sein, dass Sie das Gerät entfernt haben?",
+  "device.action.command.failure.device.permission": "Bei der Ausführung eines Kommandozeilenbefehls auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler trat auf, weil die Ausführung von Kommandozeilenbefehlen durch das Gerät deaktiviert wurde. Sie können dies jederzeit in den Befehlseinstellungen des Geräts ändern."
 }

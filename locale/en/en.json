@@ -190,5 +190,22 @@
   "device.action.notification.output.notification.title": "Notification Title",
   "device.action.notification.output.notification.body": "Notification Body",
   "device.action.notification.failure.device.not.found": "An error occurred while sending a notification to one of your devices. The error has occurred because the device could not be found. Could it be that you have removed the device?",
-  "device.action.notification.failure.device.permission": "An error occurred while sending a notification to one of your devices. The error has occurred because the receipt of workflow notifications has been disabled by the device. You can change this at any time in the notification settings of the device."
+  "device.action.notification.failure.device.permission": "An error occurred while sending a notification to one of your devices. The error has occurred because the receipt of workflow notifications has been disabled by the device. You can change this at any time in the notification settings of the device.",
+
+  "device.action.command.name": "Device Command",
+  "device.action.command.description": "Executes a command line command on one of your devices",
+  "device.action.command.input.device.name": "Device",
+  "device.action.command.input.device.description": "The device on which the command is to be executed",
+  "device.action.command.input.notification.title.name": "Command",
+  "device.action.command.input.notification.title.description": "The shell command to be executed",
+  "device.action.command.output.device.id": "Device ID",
+  "device.action.command.output.device.name": "Device Name",
+  "device.action.command.output.device.platform": "Device Platform",
+  "device.action.command.output.command": "Command",
+  "device.action.command.output.command.output": "Command Output",
+  "device.action.command.output.command.error.message": "Command Error Message",
+  "device.action.command.output.command.exit.code": "Command Exit Code",
+  "device.action.command.output.command.execution.time": "Command Execution Time",
+  "device.action.command.failure.device.not.found": "An error occurred while executing a command line command on one of your devices. The error has occurred because the device could not be found. Could it be that you have removed the device?",
+  "device.action.command.failure.device.permission": "An error occurred while executing a command line command on one of your devices. The error occurred because the execution of command line commands was deactivated by the device. You can change this at any time in the command settings of the device."
 }
