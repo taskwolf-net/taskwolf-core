@@ -5,6 +5,7 @@ import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.distribution.client.DistributionClient;
 import net.taskwolf.core.distribution.client.DistributionClientRegistry;
 import net.taskwolf.core.distribution.client.packet.node.PacketOutgoingHandshakeResponse;
+import net.taskwolf.core.distribution.packet.PacketEventRepository;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
 import net.taskwolf.core.distribution.server.DistributionServer;
 import net.taskwolf.core.event.EventExecutor;
@@ -19,6 +20,7 @@ public final class NodeHandshakeRequestHook implements Hook {
   private final PacketRegistry packetRegistry;
   private final EventExecutor eventExecutor;
   private final DistributionClientRegistry distributionClientRegistry;
+  private final PacketEventRepository packetEventRepository;
   private final Log log;
   private final DistributionServer server;
 
@@ -31,8 +33,8 @@ public final class NodeHandshakeRequestHook implements Hook {
       return;
     }
     var client = DistributionClient.of(distributionConfiguration, packetRegistry,
-      eventExecutor, distributionClientRegistry, event.nodeId(), node,
-      event.channel());
+      eventExecutor, distributionClientRegistry, packetEventRepository,
+      event.nodeId(), node, event.channel());
     distributionClientRegistry.registerClient(client);
     client.authorize();
     event.channel().writeAndFlush(new PacketOutgoingHandshakeResponse(true,

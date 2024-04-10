@@ -7,6 +7,7 @@ import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.distribution.client.DistributionClientRegistry;
 import net.taskwolf.core.distribution.packet.PacketDecoder;
 import net.taskwolf.core.distribution.packet.PacketEncoder;
+import net.taskwolf.core.distribution.packet.PacketEventRepository;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
 import net.taskwolf.core.event.EventExecutor;
 
@@ -31,6 +32,7 @@ public final class ChannelEquipment extends ChannelInitializer<Channel> {
   private final PacketRegistry packetRegistry;
   private final EventExecutor eventExecutor;
   private final DistributionClientRegistry distributionClientRegistry;
+  private final PacketEventRepository packetEventRepository;
   private final Type type;
 
   @Override
@@ -62,7 +64,7 @@ public final class ChannelEquipment extends ChannelInitializer<Channel> {
     channel.pipeline().addLast("channel-encoder", PacketEncoder.create());
     channel.pipeline().addLast("channel-decoder", PacketDecoder.create(
       packetRegistry));
-    channel.pipeline().addLast("chanel-inbox", ChannelInbox.create(
-      eventExecutor, distributionConfiguration, distributionClientRegistry));
+    channel.pipeline().addLast("chanel-inbox", ChannelInbox.create(eventExecutor,
+      distributionConfiguration, distributionClientRegistry, packetEventRepository));
   }
 }

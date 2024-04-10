@@ -13,6 +13,7 @@ import net.taskwolf.core.distribution.DistributionNodeCondition;
 import net.taskwolf.core.distribution.channel.ChannelEquipment;
 import net.taskwolf.core.distribution.client.DistributionClientRegistry;
 import net.taskwolf.core.distribution.client.packet.PacketOutgoing;
+import net.taskwolf.core.distribution.packet.PacketEventRepository;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
 import net.taskwolf.core.event.EventExecutor;
 
@@ -25,6 +26,7 @@ public final class DistributionServer {
   private final PacketRegistry packetRegistry;
   private final EventExecutor eventExecutor;
   private final DistributionClientRegistry clientRegistry;
+  private final PacketEventRepository packetEventRepository;
   @Getter
   private final UUID nodeId;
   @Getter
@@ -51,7 +53,7 @@ public final class DistributionServer {
       .group(group)
       .channel(NioServerSocketChannel.class)
       .childHandler(ChannelEquipment.create(distributionConfiguration,
-        packetRegistry, eventExecutor, clientRegistry,
+        packetRegistry, eventExecutor, clientRegistry, packetEventRepository,
         ChannelEquipment.Type.EXTERNAL))
       .bind(port)
       .syncUninterruptibly().channel();

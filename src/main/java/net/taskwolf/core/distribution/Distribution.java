@@ -14,6 +14,7 @@ import net.taskwolf.core.distribution.client.packet.node.PacketOutgoingModuleLoa
 import net.taskwolf.core.distribution.client.packet.node.PacketOutgoingModuleUnload;
 import net.taskwolf.core.distribution.client.packet.user.PacketOutgoingUserDelete;
 import net.taskwolf.core.distribution.client.packet.user.PacketOutgoingUsersReorganize;
+import net.taskwolf.core.distribution.packet.PacketEventRepository;
 import net.taskwolf.core.distribution.packet.PacketRegistry;
 import net.taskwolf.core.distribution.server.DistributionServer;
 import net.taskwolf.core.distribution.server.node.*;
@@ -24,6 +25,9 @@ import net.taskwolf.core.distribution.server.user.UserDeleteHook;
 import net.taskwolf.core.distribution.server.user.UsersReorganizeHook;
 import net.taskwolf.core.event.EventExecutor;
 import net.taskwolf.core.event.HookRegistry;
+import net.taskwolf.core.event.node.*;
+import net.taskwolf.core.event.user.UserDeleteEvent;
+import net.taskwolf.core.event.user.UsersReorganizeEvent;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.organization.Organization;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
@@ -48,15 +52,17 @@ public final class Distribution {
   private final HookRegistry hookRegistry;
   private final DistributionClientRegistry clientRegistry;
   private final DistributionUserAssignment userAssignment;
+  private final PacketEventRepository packetEventRepository;
   private final Log log;
   private DistributionServer server;
 
   public void initialize() throws Exception {
     server = DistributionServer.create(configuration, packetRegistry,
-      eventExecutor, clientRegistry, UUID.randomUUID(),
+      eventExecutor, clientRegistry, packetEventRepository, UUID.randomUUID(),
       configuration.self().distributionPort());
     registerPackets();
     registerHooks();
+    registerEvents();
     server.openAsync(this::connectToNodes);
   }
 
@@ -65,7 +71,7 @@ public final class Distribution {
     var port = configuration.self().distributionPort();
     for (var node : configuration.nodes()) {
       var client = DistributionClient.create(configuration, packetRegistry,
-        eventExecutor, clientRegistry, node);
+        eventExecutor, clientRegistry, packetEventRepository, node);
       clientRegistry.registerClient(client);
       client.connectAsync(() -> client.sendPacket(new PacketOutgoingHandshakeRequest(
         hostname, port, node.distributionKey(), server.nodeId())));
@@ -86,7 +92,8 @@ public final class Distribution {
 
   private void registerHooks() {
     hookRegistry.register(NodeHandshakeRequestHook.create(configuration,
-      packetRegistry, eventExecutor, clientRegistry, log, server));
+      packetRegistry, eventExecutor, clientRegistry, packetEventRepository,
+      log, server));
     hookRegistry.register(injector.getInstance(NodeHandshakeResponseHook.class));
     hookRegistry.register(injector.getInstance(NodePingHook.class));
     hookRegistry.register(injector.getInstance(NodePongHook.class));
@@ -96,6 +103,24 @@ public final class Distribution {
       server, log));
     hookRegistry.register(injector.getInstance(UsersReorganizeHook.class));
     hookRegistry.register(injector.getInstance(UserDeleteHook.class));
+  }
+
+  private void registerEvents() {
+    packetEventRepository.registerEvent(PacketIncomingPing.class,
+      (client, packet) -> NodePingEvent.create(client, packet.value()));
+    packetEventRepository.registerEvent(PacketIncomingPong.class,
+      (client, packet) -> NodePongEvent.create(client, packet.value()));
+    packetEventRepository.registerEvent(PacketIncomingDisconnect.class,
+      (client, packet) -> NodeDisconnectEvent.create(client,
+        NodeDisconnectEvent.DisconnectReason.SHUTDOWN));
+    packetEventRepository.registerEvent(PacketIncomingModuleLoad.class,
+      (client, packet) -> NodeModuleLoadEvent.create(client, packet.module()));
+    packetEventRepository.registerEvent(PacketIncomingModuleUnload.class,
+      (client, packet) -> NodeModuleUnloadEvent.create(client, packet.module()));
+    packetEventRepository.registerEvent(PacketIncomingUsersReorganize.class,
+      (client, packet) -> UsersReorganizeEvent.create(packet.module(), packet.users()));
+    packetEventRepository.registerEvent(PacketIncomingUserDelete.class,
+      (client, packet) -> UserDeleteEvent.create(packet.user()));
   }
 
   public void registerModule(String module, List<UUID> users) {
