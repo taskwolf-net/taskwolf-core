@@ -42,9 +42,7 @@ public class CoreApplication {
     registerCommands(commandRegistry, injector);
     application.setDefaultProperties(Collections.singletonMap("server.port",
       distributionConfiguration.self().restPort()));
-    var context = application.run(args);
-    var moduleLoader = injector.getInstance(ModuleLoader.class);
-    moduleLoader.initializeSpring(application, context);
+    application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
     log.info("Successfully booted Taskwolf - Core");
   }
