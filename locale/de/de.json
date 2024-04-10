@@ -207,5 +207,6 @@
   "device.action.command.output.command.exit.code": "Befehl Exit-Code",
   "device.action.command.output.command.execution.time": "Befehlsausführungszeit",
   "device.action.command.failure.device.not.found": "Bei der Ausführung eines Kommandozeilenbefehls auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das Gerät nicht gefunden werden konnte. Könnte es sein, dass Sie das Gerät entfernt haben?",
-  "device.action.command.failure.device.permission": "Bei der Ausführung eines Kommandozeilenbefehls auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler trat auf, weil die Ausführung von Kommandozeilenbefehlen durch das Gerät deaktiviert wurde. Sie können dies jederzeit in den Befehlseinstellungen des Geräts ändern."
+  "device.action.command.failure.device.permission": "Bei der Ausführung eines Kommandozeilenbefehls auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler trat auf, weil die Ausführung von Kommandozeilenbefehlen durch das Gerät deaktiviert wurde. Sie können dies jederzeit in den Befehlseinstellungen des Geräts ändern.",
+  "device.action.command.failure.device.offline": "Bei der Ausführung eines Kommandozeilenbefehls auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das gewünschte Gerät offline ist. Daher konnte der Befehl nicht zugestellt und ausgeführt werden."
 }

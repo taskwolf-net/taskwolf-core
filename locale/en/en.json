@@ -207,5 +207,6 @@
   "device.action.command.output.command.exit.code": "Command Exit Code",
   "device.action.command.output.command.execution.time": "Command Execution Time",
   "device.action.command.failure.device.not.found": "An error occurred while executing a command line command on one of your devices. The error has occurred because the device could not be found. Could it be that you have removed the device?",
-  "device.action.command.failure.device.permission": "An error occurred while executing a command line command on one of your devices. The error occurred because the execution of command line commands was deactivated by the device. You can change this at any time in the command settings of the device."
+  "device.action.command.failure.device.permission": "An error occurred while executing a command line command on one of your devices. The error occurred because the execution of command line commands was deactivated by the device. You can change this at any time in the command settings of the device.",
+  "device.action.command.failure.device.offline": "An error occurred while executing a command line command on one of your devices. The error has occurred because the desired device is offline. So the command could not be delivered and executed."
 }
