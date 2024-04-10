@@ -5,6 +5,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.access.AccessInjectionModule;
 import net.taskwolf.core.action.ActionInjectionModule;
 import net.taskwolf.core.command.CommandInjectionModule;
 import net.taskwolf.core.condition.ConditionInjectionModule;
@@ -50,6 +51,7 @@ public class CoreInjectionModule extends AbstractModule {
     install(DistributionInjectionModule.create());
     install(WhitelistInjectionModule.create());
     install(LocaleInjectionModule.create());
+    install(AccessInjectionModule.create());
     install(ModuleInjectionModule.create());
     install(CommandInjectionModule.create());
   }
