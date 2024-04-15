@@ -208,5 +208,24 @@
   "device.action.command.output.command.execution.time": "Command Execution Time",
   "device.action.command.failure.device.not.found": "An error occurred while executing a command line command on one of your devices. The error has occurred because the device could not be found. Could it be that you have removed the device?",
   "device.action.command.failure.device.permission": "An error occurred while executing a command line command on one of your devices. The error occurred because the execution of command line commands was deactivated by the device. You can change this at any time in the command settings of the device.",
-  "device.action.command.failure.device.offline": "An error occurred while executing a command line command on one of your devices. The error has occurred because the desired device is offline. So the command could not be delivered and executed."
+  "device.action.command.failure.device.offline": "An error occurred while executing a command line command on one of your devices. The error has occurred because the desired device is offline. So the command could not be delivered and executed.",
+
+  "device.action.file.store.name": "Device Store File",
+  "device.action.file.store.description": "Stores a file on one of your devices",
+  "device.action.file.store.input.device.name": "Device",
+  "device.action.file.store.input.device.description": "The device on which the file is to be stored",
+  "device.action.file.store.input.file.path.name": "File Path",
+  "device.action.file.store.input.file.path.description": "The path where the created file should be located",
+  "device.action.file.store.input.file.name.name": "File Name",
+  "device.action.file.store.input.file.name.description": "The name of the file to be created",
+  "device.action.file.store.input.file.content.name": "File Content",
+  "device.action.file.store.input.file.content.description": "The content of the file with which the file is to be filled. This must be specified in Base64 format.",
+  "device.action.file.store.output.device.id": "Device ID",
+  "device.action.file.store.output.device.name": "Device Name",
+  "device.action.file.store.output.device.platform": "Device Platform",
+  "device.action.file.store.output.file.path": "File Path",
+  "device.action.file.store.output.file.name": "File Name",
+  "device.action.file.store.failure.device.not.found": "An error has occurred while storing a file on one of your devices. The error has occurred because the device could not be found. Could it be that you have removed the device?",
+  "device.action.file.store.failure.device.permission": "An error has occurred while storing a file on one of your devices. The error occurred because file storage was deactivated by the device. You can change this at any time in the file settings of the device.",
+  "device.action.file.store.failure.device.offline": "An error has occurred while storing a file on one of your devices. The error has occurred because the desired device is offline. For this reason, the file could not be saved."
 }

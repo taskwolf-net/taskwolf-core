@@ -208,5 +208,24 @@
   "device.action.command.output.command.execution.time": "Befehlsausführungszeit",
   "device.action.command.failure.device.not.found": "Bei der Ausführung eines Kommandozeilenbefehls auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das Gerät nicht gefunden werden konnte. Könnte es sein, dass Sie das Gerät entfernt haben?",
   "device.action.command.failure.device.permission": "Bei der Ausführung eines Kommandozeilenbefehls auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler trat auf, weil die Ausführung von Kommandozeilenbefehlen durch das Gerät deaktiviert wurde. Sie können dies jederzeit in den Befehlseinstellungen des Geräts ändern.",
-  "device.action.command.failure.device.offline": "Bei der Ausführung eines Kommandozeilenbefehls auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das gewünschte Gerät offline ist. Daher konnte der Befehl nicht zugestellt und ausgeführt werden."
+  "device.action.command.failure.device.offline": "Bei der Ausführung eines Kommandozeilenbefehls auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das gewünschte Gerät offline ist. Daher konnte der Befehl nicht zugestellt und ausgeführt werden.",
+
+  "device.action.file.store.name": "Gerät Datei speichern",
+  "device.action.file.store.description": "Speichert eine Datei auf einem Ihrer Geräte",
+  "device.action.file.store.input.device.name": "Gerät",
+  "device.action.file.store.input.device.description": "Das Gerät, auf dem die Datei gespeichert werden soll",
+  "device.action.file.store.input.file.path.name": "Datei Pfad",
+  "device.action.file.store.input.file.path.description": "Der Pfad, in dem die erstellte Datei gespeichert werden soll",
+  "device.action.file.store.input.file.name.name": "Datei Name",
+  "device.action.file.store.input.file.name.description": "Der Name der zu erstellenden Datei",
+  "device.action.file.store.input.file.content.name": "Datei Inhalt",
+  "device.action.file.store.input.file.content.description": "Der Inhalt der Datei, mit dem die Datei gefüllt werden soll. Dieser muss im Base64-Format angegeben werden.",
+  "device.action.file.store.output.device.id": "Geräte ID",
+  "device.action.file.store.output.device.name": "Geräte Name",
+  "device.action.file.store.output.device.platform": "Geräte Platform",
+  "device.action.file.store.output.file.path": "Datei Pfad",
+  "device.action.file.store.output.file.name": "Datei Name",
+  "device.action.file.store.failure.device.not.found": "Beim Speichern einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das Gerät nicht gefunden werden konnte. Könnte es sein, dass Sie das Gerät entfernt haben?",
+  "device.action.file.store.failure.device.permission": "Beim Speichern einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil die Dateispeicherung auf dem Gerät deaktiviert wurde. Sie können dies jederzeit in den Dateieinstellungen des Geräts ändern.",
+  "device.action.file.store.failure.device.offline": "Beim Speichern einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das gewünschte Gerät offline ist. Aus diesem Grund konnte die Datei nicht gespeichert werden."
 }
