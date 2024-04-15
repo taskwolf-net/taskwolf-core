@@ -227,5 +227,23 @@
   "device.action.file.store.output.file.name": "Datei Name",
   "device.action.file.store.failure.device.not.found": "Beim Speichern einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das Gerät nicht gefunden werden konnte. Könnte es sein, dass Sie das Gerät entfernt haben?",
   "device.action.file.store.failure.device.permission": "Beim Speichern einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil die Dateispeicherung auf dem Gerät deaktiviert wurde. Sie können dies jederzeit in den Dateieinstellungen des Geräts ändern.",
-  "device.action.file.store.failure.device.offline": "Beim Speichern einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das gewünschte Gerät offline ist. Aus diesem Grund konnte die Datei nicht gespeichert werden."
+  "device.action.file.store.failure.device.offline": "Beim Speichern einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das gewünschte Gerät offline ist. Aus diesem Grund konnte die Datei nicht gespeichert werden.",
+
+  "device.action.file.info.name": "Gerät Datei Info",
+  "device.action.file.info.description": "Stellt den Inhalt einer Datei auf einem Ihrer Geräte als Platzhalter zur Verfügung",
+  "device.action.file.info.input.device.name": "Gerät",
+  "device.action.file.info.input.device.description": "Das Gerät, auf dem die Dateiinformationen gesucht werden sollen",
+  "device.action.file.info.input.file.path.name": "Datei Pfad",
+  "device.action.file.info.input.file.path.description": "Der Pfad der Zieldatei",
+  "device.action.file.info.input.file.name.name": "Datei Name",
+  "device.action.file.info.input.file.name.description": "Der Name der Zieldatei",
+  "device.action.file.info.output.device.id": "Geräte ID",
+  "device.action.file.info.output.device.name": "Geräte Name",
+  "device.action.file.info.output.device.platform": "Geräte Platform",
+  "device.action.file.info.output.file.path": "Datei Pfad",
+  "device.action.file.info.output.file.name": "Datei Name",
+  "device.action.file.info.output.file.content": "Datei Inhalt",
+  "device.action.file.info.failure.device.not.found": "Bei der Suche nach den Dateiinformationen einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das Gerät nicht gefunden werden konnte. Könnte es sein, dass Sie das Gerät entfernt haben?",
+  "device.action.file.info.failure.device.permission": "Bei der Suche nach den Dateiinformationen einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler trat auf, weil die Dateiinfosuche auf dem Gerät deaktiviert war. Sie können dies jederzeit in den Dateieinstellungen des Geräts ändern.",
+  "device.action.file.info.failure.device.offline": "Bei der Suche nach den Dateiinformationen einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das gewünschte Gerät offline ist. Aus diesem Grund konnten keine Informationen bereitgestellt werden."
 }

@@ -227,5 +227,23 @@
   "device.action.file.store.output.file.name": "File Name",
   "device.action.file.store.failure.device.not.found": "An error has occurred while storing a file on one of your devices. The error has occurred because the device could not be found. Could it be that you have removed the device?",
   "device.action.file.store.failure.device.permission": "An error has occurred while storing a file on one of your devices. The error occurred because file storage was deactivated by the device. You can change this at any time in the file settings of the device.",
-  "device.action.file.store.failure.device.offline": "An error has occurred while storing a file on one of your devices. The error has occurred because the desired device is offline. For this reason, the file could not be saved."
+  "device.action.file.store.failure.device.offline": "An error has occurred while storing a file on one of your devices. The error has occurred because the desired device is offline. For this reason, the file could not be saved.",
+
+  "device.action.file.info.name": "Device File Info",
+  "device.action.file.info.description": "Provides the content of a file on one of your devices as a placeholder",
+  "device.action.file.info.input.device.name": "Device",
+  "device.action.file.info.input.device.description": "The device on which the file info is to be searched for",
+  "device.action.file.info.input.file.path.name": "File Path",
+  "device.action.file.info.input.file.path.description": "The path of the target file",
+  "device.action.file.info.input.file.name.name": "File Name",
+  "device.action.file.info.input.file.name.description": "The name of the target file",
+  "device.action.file.info.output.device.id": "Device ID",
+  "device.action.file.info.output.device.name": "Device Name",
+  "device.action.file.info.output.device.platform": "Device Platform",
+  "device.action.file.info.output.file.path": "File Path",
+  "device.action.file.info.output.file.name": "File Name",
+  "device.action.file.info.output.file.content": "File Content",
+  "device.action.file.info.failure.device.not.found": "An error occurred when finding the file info of a file on one of your devices. The error has occurred because the device could not be found. Could it be that you have removed the device?",
+  "device.action.file.info.failure.device.permission": "An error occurred when finding the file info of a file on one of your devices. The error occurred because file info finding was deactivated by the device. You can change this at any time in the file settings of the device.",
+  "device.action.file.info.failure.device.offline": "An error occurred when finding the file info of a file on one of your devices. The error has occurred because the desired device is offline. For this reason, no information could be provided."
 }
