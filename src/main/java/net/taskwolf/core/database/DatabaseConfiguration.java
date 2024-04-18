@@ -1,0 +1,31 @@
+package net.taskwolf.core.database;
+
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.taskwolf.core.configuration.Configuration;
+import org.json.JSONObject;
+
+@Getter
+@Accessors(fluent = true)
+public final class DatabaseConfiguration extends Configuration {
+  private static final String CONFIGURATION_PATH = "/configurations/database/database.json";
+
+  public static DatabaseConfiguration createAndLoad() throws Exception {
+    var configuration = new DatabaseConfiguration(CONFIGURATION_PATH);
+    configuration.load();
+    return configuration;
+  }
+
+  private String hostname;
+  private int port;
+
+  private DatabaseConfiguration(String path) {
+    super(path);
+  }
+
+  @Override
+  protected void deserialize(JSONObject json) {
+    hostname = json.getString("hostname");
+    port = json.getInt("port");
+  }
+}
