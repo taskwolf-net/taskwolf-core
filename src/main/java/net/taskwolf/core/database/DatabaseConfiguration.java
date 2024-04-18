@@ -18,6 +18,7 @@ public final class DatabaseConfiguration extends Configuration {
 
   private String hostname;
   private int port;
+  private String datacenter;
 
   private DatabaseConfiguration(String path) {
     super(path);
@@ -27,5 +28,6 @@ public final class DatabaseConfiguration extends Configuration {
   protected void deserialize(JSONObject json) {
     hostname = json.getString("hostname");
     port = json.getInt("port");
+    datacenter = json.getString("datacenter");
   }
 }
