@@ -130,6 +130,7 @@
   "google.calendar.action.event.cancel.output.event.end.time": "Event End Time",
 
   "table.link.description": "Great news! You don't need to link an account to use this module. Just click on \"skip\" to go to the next page.",
+
   "table.trigger.entry.insert.name": "Database entry insertion",
   "table.trigger.entry.insert.description": "Database entry insertion",
   "table.trigger.entry.insert.input.table.name": "Database",
@@ -142,6 +143,7 @@
   "table.trigger.entry.remove.input.table.description": "The database in which the removals are to be observed",
   "table.trigger.entry.remove.output.table": "Database name",
   "table.trigger.entry.remove.output.entry.id": "Entry ID",
+
   "table.action.entry.insert.name": "Insert database entry",
   "table.action.entry.insert.description": "Insert database entry",
   "table.action.entry.insert.input.table.name": "Database",
@@ -155,6 +157,7 @@
   "table.action.entry.insert.failure.wrong.schema": "An error occurred while inserting an entry into a database. The error occurred because the entered schema does not correspond to the correct one. The content must be in the following format: Column1=Value1, Column2=Value2, ...",
   "table.action.entry.insert.failure.column.not.found": "An error occurred while inserting an entry into a database. The error has occurred because a specified column does not exist.",
   "table.action.entry.insert.failure.column.already.specified": "An error occurred while inserting an entry into a database. The error has occurred because a column was specified twice.",
+
   "table.action.entry.remove.name": "Remove database entry",
   "table.action.entry.remove.description": "Remove database entry",
   "table.action.entry.remove.input.table.name": "Database",
@@ -196,8 +199,8 @@
   "device.action.command.description": "Executes a command line command on one of your devices",
   "device.action.command.input.device.name": "Device",
   "device.action.command.input.device.description": "The device on which the command is to be executed",
-  "device.action.command.input.notification.title.name": "Command",
-  "device.action.command.input.notification.title.description": "The shell command to be executed",
+  "device.action.command.input.command.name": "Command",
+  "device.action.command.input.command.description": "The shell command to be executed",
   "device.action.command.output.device.id": "Device ID",
   "device.action.command.output.device.name": "Device Name",
   "device.action.command.output.device.platform": "Device Platform",
