@@ -9,8 +9,14 @@ import lombok.RequiredArgsConstructor;
 public final class DatabaseInjectionModule extends AbstractModule {
   @Provides
   @Singleton
-  DatabaseConnection provideDatabaseConnection() {
-    var databaseConnection = DatabaseConnection.create();
+  DatabaseConfiguration provideDatabaseConfiguration() throws Exception {
+    return DatabaseConfiguration.createAndLoad();
+  }
+
+  @Provides
+  @Singleton
+  DatabaseConnection provideDatabaseConnection(DatabaseConfiguration configuration) {
+    var databaseConnection = DatabaseConnection.create(configuration);
     databaseConnection.connect();
     return databaseConnection;
   }
