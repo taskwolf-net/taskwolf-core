@@ -271,5 +271,22 @@
   "device.action.file.info.output.file.content": "Datei Inhalt",
   "device.action.file.info.failure.device.not.found": "Bei der Suche nach den Dateiinformationen einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das Gerät nicht gefunden werden konnte. Könnte es sein, dass Sie das Gerät entfernt haben?",
   "device.action.file.info.failure.device.permission": "Bei der Suche nach den Dateiinformationen einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler trat auf, weil die Dateiinfosuche auf dem Gerät deaktiviert war. Sie können dies jederzeit in den Dateieinstellungen des Geräts ändern.",
-  "device.action.file.info.failure.device.offline": "Bei der Suche nach den Dateiinformationen einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das gewünschte Gerät offline ist. Aus diesem Grund konnten keine Informationen bereitgestellt werden."
+  "device.action.file.info.failure.device.offline": "Bei der Suche nach den Dateiinformationen einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das gewünschte Gerät offline ist. Aus diesem Grund konnten keine Informationen bereitgestellt werden.",
+
+  "device.action.file.delete.name": "Gerät Datei löschen",
+  "device.action.file.delete.description": "Löscht eine Datei auf einem Ihrer Geräte",
+  "device.action.file.delete.input.device.name": "Gerät",
+  "device.action.file.delete.input.device.description": "Das Gerät, von dem die Datei gelöscht werden soll",
+  "device.action.file.delete.input.file.path.name": "Datei Pfad",
+  "device.action.file.delete.input.file.path.description": "Der Pfad, in dem sich die zu löschende Datei befindet",
+  "device.action.file.delete.input.file.name.name": "Datei Name",
+  "device.action.file.delete.input.file.name.description": "Der Name der zu löschenden Datei",
+  "device.action.file.delete.output.device.id": "Geräte ID",
+  "device.action.file.delete.output.device.name": "Geräte Name",
+  "device.action.file.delete.output.device.platform": "Geräte Platform",
+  "device.action.file.delete.output.file.path": "Datei Pfad",
+  "device.action.file.delete.output.file.name": "Datei Name",
+  "device.action.file.delete.failure.device.not.found": "Beim Speichern einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das Gerät nicht gefunden werden konnte. Könnte es sein, dass Sie das Gerät entfernt haben?",
+  "device.action.file.delete.failure.device.permission": "Beim Speichern einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil die Dateispeicherung auf dem Gerät deaktiviert wurde. Sie können dies jederzeit in den Dateieinstellungen des Geräts ändern.",
+  "device.action.file.delete.failure.device.offline": "Beim Speichern einer Datei auf einem Ihrer Geräte ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil das gewünschte Gerät offline ist. Aus diesem Grund konnte die Datei nicht gespeichert werden."
 }

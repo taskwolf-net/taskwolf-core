@@ -271,5 +271,22 @@
   "device.action.file.info.output.file.content": "File Content",
   "device.action.file.info.failure.device.not.found": "An error occurred when finding the file info of a file on one of your devices. The error has occurred because the device could not be found. Could it be that you have removed the device?",
   "device.action.file.info.failure.device.permission": "An error occurred when finding the file info of a file on one of your devices. The error occurred because file info finding was deactivated by the device. You can change this at any time in the file settings of the device.",
-  "device.action.file.info.failure.device.offline": "An error occurred when finding the file info of a file on one of your devices. The error has occurred because the desired device is offline. For this reason, no information could be provided."
+  "device.action.file.info.failure.device.offline": "An error occurred when finding the file info of a file on one of your devices. The error has occurred because the desired device is offline. For this reason, no information could be provided.",
+
+  "device.action.file.delete.name": "Device Delete File",
+  "device.action.file.delete.description": "Deletes a file on one of your devices",
+  "device.action.file.delete.input.device.name": "Device",
+  "device.action.file.delete.input.device.description": "The device on which the file is to be deleted",
+  "device.action.file.delete.input.file.path.name": "File Path",
+  "device.action.file.delete.input.file.path.description": "The path where the deleted file is located",
+  "device.action.file.delete.input.file.name.name": "File Name",
+  "device.action.file.delete.input.file.name.description": "The name of the file to be deleted",
+  "device.action.file.delete.output.device.id": "Device ID",
+  "device.action.file.delete.output.device.name": "Device Name",
+  "device.action.file.delete.output.device.platform": "Device Platform",
+  "device.action.file.delete.output.file.path": "File Path",
+  "device.action.file.delete.output.file.name": "File Name",
+  "device.action.file.delete.failure.device.not.found": "An error has occurred while deleting a file on one of your devices. The error has occurred because the device could not be found. Could it be that you have removed the device?",
+  "device.action.file.delete.failure.device.permission": "An error has occurred while deleting a file on one of your devices. The error occurred because file deletion was deactivated by the device. You can change this at any time in the file settings of the device.",
+  "device.action.file.delete.failure.device.offline": "An error has occurred while deleting a file on one of your devices. The error has occurred because the desired device is offline. For this reason, the file could not be removed."
 }
