@@ -211,6 +211,7 @@
   "device.trigger.file.create.output.device.id": "Device ID",
   "device.trigger.file.create.output.device.name": "Device Name",
   "device.trigger.file.create.output.device.platform": "Device Platform",
+  "device.trigger.file.create.output.workspace": "Workspace",
   "device.trigger.file.create.output.file.path": "File Path",
   "device.trigger.file.create.output.file.name": "File Name",
 
@@ -223,6 +224,7 @@
   "device.trigger.file.delete.output.device.id": "Device ID",
   "device.trigger.file.delete.output.device.name": "Device Name",
   "device.trigger.file.delete.output.device.platform": "Device Platform",
+  "device.trigger.file.delete.output.workspace": "Workspace",
   "device.trigger.file.delete.output.file.path": "File Path",
   "device.trigger.file.delete.output.file.name": "File Name",
 
