@@ -20,6 +20,7 @@ public final class ConditionDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("workflow", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("actionIndex", DatabaseDataType.INT));
+    columns.add(DatabaseColumn.create("conditionIndex", DatabaseDataType.INT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
     return new ConditionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
@@ -33,14 +34,16 @@ public final class ConditionDatabaseTable extends DatabaseTable {
   }
 
   public void insertCondition(ConditionEntry entry) {
-    insertCondition(entry.id(), entry.ownerId(), entry.workflowId(), entry.actionIndex(),
-      entry.type(), entry.content());
+    insertCondition(entry.id(), entry.ownerId(), entry.workflowId(),
+      entry.actionIndex(), entry.conditionIndex(), entry.type(), entry.content());
   }
 
   public void insertCondition(
-    UUID id, UUID ownerId, UUID workflowId, int actionIndex, String type, String content
+    UUID id, UUID ownerId, UUID workflowId, int actionIndex, int conditionIndex,
+    String type, String content
   ) {
-    insert(DatabaseRow.of(id, ownerId, workflowId, actionIndex, type, content));
+    insert(DatabaseRow.of(id, ownerId, workflowId, actionIndex, conditionIndex,
+      type, content));
   }
 
   public void deleteCondition(UUID conditionId) {

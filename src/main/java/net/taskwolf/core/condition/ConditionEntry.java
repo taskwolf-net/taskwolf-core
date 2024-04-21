@@ -14,13 +14,15 @@ public final class ConditionEntry {
   public static ConditionEntry of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
       row.findCell(2).uuidValue(), row.findCell(3).integerValue(),
-      row.findCell(4).stringValue(), row.findCell(5).stringValue());
+      row.findCell(4).integerValue(), row.findCell(5).stringValue(),
+      row.findCell(6).stringValue());
   }
 
   private final UUID id;
   private final UUID ownerId;
   private final UUID workflowId;
   private final int actionIndex;
+  private final int conditionIndex;
   private final String type;
   private final String content;
 }
