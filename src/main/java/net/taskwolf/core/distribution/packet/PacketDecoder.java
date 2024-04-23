@@ -17,6 +17,12 @@ public final class PacketDecoder extends ByteToMessageDecoder {
   ) {
     try {
       var buffer = PacketBuffer.create(byteBuf);
+      buffer.raw().markReaderIndex();
+      int packetLength = buffer.readVarInt();
+      if (buffer.raw().readableBytes() < packetLength) {
+        buffer.raw().resetReaderIndex();
+        return;
+      }
       int id = buffer.readVarInt();
       var packetClass = packetRegistry.findPacket(id);
       if (packetClass.isEmpty()) {
