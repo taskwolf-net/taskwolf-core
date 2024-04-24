@@ -51,7 +51,7 @@ dependencies {
   implementation("org.json:json:20240303")
   implementation("commons-io:commons-io:2.16.1")
 
-  implementation("io.netty:netty-all:4.1.108.Final")
+  implementation("io.netty:netty-all:4.1.109.Final")
 
   implementation("org.springframework.boot:spring-boot-starter-web:3.2.5")
 
