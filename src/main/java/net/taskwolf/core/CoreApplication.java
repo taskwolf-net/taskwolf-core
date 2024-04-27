@@ -16,7 +16,6 @@ import net.taskwolf.core.distribution.DistributionConfiguration;
 import net.taskwolf.core.distribution.server.node.NodePingSchedule;
 import net.taskwolf.core.intro.Intro;
 import net.taskwolf.core.log.Log;
-import net.taskwolf.core.module.ModuleLoader;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
