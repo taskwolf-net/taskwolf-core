@@ -11,6 +11,7 @@ import net.taskwolf.core.command.CommandInjectionModule;
 import net.taskwolf.core.condition.ConditionInjectionModule;
 import net.taskwolf.core.database.DatabaseInjectionModule;
 import net.taskwolf.core.distribution.DistributionInjectionModule;
+import net.taskwolf.core.grafana.GrafanaInjectionModule;
 import net.taskwolf.core.intro.IntroInjectionModule;
 import net.taskwolf.core.locale.LocaleInjectionModule;
 import net.taskwolf.core.log.Log;
@@ -54,6 +55,7 @@ public class CoreInjectionModule extends AbstractModule {
     install(AccessInjectionModule.create());
     install(ModuleInjectionModule.create());
     install(CommandInjectionModule.create());
+    install(GrafanaInjectionModule.create());
   }
 
   @Provides
