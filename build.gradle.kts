@@ -1,7 +1,7 @@
 plugins {
   id("java")
   id("maven-publish")
-  id("org.springframework.boot") version "3.2.4"
+  id("org.springframework.boot") version "3.2.5"
 }
 
 group = "net.taskwolf"
@@ -51,9 +51,9 @@ dependencies {
   implementation("org.json:json:20240303")
   implementation("commons-io:commons-io:2.16.1")
 
-  implementation("io.netty:netty-all:4.1.108.Final")
+  implementation("io.netty:netty-all:4.1.109.Final")
 
-  implementation("org.springframework.boot:spring-boot-starter-web:3.2.4")
+  implementation("org.springframework.boot:spring-boot-starter-web:3.2.5")
 
   implementation("io.jsonwebtoken:jjwt:0.12.5")
 
