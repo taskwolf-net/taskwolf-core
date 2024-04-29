@@ -46,7 +46,7 @@ dependencies {
 
   implementation("com.datastax.oss:java-driver-core:4.17.0")
 
-  implementation("org.jline:jline:3.25.1")
+  implementation("org.jline:jline:3.26.1")
 
   implementation("org.json:json:20240303")
   implementation("commons-io:commons-io:2.16.1")
