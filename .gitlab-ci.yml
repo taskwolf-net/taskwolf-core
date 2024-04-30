@@ -1,7 +1,4 @@
-image: gradle:8.4-jdk20-alpine
-
-stages:
-  - build
+image: gradle:alpine
 
 before_script:
   - GRADLE_USER_HOME="$(pwd)/.gradle"
@@ -9,6 +6,25 @@ before_script:
 
 build:
   stage: build
-  script:
-    - whereis java
-    - ./gradlew
+  script: gradle --build-cache assemble
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: push
+    paths:
+      - build
+      - .gradle
+
+test:
+  stage: test
+  script: gradle check
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: pull
+    paths:
+      - build
+      - .gradle
+
+deploy:
+  stage: deploy
+  script: echo "Define your deployment script!"
+  environment: production
