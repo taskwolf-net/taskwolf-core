@@ -3,6 +3,11 @@ image: gradle:8.4-jdk20-alpine
 stages:
   - build
 
+before_script:
+  - GRADLE_USER_HOME="$(pwd)/.gradle"
+  - export GRADLE_USER_HOME
+  - export JAVA_HOME="/usr/bin/java"
+
 build:
   stage: build
   script:
