@@ -1,7 +1,13 @@
+image: java:20-jdk
+
 stages:
   - build
+
+before_script:
+  - GRADLE_USER_HOME="$(pwd)/.gradle"
+  - export GRADLE_USER_HOME
 
 build:
   stage: build
   script:
-    - gradle build
+    - ./gradlew
