@@ -14,8 +14,7 @@ public final class ActionEntry {
   public static ActionEntry of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
       row.findCell(2).uuidValue(), row.findCell(3).integerValue(),
-      row.findCell(4).stringValue(), row.findCell(5).stringValue(),
-      row.findCell(6).stringValue());
+      row.findCell(4).stringValue(), row.findCell(5).stringValue());
   }
 
   private final UUID id;
@@ -24,5 +23,4 @@ public final class ActionEntry {
   private final int actionIndex;
   private final String module;
   private final String type;
-  private final String content;
 }

@@ -22,7 +22,6 @@ public final class ActionDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("actionIndex", DatabaseDataType.INT));
     columns.add(DatabaseColumn.create("module", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
     return new ActionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -35,15 +34,14 @@ public final class ActionDatabaseTable extends DatabaseTable {
 
   public void insertAction(ActionEntry entry) {
     insertAction(entry.id(), entry.ownerId(), entry.workflowId(),
-      entry.actionIndex(), entry.module(), entry.type(), entry.content());
+      entry.actionIndex(), entry.module(), entry.type());
   }
 
   public void insertAction(
     UUID id, UUID ownerId, UUID workflowId, int actionIndex, String module,
-    String type, String content
+    String type
   ) {
-    insert(DatabaseRow.of(id, ownerId, workflowId, actionIndex, module, type,
-      content));
+    insert(DatabaseRow.of(id, ownerId, workflowId, actionIndex, module, type));
   }
 
   public void deleteAction(UUID actionId) {
@@ -71,14 +69,6 @@ public final class ActionDatabaseTable extends DatabaseTable {
     UUID workflowId
   ) {
     return selectRows("workflow=" + workflowId + " ALLOW FILTERING")
-      .thenApply(rows -> rows.stream().map(ActionEntry::of)
-        .collect(Collectors.toList()));
-  }
-
-  public CompletableFuture<List<ActionEntry>> findActionsByModuleAndType(
-    String module, String type
-  ) {
-    return selectRows("module='" + module + "' AND type='" + type + "' ALLOW FILTERING")
       .thenApply(rows -> rows.stream().map(ActionEntry::of)
         .collect(Collectors.toList()));
   }

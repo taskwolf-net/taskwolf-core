@@ -13,20 +13,20 @@ public final class ActionInformation extends ComponentInformation {
   }
 
   public static ActionInformation create(
-    String name, String description, String identifier, ComponentNovelty novelty,
+    String name, String description, ComponentNovelty novelty,
     List<InputComponentVariable> inputVariables,
     List<OutputComponentVariable> outputVariables
   ) {
-    return new ActionInformation(name, description, identifier, novelty,
+    return new ActionInformation(name, description, novelty,
       inputVariables, outputVariables);
   }
 
   private ActionInformation(
-    String name, String description, String identifier, ComponentNovelty novelty,
+    String name, String description, ComponentNovelty novelty,
     List<InputComponentVariable> inputVariables,
     List<OutputComponentVariable> outputVariables
   ) {
-    super(name, description, identifier, novelty, inputVariables,
+    super(name, description, novelty, inputVariables,
       outputVariables);
   }
 }

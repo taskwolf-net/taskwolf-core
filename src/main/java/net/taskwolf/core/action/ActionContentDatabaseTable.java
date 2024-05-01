@@ -1,0 +1,52 @@
+package net.taskwolf.core.action;
+
+import com.google.common.collect.Lists;
+import net.taskwolf.core.database.*;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+public final class ActionContentDatabaseTable extends DatabaseTable {
+  public static ActionContentDatabaseTable create(
+    DatabaseConnection connection, DatabaseKeyspace keyspace,
+    String tableName, List<DatabaseColumn> contentColumns
+  ) {
+    var columns = Lists.<DatabaseColumn>newArrayList();
+    columns.add(DatabaseColumn.create("action", DatabaseDataType.UUID,
+      DatabaseColumn.Type.PRIMARY_KEY));
+    columns.addAll(contentColumns);
+    return new ActionContentDatabaseTable(connection, keyspace, tableName, columns);
+  }
+
+  private ActionContentDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
+    List<DatabaseColumn> columns
+  ) {
+    super(connection, keyspace, name, columns);
+  }
+
+  public void insertContent(
+    UUID actionId, DatabaseRow content
+  ) {
+    insert(DatabaseRow.of(actionId).concat(content));
+  }
+
+  public void deleteContent(UUID actionId) {
+    delete(DatabaseCell.create(actionId));
+  }
+
+  public CompletableFuture<Boolean> contentExists(UUID actionId) {
+    return exists(DatabaseCell.create(actionId));
+  }
+
+  public CompletableFuture<DatabaseRow> findContent(UUID actionId) {
+    return selectRow(DatabaseCell.create(actionId));
+  }
+
+  public CompletableFuture<List<DatabaseRow>> findContentByCondition(
+    String condition
+  ) {
+    return selectRows(condition);
+  }
+}
