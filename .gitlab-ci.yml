@@ -1,4 +1,4 @@
-image: gradle:alpine
+image: openjdk:22
 
 before_script:
   - GRADLE_USER_HOME="$(pwd)/.gradle"
@@ -8,4 +8,4 @@ before_script:
 build:
   stage: build
   script:
-    - gradle assemble
+    - ./gradlew assemble
