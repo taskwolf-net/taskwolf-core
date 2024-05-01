@@ -10,19 +10,22 @@ java.sourceCompatibility = JavaVersion.VERSION_20
 java.targetCompatibility = JavaVersion.VERSION_20
 
 publishing {
-  repositories {
-    maven {
-      name = "GitHubPackages"
-      url = uri("https://maven.pkg.github.com/TaskwolfNET/taskwolf-core")
-      credentials {
-        username = System.getenv("GITHUB_USERNAME") ?: providers.gradleProperty("githubUsername").get()
-        password = System.getenv("GITHUB_ACCESS_TOKEN") ?: providers.gradleProperty("githubAccessToken").get()
-      }
+  publications {
+    create<MavenPublication>("library") {
+      from(components["java"])
     }
   }
-  publications {
-    register<MavenPublication>("gpr") {
-      from(components["java"])
+  repositories {
+    maven {
+      url = uri("https://git.taskwolf.net/api/v4/projects/8/packages/maven")
+      credentials(HttpHeaderCredentials::class) {
+        name = "Private-Token"
+        value = System.getenv("TASKWOLF_GITLAB_PRIVATE_TOKEN") ?:
+          findProperty("taskwolfGitlabPrivateToken") as String?
+      }
+      authentication {
+        create("header", HttpHeaderAuthentication::class)
+      }
     }
   }
 }
