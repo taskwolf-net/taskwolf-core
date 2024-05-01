@@ -26,14 +26,14 @@ public final class ActionContentDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public void insertContent(
+  public CompletableFuture<Void> insertContent(
     UUID actionId, DatabaseRow content
   ) {
-    insert(DatabaseRow.of(actionId).concat(content));
+    return insert(DatabaseRow.of(actionId).concat(content));
   }
 
-  public void deleteContent(UUID actionId) {
-    delete(DatabaseCell.create(actionId));
+  public CompletableFuture<Void> deleteContent(UUID actionId) {
+    return delete(DatabaseCell.create(actionId));
   }
 
   public CompletableFuture<Boolean> contentExists(UUID actionId) {

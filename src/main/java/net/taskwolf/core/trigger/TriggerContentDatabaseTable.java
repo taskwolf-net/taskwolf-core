@@ -26,14 +26,14 @@ public final class TriggerContentDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public void insertContent(
+  public CompletableFuture<Void> insertContent(
     UUID triggerId, DatabaseRow content
   ) {
-    insert(DatabaseRow.of(triggerId).concat(content));
+    return insert(DatabaseRow.of(triggerId).concat(content));
   }
 
-  public void deleteContent(UUID triggerId) {
-    delete(DatabaseCell.create(triggerId));
+  public CompletableFuture<Void> deleteContent(UUID triggerId) {
+    return delete(DatabaseCell.create(triggerId));
   }
 
   public CompletableFuture<Boolean> contentExists(UUID triggerId) {
