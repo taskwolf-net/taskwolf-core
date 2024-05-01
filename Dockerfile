@@ -1,4 +1,4 @@
-FROM openjdk:20
+FROM openjdk:22
 
 COPY core-1.0.0-SNAPSHOT.jar core.jar
 COPY /configurations/ /configurations/
