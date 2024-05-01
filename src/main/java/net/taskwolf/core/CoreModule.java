@@ -6,23 +6,18 @@ import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import net.taskwolf.core.action.Action;
-import net.taskwolf.core.action.ActionDatabaseTable;
-import net.taskwolf.core.action.ActionEntry;
-import net.taskwolf.core.action.ActionInformation;
+import net.taskwolf.core.action.*;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.condition.ConditionDatabaseTable;
 import net.taskwolf.core.condition.ConditionEntry;
 import net.taskwolf.core.condition.ConditionFactory;
 import net.taskwolf.core.distribution.Distribution;
+import net.taskwolf.core.iterator.AsyncIterator;
 import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.module.Module;
 import net.taskwolf.core.module.ModuleInformation;
 import net.taskwolf.core.module.ModuleLoader;
-import net.taskwolf.core.trigger.Trigger;
-import net.taskwolf.core.trigger.TriggerDatabaseTable;
-import net.taskwolf.core.trigger.TriggerEntry;
-import net.taskwolf.core.trigger.TriggerInformation;
+import net.taskwolf.core.trigger.*;
 import net.taskwolf.core.user.User;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.Workflow;
@@ -34,7 +29,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
 @Singleton
 public class CoreModule {
@@ -94,8 +88,8 @@ public class CoreModule {
       return Optional.empty();
     }
     var module = moduleOptional.get();
-    return module.triggerInformation().stream().filter(triggerInformation ->
-      triggerInformation.identifier().equals(triggerType)).findFirst();
+    return module.triggerRepository().findTrigger(triggerType)
+      .map(Trigger::information);
   }
 
   public Optional<ActionInformation> findActionInformation(
@@ -106,41 +100,37 @@ public class CoreModule {
       return Optional.empty();
     }
     var module = moduleOptional.get();
-    return module.actionInformation().stream().filter(actionInformation ->
-      actionInformation.identifier().equals(actionType)).findFirst();
+    return module.actionRepository().findAction(actionType)
+      .map(Action::information);
   }
 
   public void triggerWorkflows(
-    String moduleName, String triggerType,
-    Function<TriggerEntry, Boolean> triggerSuitableFunction,
+    String moduleName, String triggerType, String condition,
     Map<String, Object> information
   ) {
-    triggerWorkflows(moduleName, triggerType, triggerSuitableFunction,
-      information, true);
+    triggerWorkflows(moduleName, triggerType, condition, information, true);
   }
 
   public void triggerWorkflows(
-    String moduleName, String triggerType,
-    Function<TriggerEntry, Boolean> triggerSuitableFunction,
+    String moduleName, String triggerType, String condition,
     Map<String, Object> information, boolean checkDistribution
   ) {
-    findTriggerEntries(moduleName, triggerType, checkDistribution).thenApply(
-      entries -> entries.stream().filter(triggerSuitableFunction::apply).toList())
-      .thenAccept(entries -> entries.forEach(entry -> createWorkflow(entry.id())
-        .thenAccept(workflow -> workflow.trigger(information))));
+    var module = moduleLoader.findModule(moduleName).get();
+    var trigger = module.triggerRepository()
+      .findTrigger(triggerType).get();
+    trigger.findEntries(condition).thenAccept(triggers ->
+      buildWorkflowTriggers(triggers, moduleName, information, checkDistribution));
   }
 
-  public CompletableFuture<List<TriggerEntry>> findTriggerEntries(
-    String module, String type
+  private void buildWorkflowTriggers(
+    List<UUID> triggerIds, String moduleName, Map<String, Object> information,
+    boolean checkDistribution
   ) {
-    return findTriggerEntries(module, type, true);
-  }
-
-  public CompletableFuture<List<TriggerEntry>> findTriggerEntries(
-    String module, String type, boolean checkDistribution
-  ) {
-    return triggerDatabaseTable.findTriggersByModuleAndType(module, type)
-      .thenApply(entries -> filterTriggerEntries(entries, module, checkDistribution));
+    AsyncIterator.execute(triggerIds, triggerDatabaseTable::findTrigger,
+      triggerIds.size(), triggers ->
+        filterTriggerEntries(triggers, moduleName, checkDistribution)
+          .forEach(entry -> createWorkflow(entry.id())
+            .thenAccept(workflow -> workflow.trigger(information))));
   }
 
   private List<TriggerEntry> filterTriggerEntries(
@@ -165,18 +155,30 @@ public class CoreModule {
     return futureResponse;
   }
 
-  private CompletableFuture<Map<Integer, Action>> createActions(UUID workflowId) {
+  private CompletableFuture<Map<Integer, ActionExecutor>> createActions(UUID workflowId) {
     return actionDatabaseTable.findActionsByWorkflow(workflowId)
-      .thenApply(this::createActionsMap);
+      .thenCompose(this::createActionsMap);
   }
 
-  private Map<Integer, Action> createActionsMap(List<ActionEntry> actions) {
-    var result = Maps.<Integer, Action>newHashMap();
-    for (var action : actions) {
-      result.put(action.actionIndex(), createAction(action.module(),
-        action.type(), action.content()));
-    }
-    return result;
+  private CompletableFuture<Map<Integer, ActionExecutor>> createActionsMap(
+    List<ActionEntry> actions
+  ) {
+    var futureResponse = new CompletableFuture<Map<Integer, ActionExecutor>>();
+    var result = Maps.<Integer, ActionExecutor>newHashMap();
+    AsyncIterator.execute(actions, entry ->
+      createAction(entry.module(), entry.type(), entry.id())
+        .thenAccept(action -> result.put(entry.actionIndex(), action)),
+      actions.size(), value -> futureResponse.complete(result));
+    return futureResponse;
+  }
+
+  public CompletableFuture<ActionExecutor> createAction(
+    String moduleName, String actionType, UUID actionId
+  ) {
+    var module = moduleLoader.findModule(moduleName).get();
+    var action = module.actionRepository()
+      .findAction(actionType).get();
+    return (CompletableFuture<ActionExecutor>) action.build(actionId);
   }
 
   private CompletableFuture<Multimap<Integer, Condition>> createConditions(UUID workflowId) {
@@ -191,14 +193,6 @@ public class CoreModule {
         condition.content()));
     }
     return result;
-  }
-
-  public Trigger createTrigger(String module, String type, String content) {
-    return moduleLoader.findModule(module).get().triggerFactory().create(type, content);
-  }
-
-  public Action createAction(String module, String type, String content) {
-    return moduleLoader.findModule(module).get().actionFactory().create(type, content);
   }
 
   public CompletableFuture<String> translate(UUID userId, String key) {
