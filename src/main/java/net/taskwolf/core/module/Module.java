@@ -1,22 +1,17 @@
 package net.taskwolf.core.module;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.account.AccountLink;
-import net.taskwolf.core.action.ActionFactory;
-import net.taskwolf.core.action.ActionInformation;
+import net.taskwolf.core.action.ActionRepository;
 import net.taskwolf.core.command.Command;
 import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.event.Hook;
 import net.taskwolf.core.event.HookRegistry;
-import net.taskwolf.core.trigger.TriggerFactory;
-import net.taskwolf.core.trigger.TriggerInformation;
-
-import java.util.List;
+import net.taskwolf.core.trigger.TriggerRepository;
 
 @Getter(AccessLevel.PROTECTED)
 @Accessors(fluent = true)
@@ -28,26 +23,18 @@ public abstract class Module {
 
   public abstract void disable() throws Exception;
 
-  public TriggerFactory triggerFactory() {
-    return null;
-  }
-
-  public ActionFactory actionFactory() {
-    return null;
-  }
-
   public AccountLink accountLink() {
     return null;
   }
 
   public abstract ModuleInformation moduleInformation();
 
-  public List<TriggerInformation> triggerInformation() {
-    return Lists.newArrayList();
+  public TriggerRepository triggerRepository() {
+    return TriggerRepository.create();
   }
 
-  public List<ActionInformation> actionInformation() {
-    return Lists.newArrayList();
+  public ActionRepository actionRepository() {
+    return ActionRepository.create();
   }
 
   public void registerCommand(Command command) {
