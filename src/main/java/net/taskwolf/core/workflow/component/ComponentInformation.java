@@ -17,8 +17,6 @@ public class ComponentInformation {
   @Getter
   private final String description;
   @Getter
-  private final String identifier;
-  @Getter
   private final ComponentNovelty novelty;
   private final List<InputComponentVariable> inputVariables;
   private final List<OutputComponentVariable> outputVariables;
