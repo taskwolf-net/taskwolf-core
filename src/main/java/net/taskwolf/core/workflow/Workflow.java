@@ -2,7 +2,7 @@ package net.taskwolf.core.workflow;
 
 import com.google.common.collect.Multimap;
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.action.Action;
+import net.taskwolf.core.action.ActionExecutor;
 import net.taskwolf.core.action.ActionResult;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.locale.Locale;
@@ -30,7 +30,7 @@ public final class Workflow {
   private final Locale englishLocale;
   private final TaskwolfMail notificationMail;
   private final WorkflowEntry workflowEntry;
-  private final Map<Integer, Action> actions;
+  private final Map<Integer, ActionExecutor> actions;
   private final Multimap<Integer, Condition> conditions;
   private int currentActionIndex = 0;
 

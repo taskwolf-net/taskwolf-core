@@ -6,7 +6,6 @@ import net.taskwolf.core.database.*;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public final class TriggerDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "trigger";
@@ -21,7 +20,6 @@ public final class TriggerDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("workflow", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("module", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("state", DatabaseDataType.TEXT));
     return new TriggerDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
@@ -35,14 +33,14 @@ public final class TriggerDatabaseTable extends DatabaseTable {
 
   public void insertTrigger(TriggerEntry entry) {
     insertTrigger(entry.id(), entry.ownerId(), entry.workflowId(),
-      entry.module(), entry.type(), entry.content(), entry.state().toString());
+      entry.module(), entry.type(), entry.state().toString());
   }
 
   public void insertTrigger(
     UUID id, UUID ownerId, UUID workflowId, String module, String type,
-    String content, String state
+    String state
   ) {
-    insert(DatabaseRow.of(id, ownerId, workflowId, module, type, content, state));
+    insert(DatabaseRow.of(id, ownerId, workflowId, module, type, state));
   }
 
   public void changeState(UUID triggerId, TriggerState state) {
@@ -57,7 +55,7 @@ public final class TriggerDatabaseTable extends DatabaseTable {
   private void updateTrigger(TriggerEntry entry) {
     update(DatabaseCell.create(entry.id()), DatabaseRow.of(entry.id(),
       entry.ownerId(), entry.workflowId(), entry.module(), entry.type(),
-      entry.content(), entry.state().toString()));
+      entry.state().toString()));
   }
 
   public void deleteTrigger(UUID triggerId) {
@@ -83,13 +81,5 @@ public final class TriggerDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<TriggerEntry> findTriggerByWorkflow(UUID workflowId) {
     return selectRow("workflow=" + workflowId + " ALLOW FILTERING").thenApply(TriggerEntry::of);
-  }
-
-  public CompletableFuture<List<TriggerEntry>> findTriggersByModuleAndType(
-    String module, String type
-  ) {
-    return selectRows("module='" + module + "' AND type='" + type + "' ALLOW FILTERING")
-      .thenApply(rows -> rows.stream().map(TriggerEntry::of)
-        .collect(Collectors.toList()));
   }
 }

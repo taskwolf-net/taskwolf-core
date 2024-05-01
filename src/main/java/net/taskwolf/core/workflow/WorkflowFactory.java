@@ -4,7 +4,7 @@ import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import net.taskwolf.core.action.Action;
+import net.taskwolf.core.action.ActionExecutor;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.mail.TaskwolfMail;
@@ -47,7 +47,7 @@ public final class WorkflowFactory {
   }
 
   public Workflow create(
-    WorkflowEntry workflowEntry, Map<Integer, Action> actions,
+    WorkflowEntry workflowEntry, Map<Integer, ActionExecutor> actions,
     Multimap<Integer, Condition> conditions
   ) {
     return Workflow.create(workflowDatabaseTable, workflowExecutionDatabaseTable,

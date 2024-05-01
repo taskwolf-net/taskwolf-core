@@ -13,19 +13,19 @@ public final class TriggerInformation extends ComponentInformation {
   }
 
   public static TriggerInformation create(
-    String name, String description, String identifier, ComponentNovelty novelty,
+    String name, String description, ComponentNovelty novelty,
     List<InputComponentVariable> inputVariables,
     List<OutputComponentVariable> outputVariables
   ) {
-    return new TriggerInformation(name, description, identifier, novelty,
+    return new TriggerInformation(name, description, novelty,
       inputVariables, outputVariables);
   }
 
   private TriggerInformation(
-    String name, String description, String identifier, ComponentNovelty novelty,
+    String name, String description, ComponentNovelty novelty,
     List<InputComponentVariable> inputVariables,
     List<OutputComponentVariable> outputVariables
   ) {
-    super(name, description, identifier, novelty, inputVariables, outputVariables);
+    super(name, description, novelty, inputVariables, outputVariables);
   }
 }

@@ -12,7 +12,6 @@ import java.util.List;
 public final class TriggerInformationBuilder {
   private String name = "Unknown";
   private String description = "";
-  private String identifier = "";
   private ComponentNovelty novelty = ComponentNovelty.OLD;
   private final List<InputComponentVariable> inputVariables = Lists.newArrayList();
   private final List<OutputComponentVariable> outputVariables = Lists.newArrayList();
@@ -24,11 +23,6 @@ public final class TriggerInformationBuilder {
 
   public TriggerInformationBuilder withDescription(String description) {
     this.description = description;
-    return this;
-  }
-
-  public TriggerInformationBuilder withIdentifier(String identifier) {
-    this.identifier = identifier;
     return this;
   }
 
@@ -48,7 +42,7 @@ public final class TriggerInformationBuilder {
   }
 
   public TriggerInformation build() {
-    return TriggerInformation.create(name, description, identifier, novelty,
-      inputVariables, outputVariables);
+    return TriggerInformation.create(name, description, novelty, inputVariables,
+      outputVariables);
   }
 }
