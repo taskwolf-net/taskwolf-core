@@ -4,6 +4,7 @@ import com.datastax.oss.driver.api.core.cql.Row;
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RequiredArgsConstructor(staticName = "create")
@@ -45,11 +46,21 @@ public final class DatabaseRow {
     return compilation.toString();
   }
 
+  public DatabaseRow concat(DatabaseRow other) {
+    var result = Arrays.copyOf(cells, this.cellNumber() + other.cellNumber());
+    System.arraycopy(other.raw(), 0, result, this.cellNumber(), other.cellNumber());
+    return DatabaseRow.create(result);
+  }
+
   public DatabaseCell findCell(int index) {
     return cells[index];
   }
 
   public int cellNumber() {
     return cells.length;
+  }
+
+  public DatabaseCell[] raw() {
+    return Arrays.copyOf(cells, cells.length);
   }
 }
