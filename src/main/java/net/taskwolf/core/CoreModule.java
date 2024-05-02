@@ -80,19 +80,16 @@ public class CoreModule {
     return moduleOptional.map(Module::moduleInformation);
   }
 
-  public Optional<TriggerInformation> findTriggerInformation(
-    String moduleName, String triggerType
-  ) {
+  public Optional<Trigger> findTrigger(String moduleName, String triggerType) {
     var moduleOptional = moduleLoader.findModule(moduleName);
     if (moduleOptional.isEmpty()) {
       return Optional.empty();
     }
     var module = moduleOptional.get();
-    return module.triggerRepository().findTrigger(triggerType)
-      .map(Trigger::information);
+    return module.triggerRepository().findTrigger(triggerType);
   }
 
-  public Optional<ActionInformation> findActionInformation(
+  public Optional<Action<? extends ActionExecutor>> findAction(
     String moduleName, String actionType
   ) {
     var moduleOptional = moduleLoader.findModule(moduleName);
@@ -100,8 +97,19 @@ public class CoreModule {
       return Optional.empty();
     }
     var module = moduleOptional.get();
-    return module.actionRepository().findAction(actionType)
-      .map(Action::information);
+    return module.actionRepository().findAction(actionType);
+  }
+
+  public Optional<TriggerInformation> findTriggerInformation(
+    String moduleName, String triggerType
+  ) {
+    return findTrigger(moduleName, triggerType).map(Trigger::information);
+  }
+
+  public Optional<ActionInformation> findActionInformation(
+    String moduleName, String triggerType
+  ) {
+    return findAction(moduleName, triggerType).map(Action::information);
   }
 
   public void triggerWorkflows(
