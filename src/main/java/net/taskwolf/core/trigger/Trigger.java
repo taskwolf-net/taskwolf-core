@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 public interface Trigger {
   String type();
   TriggerInformation information();
+  void initialize();
   CompletableFuture<Void> insert(UUID triggerId, Map<String, Object> content);
   CompletableFuture<Map<String, Object>> findContent(UUID triggerId);
   CompletableFuture<List<UUID>> findEntries(String condition);

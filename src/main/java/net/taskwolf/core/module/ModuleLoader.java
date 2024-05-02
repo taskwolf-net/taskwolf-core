@@ -6,10 +6,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.taskwolf.core.action.Action;
 import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.log.Log;
-import org.springframework.boot.SpringApplication;
-import org.springframework.context.ConfigurableApplicationContext;
+import net.taskwolf.core.trigger.Trigger;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -65,6 +65,8 @@ public final class ModuleLoader {
     Collections.reverse(modules);
     for (var module : modules) {
       module.module().enable();
+      module.module().triggerRepository().allTriggers().forEach(Trigger::initialize);
+      module.module().actionRepository().allActions().forEach(Action::initialize);
       log.info("Successfully loaded module " + module.name());
     }
     distribution.findAllPossibleUser()
