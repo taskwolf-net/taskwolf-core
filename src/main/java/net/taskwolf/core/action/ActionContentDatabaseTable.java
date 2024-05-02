@@ -43,10 +43,4 @@ public final class ActionContentDatabaseTable extends DatabaseTable {
   public CompletableFuture<DatabaseRow> findContent(UUID actionId) {
     return selectRow(DatabaseCell.create(actionId));
   }
-
-  public CompletableFuture<List<DatabaseRow>> findContentByCondition(
-    String condition
-  ) {
-    return selectRows(condition);
-  }
 }
