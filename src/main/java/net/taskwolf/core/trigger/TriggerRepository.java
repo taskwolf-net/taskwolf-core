@@ -21,4 +21,12 @@ public final class TriggerRepository {
   public Optional<Trigger> findTrigger(String type) {
     return triggers.stream().filter(trigger -> trigger.type().equals(type)).findFirst();
   }
+
+  public boolean isEmpty() {
+    return triggers.isEmpty();
+  }
+
+  public List<Trigger> allTriggers() {
+    return List.copyOf(triggers);
+  }
 }

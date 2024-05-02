@@ -21,4 +21,12 @@ public final class ActionRepository {
   public Optional<Action<? extends ActionExecutor>> findAction(String type) {
     return actions.stream().filter(action -> action.type().equals(type)).findFirst();
   }
+
+  public boolean isEmpty() {
+    return actions.isEmpty();
+  }
+
+  public List<Action<? extends  ActionExecutor>> allActions() {
+    return List.copyOf(actions);
+  }
 }
