@@ -47,6 +47,6 @@ public final class TriggerContentDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<DatabaseRow>> findContentByCondition(
     String condition
   ) {
-    return selectRows(condition);
+    return selectRowsWithAddition(condition);
   }
 }

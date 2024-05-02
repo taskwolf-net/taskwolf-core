@@ -244,7 +244,7 @@ public class DatabaseTable {
     return selectRowsWithAddition(" WHERE " + condition);
   }
 
-  private CompletableFuture<List<DatabaseRow>> selectRowsWithAddition(String addition) {
+  protected CompletableFuture<List<DatabaseRow>> selectRowsWithAddition(String addition) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
     query.append(" FROM ");
