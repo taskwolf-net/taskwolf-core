@@ -9,6 +9,7 @@ public interface Trigger {
   String type();
   TriggerInformation information();
   CompletableFuture<Void> insert(UUID triggerId, Map<String, Object> content);
+  CompletableFuture<Map<String, Object>> findContent(UUID triggerId);
   CompletableFuture<List<UUID>> findEntries(String condition);
   CompletableFuture<Void> delete(UUID triggerId);
 }
