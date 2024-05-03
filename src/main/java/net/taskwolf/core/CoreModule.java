@@ -144,6 +144,23 @@ public class CoreModule {
             .thenAccept(workflow -> workflow.trigger(information))));
   }
 
+  public CompletableFuture<List<TriggerEntry>> findAllTriggerEntries(
+    String module, String type
+  ) {
+    return findAllTriggerEntries(module, type, true);
+  }
+
+  public CompletableFuture<List<TriggerEntry>> findAllTriggerEntries(
+    String module, String type, boolean checkDistribution
+  ) {
+    var futureResponse = new CompletableFuture<List<TriggerEntry>>();
+    findTrigger(module, type).get().findEntries("").thenAccept(entries ->
+      AsyncIterator.execute(entries, triggerDatabaseTable::findTrigger,
+        entries.size(), triggers -> futureResponse.complete(
+          filterTriggerEntries(triggers, module, checkDistribution))));
+    return futureResponse;
+  }
+
   private List<TriggerEntry> filterTriggerEntries(
     List<TriggerEntry> entries, String module, boolean checkDistribution
   ) {
