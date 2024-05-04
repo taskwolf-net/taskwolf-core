@@ -1,4 +1,6 @@
-image: openjdk:21
+stages:
+  - build
+  - deploy
 
 before_script:
   - GRADLE_USER_HOME="$(pwd)/.gradle"
@@ -7,5 +9,10 @@ before_script:
 
 build:
   stage: build
+  image: openjdk:21
+  artifacts:
+    paths:
+      - build/libs/core-1.0.0-SNAPSHOT.jar
+    expire_in: 1 day
   script:
     - ./gradlew assemble
