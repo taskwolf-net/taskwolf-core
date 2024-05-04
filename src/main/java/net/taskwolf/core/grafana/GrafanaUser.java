@@ -45,67 +45,76 @@ public final class GrafanaUser {
       "POST", Map.of("name", username, "email", username, "login", username,
         "password", password, "OrgId", organizationId), adminToken)
       .thenApply(response -> new JSONObject(response.body()).getInt("id"))
-      .thenAccept(userId -> switchUserContext(organizationId, adminToken)
-        .thenAccept(value -> createDatasource(apiKey, username, password, userId,
-          organizationId, adminToken)));
+      .thenAccept(userId -> updateUserRole(organizationId, userId, "Admin", adminToken)
+        .thenAccept(value -> loginUser(username, password)
+          .thenAccept(userToken -> createDatasource(apiKey, username, password,
+            userId, organizationId, userToken))));
   }
 
   private void createDatasource(
     String apiKey, String username, String password, int userId,
-    int organizationId, String adminToken
+    int organizationId, String userToken
   ) {
     sendAuthorizedRequest("https://analytics.taskwolf.net/api/datasources",
       "POST", Map.of("type", "yesoreyeram-infinity-datasource", "access", "proxy"),
-      adminToken).thenApply(response ->  new JSONObject(response.body())
-        .getJSONObject("datasource").getString("uid")).thenAccept(datasourceUid ->
-      fillDatasource(apiKey, datasourceUid, 2, adminToken).thenAccept(value ->
-        createDashboard(username, password, datasourceUid, userId, organizationId,
-          adminToken)));
+      userToken).thenApply(response ->  new JSONObject(response.body())
+        .getJSONObject("datasource")).thenAccept(json ->
+      fillDatasource(apiKey, json.getInt("id"), json.getString("uid"), 1,
+        organizationId, userToken).thenAccept(value -> createDashboard(username,
+          password, json.getInt("id"), json.getString("uid"), userId,
+          organizationId, userToken)));
   }
 
   private void createDashboard(
-    String username, String password, String datasourceUid, int userId,
-    int organizationId, String adminToken
+    String username, String password, int datasourceId, String datasourceUid,
+    int userId, int organizationId, String userToken
   ) {
     sendAuthorizedRequest("https://analytics.taskwolf.net/api/dashboards/import",
       "POST", configuration.dashboard().replace("%DATASOURCE%", datasourceUid),
-      adminToken)
-      .thenApply(response -> new JSONObject(response.body()).getString("importedUrl"))
-      .thenAccept(dashboardUrl -> grafanaDatabaseTable.insertAccount(ownerId,
-        username, password, userId, organizationId, datasourceUid, 2, dashboardUrl))
-      .thenAccept(value -> switchUserContext(1, adminToken));
+      userToken)
+      .thenApply(response -> new JSONObject(response.body()))
+      .thenAccept(json -> grafanaDatabaseTable.insertAccount(ownerId, username,
+        password, userId, organizationId, datasourceId, datasourceUid, 1,
+        json.getInt("dashboardId"), json.getString("uid"), 1,
+        json.getString("importedUrl")))
+      .thenAccept(value -> updateUserRole(organizationId, userId, "Viewer", userToken));
   }
 
   public void updateApiKey(String apiKey) {
     loginUser(configuration.adminName(), configuration.adminPassword())
       .thenAccept(adminToken -> grafanaDatabaseTable.findAccount(ownerId)
-        .thenAccept(account -> switchUserContext(account.organizationId(), adminToken)
-          .thenAccept(value -> updateApiKey(apiKey, account, adminToken))));
+        .thenAccept(account -> updateUserRole(account.organizationId(),
+            account.userId(), "Admin", adminToken)
+          .thenAccept(value -> loginUser(account.username(), account.password())
+            .thenAccept(userToken -> updateApiKey(apiKey, account, userToken)))));
   }
 
   private void updateApiKey(
-    String apiKey, GrafanaAccount account, String adminToken
+    String apiKey, GrafanaAccount account, String userToken
   ) {
-    fillDatasource(apiKey, account.datasourceUid(),
-      account.datasourceVersion() + 1, adminToken)
-      .thenAccept(value -> switchUserContext(1, adminToken));
+    fillDatasource(apiKey, account.datasourceId(), account.datasourceUid(),
+        account.datasourceVersion() + 1, account.organizationId(), userToken)
+      .thenAccept(value -> updateUserRole(account.organizationId(),
+        account.userId(), "Viewer", userToken));
     grafanaDatabaseTable.updateDatasourceVersion(account,
       account.datasourceVersion() + 1);
   }
 
-  private static final String FILL_DATASOURCE_QUERY = "{\"id\":%DATASOURCE_ID%,\"uid\":\"%DATASOURCE_UID%\",\"orgId\":1,\"name\":\"taskwolf-statistics-datasource\",\"type\":\"yesoreyeram-infinity-datasource\",\"typeLogoUrl\":\"public/plugins/yesoreyeram-infinity-datasource/img/icon.svg\",\"access\":\"proxy\",\"url\":\"__IGNORE_URL__\",\"user\":\"\",\"database\":\"\",\"basicAuth\":false,\"basicAuthUser\":\"\",\"withCredentials\":false,\"isDefault\":true,\"jsonData\":{\"allowedHosts\":[\"https://api.taskwolf.net/v1/\"],\"auth_method\":\"bearerToken\",\"global_queries\":[],\"oauthPassThru\":false,\"httpHeaderName1\":\"WHITELIST-KEY\"},\"secureJsonFields\":{\"bearerToken\":false,\"httpHeaderValue1\":true,\"httpHeaderValue2\":true},\"version\":%DATASOURCE_VERSION%,\"readOnly\":false,\"accessControl\":{\"alert.instances.external:read\":true,\"alert.instances.external:write\":true,\"alert.notifications.external:read\":true,\"alert.notifications.external:write\":true,\"alert.rules.external:read\":true,\"alert.rules.external:write\":true,\"datasources.id:read\":true,\"datasources:delete\":true,\"datasources:query\":true,\"datasources:read\":true,\"datasources:write\":true},\"secureJsonData\":{\"bearerToken\":\"%API-KEY%\",\"httpHeaderValue1\":\"%WHITELIST-KEY%\"}}";
+  private static final String FILL_DATASOURCE_QUERY = "{\"id\":%DATASOURCE_ID%,\"uid\":\"%DATASOURCE_UID%\",\"orgId\":%ORGANIZATION_ID%,\"name\":\"taskwolf-statistics-datasource\",\"type\":\"yesoreyeram-infinity-datasource\",\"typeLogoUrl\":\"public/plugins/yesoreyeram-infinity-datasource/img/icon.svg\",\"access\":\"proxy\",\"url\":\"__IGNORE_URL__\",\"user\":\"\",\"database\":\"\",\"basicAuth\":false,\"basicAuthUser\":\"\",\"withCredentials\":false,\"isDefault\":true,\"jsonData\":{\"allowedHosts\":[\"https://api.taskwolf.net/v1/\"],\"auth_method\":\"bearerToken\",\"global_queries\":[],\"oauthPassThru\":false,\"httpHeaderName1\":\"WHITELIST-KEY\"},\"version\":%DATASOURCE_VERSION%,\"readOnly\":false,\"accessControl\":{\"alert.instances.external:read\":true,\"alert.instances.external:write\":true,\"alert.notifications.external:read\":true,\"alert.notifications.external:write\":true,\"alert.rules.external:read\":true,\"alert.rules.external:write\":true,\"datasources.id:read\":true,\"datasources:delete\":true,\"datasources:query\":true,\"datasources:read\":true,\"datasources:write\":true},\"secureJsonData\":{\"bearerToken\":\"%API-KEY%\",\"httpHeaderValue1\":\"%WHITELIST-KEY%\"}}";
 
   private CompletableFuture<Void> fillDatasource(
-    String apiKey, String datasourceUid, int datasourceVersion,
-    String adminToken
+    String apiKey, int datasourceId, String datasourceUid, int datasourceVersion,
+    int organizationId, String userToken
   ) {
-    var query = FILL_DATASOURCE_QUERY.replace("%DATASOURCE_ID%", "1")
+    var query = FILL_DATASOURCE_QUERY
+      .replace("%DATASOURCE_ID%", String.valueOf(datasourceId))
       .replace("%DATASOURCE_UID%", datasourceUid)
       .replace("%DATASOURCE_VERSION%", String.valueOf(datasourceVersion))
+      .replace("%ORGANIZATION_ID%", String.valueOf(organizationId))
       .replace("%API-KEY%", apiKey)
       .replace("%WHITELIST-KEY%", whitelistConfiguration.whitelistKey());
     return sendAuthorizedRequest("https://analytics.taskwolf.net/api/datasources/uid/" +
-      datasourceUid, "PUT", query, adminToken).thenAccept(value -> {});
+      datasourceUid, "PUT", query, userToken).thenAccept(value -> {});
   }
 
   public CompletableFuture<String> login() {
@@ -131,9 +140,12 @@ public final class GrafanaUser {
       .thenAccept(response -> grafanaDatabaseTable.deleteAccount(ownerId));
   }
 
-  private CompletableFuture<Void> switchUserContext(int organizationId, String token) {
-    return sendAuthorizedRequest("https://analytics.taskwolf.net/api/user/using/" +
-      organizationId, "POST", "", token).thenAccept(response -> {});
+  private CompletableFuture<Void> updateUserRole(
+    int organizationId, int userId, String role, String token
+  ) {
+    return sendAuthorizedRequest("https://analytics.taskwolf.net/api/orgs/" +
+        organizationId + "/users/" + userId,
+      "PATCH", Map.of("role", role), token).thenAccept(response -> {});
   }
 
   private CompletableFuture<String> loginUser(String username, String password) {
