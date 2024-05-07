@@ -150,6 +150,7 @@
   "table.action.entry.insert.input.table.description": "Die Datenbank, in der Sie den Eintrag speichern möchten",
   "table.action.entry.insert.input.content.name": "Content",
   "table.action.entry.insert.input.content.description": "Der Inhalt des Eintrags. Der Inhalt hat das folgende Format: Spalte1=Wert1, Spalte2=Wert2, ...",
+  "table.action.entry.insert.input.content.placeholder": "Spalte1=Wert1, Spalte2=Wert2, ...",
   "table.action.entry.insert.output.table": "Datenbank Name",
   "table.action.entry.insert.output.entry.content": "Eintrags Inhalt",
   "table.action.entry.insert.output.entry.id": "Eintrags ID",

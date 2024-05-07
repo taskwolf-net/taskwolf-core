@@ -150,6 +150,7 @@
   "table.action.entry.insert.input.table.description": "The database in which you want to store the entry",
   "table.action.entry.insert.input.content.name": "Content",
   "table.action.entry.insert.input.content.description": "The content of the entry. The content has the following format: Column1=Value1, Column2=Value2, ...",
+  "table.action.entry.insert.input.content.placeholder": "Column1=Value1, Column2=Value2, ...",
   "table.action.entry.insert.output.table": "Database name",
   "table.action.entry.insert.output.entry.content": "Entry Content",
   "table.action.entry.insert.output.entry.id": "Entry ID",
