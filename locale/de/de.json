@@ -24,6 +24,8 @@
   "workflow.timeline.entry.condition.remove.title": "Workflow Bedingung entfernt",
   "workflow.timeline.entry.condition.remove.description": "Eine Bedingung wurde von %ACTOR% vom Workflow entfernt.",
 
+  "workflow.duplicated": "Dupliziert",
+
   "discord.account.link.description": "Möchten Sie einen weiteren Discord-Server hinzufügen, um ihn mit Hilfe von Taskwolf in Ihre Automatisierung zu integrieren? Klicken Sie einfach auf das Logo.",
   "discord.trigger.channel.message.name": "Empfang einer neuen Kanalnachricht",
   "discord.trigger.channel.message.description": "Empfang einer neuen Kanalnachricht",
