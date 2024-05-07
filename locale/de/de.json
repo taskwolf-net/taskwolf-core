@@ -177,6 +177,10 @@
   "webhook.trigger.input.webhook.description": "Der Webhook, der den Workflow auslösen soll",
   "webhook.trigger.output.webhook.id": "Webhook ID",
   "webhook.trigger.output.webhook.url": "Webhook URL",
+  "webhook.trigger.output.webhook.body": "Webhook Anfragekörper",
+  "webhook.trigger.output.webhook.formatted.time": "Webhook formatierte Zeit",
+  "webhook.trigger.output.webhook.formatted.date": "Webhook formatiertes Datum",
+  "webhook.trigger.output.webhook.unix.time": "Webhook Unix Zeit",
 
   "device.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen.",
 
