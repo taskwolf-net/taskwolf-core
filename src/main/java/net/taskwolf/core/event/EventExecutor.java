@@ -17,4 +17,8 @@ public final class EventExecutor {
       exception.printStackTrace();
     }
   }
+
+  public void executeUncaught(Event event) throws Exception {
+    event.call(registry);
+  }
 }
