@@ -26,7 +26,7 @@ final class EventExecutionTest {
   }
 
   @Test
-  void testHookRegistry() throws Exception {
+  void testEventExecution() throws Exception {
     var injector = Guice.createInjector(CoreInjectionModule.create());
     var registry = injector.getInstance(HookRegistry.class);
     var hook = new ExampleHook();
