@@ -20,8 +20,8 @@ public final class TimelineFactory {
     var futureResponse = new CompletableFuture<Timeline>();
     timelineDatabaseTable.findEntriesByWorkflow(workflowId).thenApply(databaseEntries ->
       AsyncIterator.execute(databaseEntries, entry ->
-          timelineEntryFactory.create(entry.time(), entry.type(), entry.content()),
-        databaseEntries.size(), entries -> futureResponse.complete(Timeline.create(entries))));
+          timelineEntryFactory.create(entry.time(), entry.type(), entry.content()))
+        .thenAccept(entries -> futureResponse.complete(Timeline.create(entries))));
     return futureResponse;
   }
 }

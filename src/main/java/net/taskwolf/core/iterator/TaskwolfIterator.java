@@ -1,7 +1,6 @@
 package net.taskwolf.core.iterator;
 
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
@@ -12,28 +11,27 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class TaskwolfIterator<T, U> {
 private final List<T> list;
-  @Getter(AccessLevel.PROTECTED)
-  private final int number;
   private int counter = 0;
 
-  public void execute() {
+  public CompletableFuture<U> execute() {
     if (list.isEmpty()) {
-      complete();
-      return;
+      return CompletableFuture.completedFuture(result());
     }
+    var futureResponse = new CompletableFuture<U>();
     for (var entry : list) {
       entryFuture(entry).thenAccept(value -> counter++)
-        .thenAccept(value -> checkCompletion());
+        .thenAccept(value -> checkCompletion(futureResponse));
     }
+    return futureResponse;
   }
 
-  private void checkCompletion() {
-    if (counter == number) {
-      complete();
+  private void checkCompletion(CompletableFuture<U> futureResponse) {
+    if (counter == list.size()) {
+      futureResponse.complete(result());
     }
   }
 
   protected abstract CompletableFuture<?> entryFuture(T entry);
 
-  protected abstract void complete();
+  protected abstract U result();
 }

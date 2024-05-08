@@ -137,8 +137,8 @@ public class CoreModule {
     List<UUID> triggerIds, String moduleName, Map<String, Object> information,
     boolean checkDistribution
   ) {
-    AsyncIterator.execute(triggerIds, triggerDatabaseTable::findTrigger,
-      triggerIds.size(), triggers ->
+    AsyncIterator.execute(triggerIds, triggerDatabaseTable::findTrigger)
+      .thenAccept(triggers ->
         filterTriggerEntries(triggers, moduleName, checkDistribution)
           .forEach(entry -> createWorkflow(entry.id())
             .thenAccept(workflow -> workflow.trigger(information))));
@@ -155,8 +155,8 @@ public class CoreModule {
   ) {
     var futureResponse = new CompletableFuture<List<TriggerEntry>>();
     findTrigger(module, type).get().findEntries("").thenAccept(entries ->
-      AsyncIterator.execute(entries, triggerDatabaseTable::findTrigger,
-        entries.size(), triggers -> futureResponse.complete(
+      AsyncIterator.execute(entries, triggerDatabaseTable::findTrigger)
+        .thenAccept(triggers -> futureResponse.complete(
           filterTriggerEntries(triggers, module, checkDistribution))));
     return futureResponse;
   }
@@ -194,9 +194,9 @@ public class CoreModule {
     var futureResponse = new CompletableFuture<Map<Integer, ActionExecutor>>();
     var result = Maps.<Integer, ActionExecutor>newHashMap();
     AsyncIterator.execute(actions, entry ->
-      createAction(entry.module(), entry.type(), entry.id())
-        .thenAccept(action -> result.put(entry.actionIndex(), action)),
-      actions.size(), value -> futureResponse.complete(result));
+        createAction(entry.module(), entry.type(), entry.id())
+          .thenAccept(action -> result.put(entry.actionIndex(), action)))
+      .thenAccept(value -> futureResponse.complete(result));
     return futureResponse;
   }
 

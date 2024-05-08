@@ -5,38 +5,30 @@ import com.google.common.collect.Maps;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-public final class AsyncAllocationIterator<T, U> extends TaskwolfIterator<T, U> {
-  public static <T, U> AsyncAllocationIterator<T, U> execute(
-    List<T> list, Function<T, CompletableFuture<U>> transformation,
-    int number, Consumer<Map<T, U>> completion
+public final class AsyncAllocationIterator<T, U> extends TaskwolfIterator<T, Map<T, U>> {
+  public static <T, U> CompletableFuture<Map<T, U>> execute(
+    List<T> list, Function<T, CompletableFuture<U>> transformation
   ) {
-    var iterator = AsyncAllocationIterator.<T, U>create(list, transformation, number,
-      completion);
-    iterator.execute();
-    return iterator;
+    var iterator = AsyncAllocationIterator.<T, U>create(list, transformation);
+    return iterator.execute();
   }
 
   public static <T, U> AsyncAllocationIterator<T, U> create(
-    List<T> list, Function<T, CompletableFuture<U>> transformation,
-    int number, Consumer<Map<T, U>> completion
+    List<T> list, Function<T, CompletableFuture<U>> transformation
   ) {
-    return new AsyncAllocationIterator<T, U>(list, transformation, number, completion);
+    return new AsyncAllocationIterator<T, U>(list, transformation);
   }
 
-  private final Function<T, CompletableFuture<U>> transformation;;
-  private final Consumer<Map<T, U>> completion;
+  private final Function<T, CompletableFuture<U>> transformation;
   private final Map<T, U> result = Maps.newHashMap();
 
   private AsyncAllocationIterator(
-    List<T> list, Function<T, CompletableFuture<U>> transformation,
-    int number, Consumer<Map<T, U>> completion
+    List<T> list, Function<T, CompletableFuture<U>> transformation
   ) {
-    super(list, number);
+    super(list);
     this.transformation = transformation;
-    this.completion = completion;
   }
 
   @Override
@@ -45,7 +37,7 @@ public final class AsyncAllocationIterator<T, U> extends TaskwolfIterator<T, U> 
   }
 
   @Override
-  protected void complete() {
-    completion.accept(result);
+  protected Map<T, U> result() {
+    return result;
   }
 }
