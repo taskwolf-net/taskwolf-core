@@ -19,7 +19,6 @@ import net.taskwolf.core.module.ModuleInjectionModule;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.notification.NotificationInjectionModule;
 import net.taskwolf.core.organization.OrganizationInjectionModule;
-import net.taskwolf.core.process.ProcessInjectionModule;
 import net.taskwolf.core.template.TemplateInjectionModule;
 import net.taskwolf.core.ticket.TicketInjectionModule;
 import net.taskwolf.core.trigger.TriggerInjectionModule;
@@ -45,7 +44,6 @@ public class CoreInjectionModule extends AbstractModule {
     install(ActionInjectionModule.create());
     install(ConditionInjectionModule.create());
     install(WorkflowInjectionModule.create());
-    install(ProcessInjectionModule.create());
     install(TemplateInjectionModule.create());
     install(TicketInjectionModule.create());
     install(NotificationInjectionModule.create());
