@@ -57,9 +57,13 @@ public final class ModuleLoader {
   private final Distribution distribution;
   private final Injector injector;
 
+  /**
+   * Loads all modules that are contained in the module folder
+   * @throws Exception
+   */
   public void loadModules() throws Exception {
     for (var moduleFile : jars) {
-      findModule(moduleFile, classLoader);
+      loadModule(moduleFile, classLoader);
     }
     modules.sort(Comparator.comparingInt(module -> module.priority().value()));
     Collections.reverse(modules);
@@ -73,6 +77,10 @@ public final class ModuleLoader {
       .thenAccept(this::distributionRegisterModules);
   }
 
+  /**
+   * Registers the module for correct load balancing / distribution
+   * @param users The users that are to be assigned
+   */
   private void distributionRegisterModules(List<UUID> users) {
     for (var module : modules) {
       distribution.registerModule(module.module().moduleInformation().name()
@@ -80,7 +88,14 @@ public final class ModuleLoader {
     }
   }
 
-  private RegisteredModule findModule(
+  /**
+   * Is used to load specific module
+   * @param file The file of the module
+   * @param classLoader The class loader that is use to load the module
+   * @return The loaded registered module
+   * @throws Exception
+   */
+  private RegisteredModule loadModule(
     File file, ClassLoader classLoader
   ) throws Exception {
     var jarFile = new JarFile(file);
@@ -99,6 +114,13 @@ public final class ModuleLoader {
     return null;
   }
 
+  /**
+   * Creates a new registered module
+   * @param moduleClass The class of the module
+   * @param file The file where the module can be found
+   * @return The new registered module
+   * @throws Exception
+   */
   private RegisteredModule createRegisteredModule(
     Class<?> moduleClass, File file
   ) throws Exception {
@@ -109,11 +131,24 @@ public final class ModuleLoader {
       findAnnotationField(annotation, "priority"), file);
   }
 
+  /**
+   * Calls the constructor of a module
+   * @param moduleClass The class of the module
+   * @return The called module
+   * @throws Exception
+   */
   private Module createModule(Class<?> moduleClass) throws Exception {
     return (Module) moduleClass.getConstructor(Injector.class)
       .newInstance(injector);
   }
 
+  /**
+   * Searches for the module class inside module jar
+   * @param entry The jar file entry of the module
+   * @param classLoader The regarding class loader
+   * @return The module class if it could be found
+   * @throws Exception
+   */
   private Optional<Class<?>> findModuleClass(
     JarEntry entry, ClassLoader classLoader
   ) throws Exception {
@@ -138,9 +173,17 @@ public final class ModuleLoader {
     if (suspect.getSuperclass() == null) {
       return false;
     }
-      return suspect.getSuperclass().equals(Module.class);
+    return suspect.getSuperclass().equals(Module.class);
   }
 
+  /**
+   * Used to find values of {@link ModuleDescription}
+   * @param annotation The specific annotation that is to be examine
+   * @param fieldName The name of the target field
+   * @return The value of the annotation field
+   * @param <T> The generic type fo the field
+   * @throws Exception
+   */
   private <T> T findAnnotationField(
     Annotation annotation, String fieldName
   ) throws Exception {
@@ -150,27 +193,51 @@ public final class ModuleLoader {
     return (T) method.invoke(annotation, (Object[])null);
   }
 
+  /**
+   * Used to find the {@link ModuleDescription} annotation of a module
+   * @param suspect The class from which the {@link ModuleDescription} is to be
+   *                retrieved
+   * @return The {@link ModuleDescription} annotation if it could be found
+   */
   private Optional<Annotation> findModuleAnnotation(Class<?> suspect) {
     return Arrays.stream(suspect.getAnnotations())
       .filter(annotation -> annotation.annotationType()
         .equals(ModuleDescription.class)).findFirst();
   }
 
+  /**
+   * Used to find a registered module
+   * @param name The name of the module you are searching for
+   * @return The {@link RegisteredModule} if it could be found
+   */
   public Optional<RegisteredModule> findRegisteredModule(String name) {
     return modules.stream().filter(module ->
         module.module().moduleInformation().name().equalsIgnoreCase(name))
       .findFirst();
   }
 
+  /**
+   * Used to find module of a registered module
+   * @param name The name of the module
+   * @return The {@link Module} if it could be found
+   */
   public Optional<Module> findModule(String name) {
     return findRegisteredModule(name)
       .map(RegisteredModule::module);
   }
 
+  /**
+   * Used to get all registered modules (immutable)
+   * @return The list of all {@link RegisteredModule}s
+   */
   public List<RegisteredModule> allRegisteredModules() {
     return List.copyOf(modules);
   }
 
+  /**
+   * Is called to find all modules
+   * @return The list of all {@link Module}s
+   */
   public List<Module> allModules() {
     return modules.stream()
       .map(RegisteredModule::module)
