@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 final class TriggerInformationTest {
   @Test
-  void testTriggerRepository() {
+  void testTriggerInformation() {
     var information = TriggerInformation.builder()
       .withName("Test")
       .withDescription("Test")

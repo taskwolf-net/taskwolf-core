@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 final class ActionInformationTest {
   @Test
-  void testActionRepository() {
+  void testActionInformation() {
     var information = TriggerInformation.builder()
       .withName("Test")
       .withDescription("Test")
