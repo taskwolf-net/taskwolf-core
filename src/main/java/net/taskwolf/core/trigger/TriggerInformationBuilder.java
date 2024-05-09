@@ -28,7 +28,7 @@ public final class TriggerInformationBuilder {
 
   /**
    * Is used to specify trigger description
-   * @param description The dscription of the trigger
+   * @param description The description of the trigger
    *                    (It is best to pass the locales key)
    * @return The information builder
    */
