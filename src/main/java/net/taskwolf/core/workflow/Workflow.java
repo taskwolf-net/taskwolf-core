@@ -1,5 +1,6 @@
 package net.taskwolf.core.workflow;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.action.ActionExecutor;
@@ -35,7 +36,7 @@ public final class Workflow {
   private int currentActionIndex = 0;
 
   public void trigger(Map<String, Object> information) {
-    executeNextAction(information);
+    executeNextAction(Maps.newHashMap(information));
   }
 
   private void executeNextAction(Map<String, Object> information) {
