@@ -22,6 +22,7 @@ import net.taskwolf.core.user.User;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.Workflow;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
+import net.taskwolf.core.workflow.WorkflowEntry;
 import net.taskwolf.core.workflow.WorkflowFactory;
 
 import java.util.List;
@@ -174,13 +175,19 @@ public class CoreModule {
   }
 
   public CompletableFuture<Workflow> createWorkflow(UUID triggerId) {
-    var futureResponse = new CompletableFuture<Workflow>();
-    workflowDatabaseTable.findWorkflowByTrigger(triggerId).thenAccept(workflowEntry ->
-      createActions(workflowEntry.id()).thenApply(actions ->
-        createConditions(workflowEntry.id()).thenApply(conditions ->
-          futureResponse.complete(workflowFactory.create(workflowEntry, actions,
-            conditions)))));
-    return futureResponse;
+    return workflowDatabaseTable.findWorkflowByTrigger(triggerId)
+      .thenCompose(this::createWorkflow);
+  }
+
+  public CompletableFuture<Workflow> createWorkflowById(UUID workflowId) {
+    return workflowDatabaseTable.findWorkflow(workflowId)
+      .thenCompose(this::createWorkflow);
+  }
+
+  private CompletableFuture<Workflow> createWorkflow(WorkflowEntry workflowEntry) {
+    return createActions(workflowEntry.id()).thenCompose(actions ->
+      createConditions(workflowEntry.id()).thenApply(conditions ->
+        workflowFactory.create(workflowEntry, actions, conditions)));
   }
 
   private CompletableFuture<Map<Integer, ActionExecutor>> createActions(UUID workflowId) {
