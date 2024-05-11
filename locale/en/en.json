@@ -26,6 +26,10 @@
 
   "workflow.duplicated": "Duplicated",
 
+  "process.link.description": "Great news! You don't need to link an account to use this module. Just click on \"skip\" to go to the next page.",
+  "process.trigger.name": "Process",
+  "process.trigger.description": "This trigger is initiated when a process step calls the workflow",
+
   "discord.account.link.description": "Would you like to add another Discord server to integrate it into your automation with the help of Taskwolf? Just click on the logo.",
   "discord.trigger.channel.message.name": "Receive new channel message",
   "discord.trigger.channel.message.description": "Receive new channel message",
