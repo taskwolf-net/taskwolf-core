@@ -184,7 +184,7 @@ public class CoreModule {
       .thenCompose(this::createWorkflow);
   }
 
-  private CompletableFuture<Workflow> createWorkflow(WorkflowEntry workflowEntry) {
+  public CompletableFuture<Workflow> createWorkflow(WorkflowEntry workflowEntry) {
     return createActions(workflowEntry.id()).thenCompose(actions ->
       createConditions(workflowEntry.id()).thenApply(conditions ->
         workflowFactory.create(workflowEntry, actions, conditions)));
