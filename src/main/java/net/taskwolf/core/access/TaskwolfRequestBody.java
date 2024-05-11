@@ -74,6 +74,10 @@ public final class TaskwolfRequestBody {
     return result;
   }
 
+  public boolean has(String key) {
+    return body.has(key);
+  }
+
   public JSONObject raw() {
     return body;
   }
