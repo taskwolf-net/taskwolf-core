@@ -18,6 +18,10 @@ public class DatabaseListColumn extends DatabaseColumn {
     this.listDataType = listDataType;
   }
 
+  /**
+   * Is used by the {@link DatabaseTable} to e.g. initialize the column / table
+   * @return The value of the column that can be interpreted by cassandra
+   */
   @Override
   public String databaseEntry() {
     var entry = new StringBuilder();

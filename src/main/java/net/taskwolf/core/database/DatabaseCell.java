@@ -13,6 +13,10 @@ public final class DatabaseCell {
   @Getter
   private final Object value;
 
+  /**
+   * Creates a database value that is accepted by Cassandra
+   * @return The usable database vale
+   */
   public String databaseValue() {
     if (value instanceof String) {
       return "'" + value + "'";

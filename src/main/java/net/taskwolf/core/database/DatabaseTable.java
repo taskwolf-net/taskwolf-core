@@ -24,10 +24,16 @@ public class DatabaseTable {
   @Getter
   private final List<DatabaseColumn> columns;
 
+  /**
+   * Creates the database table even if it already exists
+   */
   public void create() {
     create("");
   }
 
+  /**
+   * Creates the database table only if it does not already exist
+   */
   public void createIfNotExists() {
     create("IF NOT EXISTS ");
   }
@@ -42,10 +48,18 @@ public class DatabaseTable {
     connection.session().executeAsync(query.toString());
   }
 
+  /**
+   * Creates an index for a column of the database table even if it already exists
+   * @param column The column for which the index is to be created
+   */
   public void createIndex(String column) {
     createIndex(column, "");
   }
 
+  /**
+   * Creates an index for a column of the database table if it does not already exist
+   * @param column The column for which the index is to be created
+   */
   public void createIndexIfNotExists(String column) {
     createIndex(column, "IF NOT EXISTS");
   }
@@ -72,6 +86,10 @@ public class DatabaseTable {
     return compilation.toString();
   }
 
+  /**
+   * Is used to add a new column to the database table
+   * @param column The new column
+   */
   public void addColumn(DatabaseColumn column) {
     var query = new StringBuilder("ALTER TABLE ");
     query.append(fullName());
@@ -83,6 +101,11 @@ public class DatabaseTable {
     connection.session().executeAsync(query.toString());
   }
 
+  /**
+   * Is used to rename an existing column
+   * @param oldColumnName The old name of the column
+   * @param newColumnName The new name of the column
+   */
   public void renameColumn(String oldColumnName, String newColumnName) {
     var query = new StringBuilder("ALTER TABLE ");
     query.append(fullName());
@@ -94,6 +117,10 @@ public class DatabaseTable {
     connection.session().executeAsync(query.toString());
   }
 
+  /**
+   * Is used to delete a column and all its content
+   * @param columnName The name of the column that is to be dropped
+   */
   public void dropColumn(String columnName) {
     var query = new StringBuilder("ALTER TABLE ");
     query.append(fullName());
@@ -103,6 +130,11 @@ public class DatabaseTable {
     connection.session().executeAsync(query.toString());
   }
 
+  /**
+   * Inserts a new database row into the database table
+   * @param row The database row that is to be inserted
+   * @return A future that is completed when the insertion is completed
+   */
   protected CompletableFuture<Void> insert(DatabaseRow row) {
     var query = new StringBuilder("INSERT INTO ");
     query.append(fullName());
@@ -117,12 +149,24 @@ public class DatabaseTable {
     return futureResponse;
   }
 
+  /**
+   * Updates a row inside the database table
+   * @param primaryKeyCell The primary key cell of the row
+   * @param row The updated row (with all the columns)
+   * @return A future that is completed when the update is completed
+   */
   protected CompletableFuture<Void> update(
     DatabaseCell primaryKeyCell, DatabaseRow row
   ) {
     return update(primaryKeyCondition(primaryKeyCell), row);
   }
 
+  /**
+   * Updates a row inside the database table
+   * @param condition The condition with which the row can be found
+   * @param row The updated row (with all the columns)
+   * @return A future that is completed when the update is completed
+   */
   protected CompletableFuture<Void> update(String condition, DatabaseRow row) {
     var query = new StringBuilder("UPDATE ");
     query.append(fullName());
@@ -154,6 +198,11 @@ public class DatabaseTable {
     return pairs.toString();
   }
 
+  /**
+   * Is used to check whether a row inside the database table exists
+   * @param primaryKeyCell The primary key cell of the row
+   * @return A future that contains the existence boolean
+   */
   protected CompletableFuture<Boolean> exists(DatabaseCell primaryKeyCell) {
     if (primaryKeyCell.rawValue() == null) {
       return CompletableFuture.completedFuture(false);
@@ -161,6 +210,11 @@ public class DatabaseTable {
     return exists(primaryKeyCondition(primaryKeyCell));
   }
 
+  /**
+   * Is used to check whether a row inside the database table exists
+   * @param condition The condition with which the row can be found
+   * @return A future that contains the existence boolean
+   */
   protected CompletableFuture<Boolean> exists(String condition) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
@@ -175,6 +229,10 @@ public class DatabaseTable {
     return futureResponse;
   }
 
+  /**
+   * Is used to find the number of rows inside a database table
+   * @return The number of rows
+   */
   public CompletableFuture<Long> count() {
     return count("");
   }
@@ -192,6 +250,10 @@ public class DatabaseTable {
     return futureResponse;
   }
 
+  /**
+   * Calculates the average size of a single row (in bytes)
+   * @return The average row size
+   */
   public CompletableFuture<Long> averageRowSize() {
     return averageRowSize(10);
   }
@@ -226,20 +288,39 @@ public class DatabaseTable {
     return rowsNumber > 0 ? Math.round(sum / rowsNumber) : 0;
   }
 
+  /**
+   * Finds all available rows inside the database table
+   * @return List of all possible rows
+   */
   protected CompletableFuture<List<DatabaseRow>> selectAllRows() {
     return selectRowsWithAddition("");
   }
 
+  /**
+   * Is used to find a single row
+   * @param primaryKeyCell The primary key cell of the row
+   * @return A future that contains the database row
+   */
   protected CompletableFuture<DatabaseRow> selectRow(DatabaseCell primaryKeyCell) {
     return selectRow(primaryKeyCondition(primaryKeyCell));
   }
 
+  /**
+   * Is used to find a single row
+   * @param condition The condition with which the row can be found
+   * @return A future that contains the database row
+   */
   protected CompletableFuture<DatabaseRow> selectRow(String condition) {
     var futureResponse = new CompletableFuture<DatabaseRow>();
     selectRows(condition).thenAccept(rows -> futureResponse.complete(rows.get(0)));
     return futureResponse;
   }
 
+  /**
+   * Is used to find a multiple rows
+   * @param condition The condition with which the rows can be found
+   * @return A future that contains the database rows
+   */
   protected CompletableFuture<List<DatabaseRow>> selectRows(String condition) {
     return selectRowsWithAddition(" WHERE " + condition);
   }
@@ -258,6 +339,12 @@ public class DatabaseTable {
     return futureResponse;
   }
 
+  /**
+   * Finds multiple database rows paged
+   * @param pageSize The size of each individual page
+   * @param pageNumber The current page number
+   * @return A future that contains the database rows
+   */
   protected CompletableFuture<List<DatabaseRow>> selectPagesRows(
     int pageSize, int pageNumber
   ) {
@@ -294,10 +381,20 @@ public class DatabaseTable {
     return compilation.toString();
   }
 
+  /**
+   * Deletes a database row from the database table
+   * @param primaryKeyCell The primary key cell of the row
+   * @return A future that is completed when the deletion is completed
+   */
   protected CompletableFuture<Void> delete(DatabaseCell primaryKeyCell) {
     return delete(primaryKeyCondition(primaryKeyCell));
   }
 
+  /**
+   * Deletes a database row from the database table
+   * @param condition The condition with which the rows can be found
+   * @return A future that is completed when the deletion is completed
+   */
   protected CompletableFuture<Void> delete(String condition) {
     var query = new StringBuilder("DELETE FROM ");
     query.append(fullName());
@@ -310,10 +407,16 @@ public class DatabaseTable {
     return futureResponse;
   }
 
+  /**
+   * Deletes the database table and all its content
+   */
   public void drop() {
     drop("");
   }
 
+  /**
+   * Deletes the database table and all its content only if it exists
+   */
   public void dropIfExists() {
     drop("IF EXISTS ");
   }
@@ -347,6 +450,10 @@ public class DatabaseTable {
     columns.addAll(newColumns);
   }
 
+  /**
+   * Build the full name of the database table
+   * @return The full name of the database table
+   */
   public String fullName() {
     return keyspace.name() + "." + name;
   }

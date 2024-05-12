@@ -17,6 +17,9 @@ public final class DatabaseConnection {
   @Getter
   private CqlSession session;
 
+  /**
+   * Used to connect to cassandra database
+   */
   public void connect() {
     ((LoggerContext) LoggerFactory.getILoggerFactory())
       .getLogger("com.datastax").setLevel(Level.ERROR);

@@ -13,10 +13,16 @@ public final class DatabaseKeyspace {
   private final String replicationClass;
   private final int replicationFactor;
 
+  /**
+   * Creates keyspace even if it already exists
+   */
   public void create() {
     create("");
   }
 
+  /**
+   * Creates keyspace only if it not already exists
+   */
   public void createIfNotExists() {
     create("IF NOT EXISTS ");
   }
@@ -33,10 +39,16 @@ public final class DatabaseKeyspace {
     connection.session().executeAsync(query.toString());
   }
 
+  /**
+   * Deletes the keyspace and all its content
+   */
   public void drop() {
     drop("");
   }
 
+  /**
+   * Deletes the keyspace and all its content only if it exists
+   */
   public void dropIfExists() {
     drop("IF EXISTS ");
   }
@@ -49,6 +61,9 @@ public final class DatabaseKeyspace {
     connection.session().executeAsync(query.toString());
   }
 
+  /**
+   * Switches the currently active keyspace to this one
+   */
   public void use() {
     var query = new StringBuilder("USE ");
     query.append(name);

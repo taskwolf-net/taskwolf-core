@@ -36,6 +36,10 @@ public class DatabaseColumn {
   private final DatabaseDataType dataType;
   private final Type type;
 
+  /**
+   * Is used by the {@link DatabaseTable} to e.g. initialize the column / table
+   * @return The value of the column that can be interpreted by cassandra
+   */
   public String databaseEntry() {
     var entry = new StringBuilder();
     entry.append(name);
