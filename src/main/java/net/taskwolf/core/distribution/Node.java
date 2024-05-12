@@ -14,6 +14,10 @@ public final class Node {
   private final int distributionPort;
   private final String distributionKey;
 
+  /**
+   * Builds general information about the node (hostname & type)
+   * @return The information string
+   */
   public String information() {
     return hostname + " [" + type.toString() + "]";
   }

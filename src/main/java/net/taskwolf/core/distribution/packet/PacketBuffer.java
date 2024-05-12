@@ -10,6 +10,10 @@ import java.util.UUID;
 public final class PacketBuffer {
   private final ByteBuf buffer;
 
+  /**
+   * Writes a var int to the buffer
+   * @param value The integer value
+   */
   public void writeVarInt(int value) {
     int part;
     do {
@@ -22,17 +26,29 @@ public final class PacketBuffer {
     } while (value != 0);
   }
 
+  /**
+   * Writes a string to the buffer
+   * @param value The string value
+   */
   public void writeString(String value) {
     var bytes = value.getBytes(StandardCharsets.UTF_8);
     writeVarInt(bytes.length);
     buffer.writeBytes(bytes);
   }
 
+  /**
+   * Writes a uuid to the buffer
+   * @param uuid The uuid value
+   */
   public void writeUUID(UUID uuid) {
     buffer.writeLong(uuid.getMostSignificantBits());
     buffer.writeLong(uuid.getLeastSignificantBits());
   }
 
+  /**
+   * Reads a var int from the buffer
+   * @return The integer value
+   */
   public int readVarInt() {
     var out = 0;
     var bytes = 0;
@@ -44,6 +60,10 @@ public final class PacketBuffer {
     return out;
   }
 
+  /**
+   * Reads a string from the buffer
+   * @return The string value
+   */
   public String readString() {
     var length = readVarInt();
     var bytes = new byte[length];
@@ -51,16 +71,28 @@ public final class PacketBuffer {
     return new String(bytes);
   }
 
+  /**
+   * Reads a uuid from the buffer
+   * @return The uuid value
+   */
   public UUID readUUID() {
     var mostSignificantBits = buffer.readLong();
     var leastSignificantBits = buffer.readLong();
     return new UUID(mostSignificantBits, leastSignificantBits);
   }
 
+  /**
+   * Is used to get the raw {@link ByteBuf}
+   * @return The raw buffer
+   */
   public ByteBuf raw() {
     return buffer;
   }
 
+  /**
+   * Is used to get the bytes from the buffer
+   * @return The bytes of the buffer
+   */
   public byte[] bytes() {
     var temp = new byte[buffer.readableBytes()];
     buffer.readBytes(temp);

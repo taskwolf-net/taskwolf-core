@@ -69,6 +69,10 @@ public final class DistributionClient {
     this.channel = channel;
   }
 
+  /**
+   * Connects the client to the server in the background
+   * @param callback A future that is called when the connection process is completed
+   */
   public void connectAsync(Runnable callback) {
     new Thread(() -> connect(callback)).start();
   }
@@ -78,6 +82,9 @@ public final class DistributionClient {
     callback.run();
   }
 
+  /**
+   * Connects the client to the server
+   */
   public void connect() {
     try {
       group = new NioEventLoopGroup();
@@ -95,6 +102,11 @@ public final class DistributionClient {
     }
   }
 
+  /**
+   * Sends a packet to the server
+   * @param packet The packet that is to be send
+   * @param <T> The generic type of the packet
+   */
   public <T extends PacketOutgoing> void sendPacket(T packet) {
     if (channel == null) {
       return;
@@ -102,15 +114,25 @@ public final class DistributionClient {
     channel.writeAndFlush(packet);
   }
 
+  /**
+   * Disconnects the client from the server
+   */
   public void disconnect() {
     group.shutdownGracefully();
     channel.close();
   }
 
+  /**
+   * Is used to update the node id
+   * @param newNodeId The new node id
+   */
   public void updateNodeId(UUID newNodeId) {
     nodeId = newNodeId;
   }
 
+  /**
+   * Is used to change the state of the client to "authorized"
+   */
   public void authorize() {
     state = DistributionClientState.AUTHORIZED;
   }

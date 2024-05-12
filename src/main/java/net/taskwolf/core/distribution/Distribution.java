@@ -56,6 +56,11 @@ public final class Distribution {
   private final Log log;
   private DistributionServer server;
 
+  /**
+   * Initializes node distribution (registers packets, hooks & events and
+   * opens server)
+   * @throws Exception
+   */
   public void initialize() throws Exception {
     server = DistributionServer.create(configuration, packetRegistry,
       eventExecutor, clientRegistry, packetEventRepository, UUID.randomUUID(),
@@ -123,18 +128,31 @@ public final class Distribution {
       (client, packet) -> UserDeleteEvent.create(packet.user()));
   }
 
+  /**
+   * Registers a new module
+   * @param module The module name
+   * @param users The list of users
+   */
   public void registerModule(String module, List<UUID> users) {
     server.condition().addModule(module);
     server.broadcastPacket(new PacketOutgoingModuleLoad(module));
     reorganizeUsers(module, users);
   }
 
+  /**
+   * Assigns a new user to all modules
+   * @param user The new user that will be assigned
+   */
   public void addUser(UUID user) {
     for (var module : userAssignment.findAllModules()) {
       userAssignment.assignUser(module, user);
     }
   }
 
+  /**
+   * Removes a user from all modules
+   * @param user The user that will be removed
+   */
   public void removeUser(UUID user) {
     for (var module : userAssignment.findModulesAssignedTo(user)) {
       userAssignment.removeUser(module, user);
@@ -142,12 +160,21 @@ public final class Distribution {
     server.broadcastPacket(new PacketOutgoingUserDelete(user));
   }
 
+  /**
+   * Unregisters a module
+   * @param module The name of the module
+   */
   public void unregisterModule(String module) {
     server.condition().removeModule(module);
     server.broadcastPacket(new PacketOutgoingModuleUnload(module));
     reorganizeUsers(module);
   }
 
+  /**
+   * Reorganizes users that are assigned to a module in the whole distribution
+   * network (on all nodes) (enables constant and equal user distribution)
+   * @param module The module that will be reorganized
+   */
   public void reorganizeUsers(String module) {
     findAllPossibleUser().thenAccept(users -> reorganizeUsers(module, users));
   }
@@ -178,6 +205,10 @@ public final class Distribution {
     return result;
   }
 
+  /**
+   * Is used to find all user and organization ids
+   * @return The list of ids
+   */
   public CompletableFuture<List<UUID>> findAllPossibleUser() {
     var futureResponse = new CompletableFuture<List<UUID>>();
     userDatabaseTable.findAllUsers().thenAccept(users ->
@@ -187,19 +218,38 @@ public final class Distribution {
     return futureResponse;
   }
 
+  /**
+   * Checks whether a user is assigned to a module
+   * @param module The name of the module
+   * @param user The user that will be checked
+   * @return Is true, if user is assigned to module, otherwise false
+   */
   public boolean isAssignedUser(String module, UUID user) {
     return userAssignment.isAssignedUser(module, user);
   }
 
+  /**
+   * Is used to find all assigned users of a module
+   * @param module The name of the module
+   * @return The list of all assigned users
+   */
   public List<UUID> findAssignedUsers(String module) {
     return userAssignment.findAssignedUsers(module);
   }
 
+  /**
+   * Is used to find all connected nodes
+   * @return The list of node ids
+   */
   public List<String> findConnectedNodes() {
-    return clientRegistry.findAllClients().stream().map(DistributionClient::node)
-      .map(node -> node.hostname() + " [" + node.type() + "]").toList();
+    return clientRegistry.findAllClients().stream()
+      .map(DistributionClient::node).map(Node::information).toList();
   }
 
+  /**
+   * Is used to find all loaded modules
+   * @return The list of loaded modules
+   */
   public List<String> findLoadedModules() {
     var loadedModule = Lists.<String>newArrayList();
     for (var client : clientRegistry.findAllClients()) {
@@ -209,6 +259,9 @@ public final class Distribution {
     return loadedModule.stream().distinct().toList();
   }
 
+  /**
+   * Closes server and sends farewell greeting
+   */
   public void disconnect() {
     server.broadcastPacket(new PacketOutgoingDisconnect());
     server.close();

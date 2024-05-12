@@ -15,16 +15,30 @@ import java.util.Optional;
 public class PacketRegistry {
   private final List<PacketIncoming> packets = Lists.newArrayList();
 
+  /**
+   * Registers a new incoming packet
+   * @param packet The incoming packet that is to be registered
+   * @throws Exception
+   */
   public void registerPacket(Class<? extends PacketIncoming> packet) throws Exception {
     packets.add(packet.getConstructor().newInstance());
   }
 
+  /**
+   * Unregisters a incoming packet
+   * @param id The id of the incoming packet that is to be unregistered
+   */
   public void unregisterPacket(int id) {
     var packetOptional = packets.stream()
       .filter(entry -> entry.id() == id).findFirst();
     packetOptional.ifPresent(packets::remove);
   }
 
+  /**
+   * Is used to find a registered incoming packet by its id
+   * @param id The id of the packet
+   * @return The incoming packet if it could be found
+   */
   public Optional<Class<? extends PacketIncoming>> findPacket(int id) {
     var packetOptional = packets.stream()
       .filter(entry -> entry.id() == id).findFirst();

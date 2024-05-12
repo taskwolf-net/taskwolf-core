@@ -8,5 +8,10 @@ public abstract class PacketIncoming extends Packet {
     super(id);
   }
 
+  /**
+   * Deserializes an incoming packet
+   * @param buffer The buffer from which the information is read out
+   * @throws Exception
+   */
   public abstract void read(PacketBuffer buffer) throws Exception;
 }

@@ -38,6 +38,10 @@ public final class DistributionServer {
   private Channel channel;
   private EventLoopGroup group;
 
+  /**
+   * Opens the distribution server in the background
+   * @param callback A future that is called when the opening process is completed
+   */
   public void openAsync(Runnable callback) {
     new Thread(() -> open(callback)).start();
   }
@@ -47,6 +51,9 @@ public final class DistributionServer {
     callback.run();
   }
 
+  /**
+   * Opens the distribution server
+   */
   public void open() {
     group = new NioEventLoopGroup();
     channel = new ServerBootstrap()
@@ -59,12 +66,19 @@ public final class DistributionServer {
       .syncUninterruptibly().channel();
   }
 
+  /**
+   * Sends an outgoing packet to all registered clients
+   * @param packet The packet that will be sent
+   */
   public void broadcastPacket(PacketOutgoing packet) {
     for (var client : clientRegistry.findAllClients()) {
       client.sendPacket(packet);
     }
   }
 
+  /**
+   * Closes the server
+   */
   public void close() {
     group.shutdownGracefully();
     channel.close();
