@@ -8,5 +8,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface EventHook {
+  /**
+   * The call priority of the hook
+   * (determines the call sequence, relative to the other hooks)
+   * @return The priority
+   */
   HookPriority priority() default HookPriority.NEUTRAL;
 }

@@ -10,6 +10,11 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class Event {
+  /**
+   * Calls all hook functions that use this event
+   * @param registry The {@link HookRegistry} is used to find the hook functions
+   * @throws Exception
+   */
   public void call(HookRegistry registry) throws Exception {
     var hookMethods = findEventHookMethods(registry);
     for (var hookMethod : orderEventHooksByPriority(hookMethods)) {

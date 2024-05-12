@@ -10,6 +10,10 @@ import lombok.RequiredArgsConstructor;
 public final class EventExecutor {
   private final HookRegistry registry;
 
+  /**
+   * Executes an event
+   * @param event The event that is to be executed
+   */
   public void execute(Event event) {
     try {
       event.call(registry);
@@ -18,6 +22,11 @@ public final class EventExecutor {
     }
   }
 
+  /**
+   * This function executes an event without catching any exception
+   * @param event The event that is to be executed
+   * @throws Exception
+   */
   public void executeUncaught(Event event) throws Exception {
     event.call(registry);
   }
