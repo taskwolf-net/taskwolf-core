@@ -12,6 +12,9 @@ public final class CommandTask {
   private final Log log;
   private final CommandRegistry commandRegistry;
 
+  /**
+   * Stats the command task (begins to monitor command line inputs)
+   */
   public void start() {
     var reader = new BufferedReader(new InputStreamReader(System.in));
     try {
