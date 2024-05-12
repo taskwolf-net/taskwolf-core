@@ -18,8 +18,17 @@ public abstract class Condition {
     this.comparativeValue = comparativeValue;
   }
 
+  /**
+   * Performs the actual comparison
+   * @param information The information that can be used for comparison
+   * @return The result of the comparison
+   */
   public abstract ConditionResult compare(Map<String, Object> information);
 
+  /**
+   * Is used to dissolve the inputValue and comparativeValue
+   * @param information The information that is used for dissolution
+   */
   protected void dissolve(Map<String, Object> information) {
     var dissolve = PlaceholderDissolve.create(information);
     inputValue = dissolve.dissolve(inputValue);
