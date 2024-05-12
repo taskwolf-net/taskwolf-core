@@ -13,6 +13,10 @@ public abstract class TaskwolfIterator<T, U> {
 private final List<T> list;
   private int counter = 0;
 
+  /**
+   * Executes the iterator process
+   * @return A future response that contains the transformed data
+   */
   public CompletableFuture<U> execute() {
     if (list.isEmpty()) {
       return CompletableFuture.completedFuture(result());
@@ -31,7 +35,16 @@ private final List<T> list;
     }
   }
 
+  /**
+   * Is used to apply some transformation to the entry and register the result
+   * @param entry The target erntry
+   * @return The future response
+   */
   protected abstract CompletableFuture<?> entryFuture(T entry);
 
+  /**
+   * The result, that can be returned when execution is finished
+   * @return The result
+   */
   protected abstract U result();
 }

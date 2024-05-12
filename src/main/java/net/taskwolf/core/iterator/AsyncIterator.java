@@ -7,6 +7,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public final class AsyncIterator<T, U> extends TaskwolfIterator<T, List<U>> {
+  /**
+   * Creates and executes an async iterator that performs async transformation
+   * on entries and wait till all entries have be transformed
+   * @param list The list of entries
+   * @param transformation The transformation that should be applied to the entries
+   * @return The transformed entries
+   * @param <T> Entry input type
+   * @param <U> Entry output type
+   */
   public static <T, U> CompletableFuture<List<U>> execute(
     List<T> list, Function<T, CompletableFuture<U>> transformation
   ) {
@@ -14,6 +23,16 @@ public final class AsyncIterator<T, U> extends TaskwolfIterator<T, List<U>> {
     return iterator.execute();
   }
 
+
+  /**
+   * Creates an async iterator that performs async transformation
+   * on entries and wait till all entries have be transformed
+   * @param list The list of entries
+   * @param transformation The transformation that should be applied to the entries
+   * @return The transformed entries
+   * @param <T> Entry input type
+   * @param <U> Entry output type
+   */
   public static <T, U> AsyncIterator<T, U> create(
     List<T> list, Function<T, CompletableFuture<U>> transformation
   ) {
