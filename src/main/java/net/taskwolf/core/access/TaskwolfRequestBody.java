@@ -19,6 +19,11 @@ public final class TaskwolfRequestBody {
   private final JSONObject body;
   private final HttpServletResponse response;
 
+  /**
+   * Is used to get a string from request body
+   * @param key The key to find the content
+   * @return The value behind the key
+   */
   public String getString(String key) {
     if (!body.has(key)) {
       failure();
@@ -27,6 +32,11 @@ public final class TaskwolfRequestBody {
     return body.getString(key);
   }
 
+  /**
+   * Is used to get an integer from request body
+   * @param key The key to find the content
+   * @return The value behind the key
+   */
   public int getInt(String key) {
     if (!body.has(key)) {
       failure();
@@ -35,6 +45,11 @@ public final class TaskwolfRequestBody {
     return body.getInt(key);
   }
 
+  /**
+   * Is used to get a boolean from request body
+   * @param key The key to find the content
+   * @return The value behind the key
+   */
   public boolean getBoolean(String key) {
     if (!body.has(key)) {
       failure();
@@ -43,6 +58,11 @@ public final class TaskwolfRequestBody {
     return body.getBoolean(key);
   }
 
+  /**
+   * Is used to get an uuid from request body
+   * @param key The key to find the content
+   * @return The value behind the key
+   */
   public UUID getUUID(String key) {
     var value = getString(key);
     try {
@@ -53,6 +73,11 @@ public final class TaskwolfRequestBody {
     }
   }
 
+  /**
+   * Is used to get a sub object from request body
+   * @param key The key to find the content
+   * @return The value behind the key
+   */
   public TaskwolfRequestBody getObject(String key) {
     if (!body.has(key)) {
       failure();
@@ -61,6 +86,11 @@ public final class TaskwolfRequestBody {
     return TaskwolfRequestBody.create(body.getJSONObject(key), response);
   }
 
+  /**
+   * Is used to get an object list / array from request body
+   * @param key The key to find the content
+   * @return The value behind the key
+   */
   public List<TaskwolfRequestBody> getObjectList(String key) {
     if (!body.has(key)) {
       failure();
@@ -74,10 +104,19 @@ public final class TaskwolfRequestBody {
     return result;
   }
 
+  /**
+   * Checks whether the body contains a certain key
+   * @param key The key that should be checked
+   * @return Is true if body contains key, otherwise false
+   */
   public boolean has(String key) {
     return body.has(key);
   }
 
+  /**
+   * The raw content of the body
+   * @return The raw json object
+   */
   public JSONObject raw() {
     return body;
   }
