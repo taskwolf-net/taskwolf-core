@@ -69,10 +69,19 @@ public class CoreModule {
     this.germanLocale = germanLocale;
   }
 
-  void initialize() throws Exception {
+  /**
+   * Initializes the core module (loads all modules)
+   * @throws Exception
+   */
+  public void initialize() throws Exception {
     moduleLoader.loadModules();
   }
 
+  /**
+   * Is used to find module information
+   * @param moduleName The name of the module
+   * @return The information of the module
+   */
   public Optional<ModuleInformation> findModuleInformation(String moduleName) {
     var moduleOptional = moduleLoader.findModule(moduleName);
     if (moduleOptional.isEmpty()) {
@@ -81,6 +90,12 @@ public class CoreModule {
     return moduleOptional.map(Module::moduleInformation);
   }
 
+  /**
+   * Is used to find a trigger
+   * @param moduleName The name of the module in which the trigger is located
+   * @param triggerType The type of the trigger
+   * @return The trigger if it could be found
+   */
   public Optional<Trigger> findTrigger(String moduleName, String triggerType) {
     var moduleOptional = moduleLoader.findModule(moduleName);
     if (moduleOptional.isEmpty()) {
@@ -90,6 +105,12 @@ public class CoreModule {
     return module.triggerRepository().findTrigger(triggerType);
   }
 
+  /**
+   * Is used to find an action
+   * @param moduleName The name of the module in which the action is located
+   * @param actionType The type of the action
+   * @return The action if it could be found
+   */
   public Optional<Action<? extends ActionExecutor>> findAction(
     String moduleName, String actionType
   ) {
@@ -101,18 +122,37 @@ public class CoreModule {
     return module.actionRepository().findAction(actionType);
   }
 
+  /**
+   * Is used to find the information of a trigger
+   * @param moduleName The name of the module in which the trigger is located
+   * @param triggerType The type of the trigger
+   * @return The information of the trigger if it could be found
+   */
   public Optional<TriggerInformation> findTriggerInformation(
     String moduleName, String triggerType
   ) {
     return findTrigger(moduleName, triggerType).map(Trigger::information);
   }
 
+  /**
+   * Is used to find the information of an action
+   * @param moduleName The name of the module in which the action is located
+   * @param actionType The type of the action
+   * @return The information of the action if it could be found
+   */
   public Optional<ActionInformation> findActionInformation(
-    String moduleName, String triggerType
+    String moduleName, String actionType
   ) {
-    return findAction(moduleName, triggerType).map(Action::information);
+    return findAction(moduleName, actionType).map(Action::information);
   }
 
+  /**
+   * Triggers a workflow
+   * @param moduleName The name of the module in which the trigger is located
+   * @param triggerType The type of the trigger
+   * @param condition The condition for trigger selection
+   * @param information The trigger information
+   */
   public void triggerWorkflows(
     String moduleName, String triggerType, String condition,
     Map<String, Object> information
@@ -120,6 +160,15 @@ public class CoreModule {
     triggerWorkflows(moduleName, triggerType, condition, information, true);
   }
 
+  /**
+   * Triggers a workflow
+   * @param moduleName The name of the module in which the trigger is located
+   * @param triggerType The type of the trigger
+   * @param condition The condition for trigger selection
+   * @param information The trigger information
+   * @param checkDistribution If true there is a distribution check,
+   *                          if false there is no distribution check
+   */
   public void triggerWorkflows(
     String moduleName, String triggerType, String condition,
     Map<String, Object> information, boolean checkDistribution
@@ -145,12 +194,26 @@ public class CoreModule {
             .thenAccept(workflow -> workflow.trigger(information))));
   }
 
+  /**
+   * Is used to find all triggers of one kind
+   * @param module The name of the module in which the triggers are located
+   * @param type The type of the trigger
+   * @return A future that contains the list of trigger entries
+   */
   public CompletableFuture<List<TriggerEntry>> findAllTriggerEntries(
     String module, String type
   ) {
     return findAllTriggerEntries(module, type, true);
   }
 
+  /**
+   * Is used to find all triggers of one kind
+   * @param module The name of the module in which the triggers are located
+   * @param type The type of the trigger
+   * @param checkDistribution If true there is a distribution check,
+   *                          if false there is no distribution check
+   * @return A future that contains the list of trigger entries
+   */
   public CompletableFuture<List<TriggerEntry>> findAllTriggerEntries(
     String module, String type, boolean checkDistribution
   ) {
@@ -174,16 +237,31 @@ public class CoreModule {
     return stream.toList();
   }
 
+  /**
+   * Creates a workflow by trigger id
+   * @param triggerId The id of the trigger
+   * @return A future that contains the workflow
+   */
   public CompletableFuture<Workflow> createWorkflow(UUID triggerId) {
     return workflowDatabaseTable.findWorkflowByTrigger(triggerId)
       .thenCompose(this::createWorkflow);
   }
 
+  /**
+   * Creates a workflow by workflow id
+   * @param workflowId The id of the workflow
+   * @return A future that contains the workflow
+   */
   public CompletableFuture<Workflow> createWorkflowById(UUID workflowId) {
     return workflowDatabaseTable.findWorkflow(workflowId)
       .thenCompose(this::createWorkflow);
   }
 
+  /**
+   * Creates a workflow by workflow entry
+   * @param workflowEntry The workflow entry
+   * @return A future that contains the workflow
+   */
   public CompletableFuture<Workflow> createWorkflow(WorkflowEntry workflowEntry) {
     return createActions(workflowEntry.id()).thenCompose(actions ->
       createConditions(workflowEntry.id()).thenApply(conditions ->
@@ -207,6 +285,13 @@ public class CoreModule {
     return futureResponse;
   }
 
+  /**
+   * Creates an {@link ActionExecutor}
+   * @param moduleName The name of the module in which the action is located
+   * @param actionType The type of the action
+   * @param actionId The id of the action
+   * @return A future that contains the action executor
+   */
   public CompletableFuture<ActionExecutor> createAction(
     String moduleName, String actionType, UUID actionId
   ) {
@@ -230,14 +315,32 @@ public class CoreModule {
     return result;
   }
 
+  /**
+   * Translates a locale for a user
+   * @param userId The id of the user
+   * @param key The key of the locale
+   * @return A future that contains the translated locale
+   */
   public CompletableFuture<String> translate(UUID userId, String key) {
     return userDatabaseTable.findUser(userId).thenApply(user -> translate(user, key));
   }
 
+  /**
+   * Translates a locale for a user
+   * @param user The user
+   * @param key The key of the locale
+   * @return A future that contains the translated locale
+   */
   public String translate(User user, String key) {
     return translate(user.language(), key);
   }
 
+  /**
+   * Translates a locale into a specific language
+   * @param language The language
+   * @param key The key of the locale
+   * @return A future that contains the translated locale
+   */
   public String translate(String language, String key) {
     return switch(language.toLowerCase()) {
       case "en" -> englishLocale.findText(key);
