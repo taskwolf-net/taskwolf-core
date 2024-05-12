@@ -2,6 +2,7 @@ plugins {
   id("java")
   id("maven-publish")
   id("org.springframework.boot") version "3.2.5"
+  id("io.freefair.lombok") version "8.6"
 }
 
 group = "net.taskwolf"
