@@ -35,6 +35,10 @@ public final class Workflow {
   private final Multimap<Integer, Condition> conditions;
   private int currentActionIndex = 0;
 
+  /**
+   * Triggers the workflow
+   * @param information The information provided by the trigger
+   */
   public void trigger(Map<String, Object> information) {
     executeNextAction(Maps.newHashMap(information));
   }
