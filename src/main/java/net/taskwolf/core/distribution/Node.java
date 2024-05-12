@@ -15,7 +15,7 @@ public final class Node {
   private final String distributionKey;
 
   /**
-   * Builds general information about the node (hostname & type)
+   * Builds general information about the node (hostname, type)
    * @return The information string
    */
   public String information() {

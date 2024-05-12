@@ -57,7 +57,7 @@ public final class Distribution {
   private DistributionServer server;
 
   /**
-   * Initializes node distribution (registers packets, hooks & events and
+   * Initializes node distribution (registers packets, hooks, events and
    * opens server)
    * @throws Exception
    */
