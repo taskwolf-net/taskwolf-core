@@ -21,6 +21,10 @@ public final class GrafanaUser {
   private final UUID ownerId;
   private final HttpClient client = HttpClient.newHttpClient();
 
+  /**
+   * Creates the grafana user account
+   * @param apiKey The initial api key of the user that is used in the datasource
+   */
   public void create(String apiKey) {
     loginUser(configuration.adminName(), configuration.adminPassword())
       .thenAccept(adminToken -> createUserOrganization(apiKey,
@@ -80,6 +84,11 @@ public final class GrafanaUser {
       .thenAccept(value -> updateUserRole(organizationId, userId, "Viewer", userToken));
   }
 
+  /**
+   * Updates the user api key inside the dashboard datasource to
+   * keep grafana authorized
+   * @param apiKey The new api key of the user
+   */
   public void updateApiKey(String apiKey) {
     loginUser(configuration.adminName(), configuration.adminPassword())
       .thenAccept(adminToken -> grafanaDatabaseTable.findAccount(ownerId)
@@ -117,11 +126,18 @@ public final class GrafanaUser {
       datasourceUid, "PUT", query, userToken).thenAccept(value -> {});
   }
 
+  /**
+   * Is used to log in to the account and receive the access token
+   * @return A future that contains the access token
+   */
   public CompletableFuture<String> login() {
     return grafanaDatabaseTable.findAccount(ownerId).thenCompose(account ->
       loginUser(account.username(), account.password()));
   }
 
+  /**
+   * Deletes the grafana user account
+   */
   public void delete() {
     loginUser(configuration.adminName(), configuration.adminPassword())
       .thenAccept(adminToken -> grafanaDatabaseTable.findAccount(ownerId)
