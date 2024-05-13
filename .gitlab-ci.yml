@@ -20,9 +20,11 @@ build:
   artifacts:
     paths:
       - build/libs/core-1.0.0-SNAPSHOT.jar
+      - build/docs/javadoc
     expire_in: 1 day
   script:
     - ./gradlew assemble
+    - ./gradlew javadoc
 
 deploy:
   stage: deploy
