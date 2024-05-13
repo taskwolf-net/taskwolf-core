@@ -24,6 +24,11 @@ import java.util.Collections;
 @SpringBootApplication(scanBasePackages = {"net.taskwolf"},
   exclude = {org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration.class})
 public class CoreApplication {
+  /**
+   * The starting point where the application is executed
+   * @param args The arguments that are passed into the application
+   * @throws Exception
+   */
   public static void main(String[] args) throws Exception {
     var injector = Guice.createInjector(CoreInjectionModule.create());
     System.out.print("\033c");
