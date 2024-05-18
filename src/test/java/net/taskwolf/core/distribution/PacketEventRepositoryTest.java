@@ -2,7 +2,7 @@ package net.taskwolf.core.distribution;
 
 import com.google.inject.Guice;
 import net.taskwolf.core.CoreInjectionModule;
-import net.taskwolf.core.distribution.packet.PacketEventRepository;
+import net.taskwolf.core.packet.PacketEventRepository;
 import net.taskwolf.core.event.Event;
 import net.taskwolf.core.event.EventHook;
 import net.taskwolf.core.event.Hook;

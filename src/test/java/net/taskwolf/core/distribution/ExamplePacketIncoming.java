@@ -1,7 +1,7 @@
 package net.taskwolf.core.distribution;
 
-import net.taskwolf.core.distribution.packet.PacketBuffer;
-import net.taskwolf.core.distribution.server.packet.PacketIncoming;
+import net.taskwolf.core.packet.PacketBuffer;
+import net.taskwolf.core.worker.packet.incoming.PacketIncoming;
 
 public final class ExamplePacketIncoming extends PacketIncoming {
   public ExamplePacketIncoming() {

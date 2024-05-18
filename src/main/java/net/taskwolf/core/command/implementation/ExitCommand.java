@@ -3,18 +3,18 @@ package net.taskwolf.core.command.implementation;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.taskwolf.core.command.Command;
-import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleLoader;
+import net.taskwolf.core.worker.WorkerDistribution;
 
 @Singleton
 public final class ExitCommand extends Command {
-  private final Distribution distribution;
+  private final WorkerDistribution distribution;
   private final ModuleLoader moduleLoader;
 
   @Inject
   private ExitCommand(
-    Log log, Distribution distribution, ModuleLoader moduleLoader
+    Log log, WorkerDistribution distribution, ModuleLoader moduleLoader
   ) {
     super(log, "exit", new String[] {"shutdown"}, new String[0]);
     this.distribution = distribution;

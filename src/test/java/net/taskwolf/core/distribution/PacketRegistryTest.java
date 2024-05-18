@@ -2,7 +2,7 @@ package net.taskwolf.core.distribution;
 
 import com.google.inject.Guice;
 import net.taskwolf.core.CoreInjectionModule;
-import net.taskwolf.core.distribution.packet.PacketRegistry;
+import net.taskwolf.core.packet.PacketRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

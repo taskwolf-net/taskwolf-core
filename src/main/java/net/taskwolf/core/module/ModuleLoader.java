@@ -7,9 +7,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.action.Action;
-import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.trigger.Trigger;
+import net.taskwolf.core.worker.WorkerDistribution;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ModuleLoader {
   public static ModuleLoader create(
-    Log log, String directory, Distribution distribution, Injector injector
+          Log log, String directory, WorkerDistribution distribution, Injector injector
   ) {
     var jars = findJarsInDirectory(directory);
     var urls = jars.stream().map(ModuleLoader::findFileUrl).toArray(URL[]::new);
@@ -54,7 +54,7 @@ public final class ModuleLoader {
   @Getter
   private final ClassLoader classLoader;
   private final List<RegisteredModule> modules = Lists.newArrayList();
-  private final Distribution distribution;
+  private final WorkerDistribution distribution;
   private final Injector injector;
 
   /**
@@ -73,18 +73,9 @@ public final class ModuleLoader {
       module.module().actionRepository().allActions().forEach(Action::initialize);
       log.info("Successfully loaded module " + module.name());
     }
-    distribution.findAllPossibleUser()
-      .thenAccept(this::distributionRegisterModules);
-  }
-
-  /**
-   * Registers the module for correct load balancing / distribution
-   * @param users The users that are to be assigned
-   */
-  private void distributionRegisterModules(List<UUID> users) {
     for (var module : modules) {
-      distribution.registerModule(module.module().moduleInformation().name()
-        .toLowerCase(), users);
+      distribution.registerModule(module.module().moduleInformation()
+        .name().toLowerCase());
     }
   }
 

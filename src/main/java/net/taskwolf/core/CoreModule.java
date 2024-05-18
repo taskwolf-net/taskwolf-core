@@ -11,15 +11,18 @@ import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.condition.ConditionDatabaseTable;
 import net.taskwolf.core.condition.ConditionEntry;
 import net.taskwolf.core.condition.ConditionFactory;
-import net.taskwolf.core.distribution.Distribution;
 import net.taskwolf.core.iterator.AsyncIterator;
 import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.module.Module;
 import net.taskwolf.core.module.ModuleInformation;
 import net.taskwolf.core.module.ModuleLoader;
-import net.taskwolf.core.trigger.*;
+import net.taskwolf.core.trigger.Trigger;
+import net.taskwolf.core.trigger.TriggerDatabaseTable;
+import net.taskwolf.core.trigger.TriggerEntry;
+import net.taskwolf.core.trigger.TriggerInformation;
 import net.taskwolf.core.user.User;
 import net.taskwolf.core.user.UserDatabaseTable;
+import net.taskwolf.core.worker.WorkerDistribution;
 import net.taskwolf.core.workflow.Workflow;
 import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowEntry;
@@ -39,7 +42,7 @@ public class CoreModule {
   private final ActionDatabaseTable actionDatabaseTable;
   private final ConditionDatabaseTable conditionDatabaseTable;
   private final WorkflowDatabaseTable workflowDatabaseTable;
-  private final Distribution distribution;
+  private final WorkerDistribution distribution;
   private final ConditionFactory conditionFactory;
   private final WorkflowFactory workflowFactory;
   private final Locale englishLocale;
@@ -52,7 +55,7 @@ public class CoreModule {
     ActionDatabaseTable actionDatabaseTable,
     ConditionDatabaseTable conditionDatabaseTable,
     WorkflowDatabaseTable workflowDatabaseTable,
-    Distribution distribution, ConditionFactory conditionFactory,
+    WorkerDistribution distribution, ConditionFactory conditionFactory,
     WorkflowFactory workflowFactory, @Named("englishLocale") Locale englishLocale,
     @Named("germanLocale") Locale germanLocale
   ) {

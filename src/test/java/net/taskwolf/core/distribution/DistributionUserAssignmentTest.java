@@ -2,6 +2,7 @@ package net.taskwolf.core.distribution;
 
 import com.google.inject.Guice;
 import net.taskwolf.core.CoreInjectionModule;
+import net.taskwolf.core.worker.WorkerUserAssignment;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +12,7 @@ final class DistributionUserAssignmentTest {
   @Test
   void testDistributionUserAssignment() {
     var injector = Guice.createInjector(CoreInjectionModule.create());
-    var assignment = injector.getInstance(DistributionUserAssignment.class);
+    var assignment = injector.getInstance(WorkerUserAssignment.class);
     var user = UUID.randomUUID();
     assignment.assignUser("test", user);
     var assignedUsers = assignment.findAssignedUsers("test");
