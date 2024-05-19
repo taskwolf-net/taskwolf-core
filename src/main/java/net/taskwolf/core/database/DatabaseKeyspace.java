@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.util.concurrent.CompletableFuture;
+
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
@@ -15,19 +17,21 @@ public final class DatabaseKeyspace {
 
   /**
    * Creates keyspace even if it already exists
+   * @return A future result that is completed when creation is completed
    */
-  public void create() {
-    create("");
+  public CompletableFuture<Void> create() {
+    return create("");
   }
 
   /**
    * Creates keyspace only if it not already exists
+   * @return A future result that is completed when creation is completed
    */
-  public void createIfNotExists() {
-    create("IF NOT EXISTS ");
+  public CompletableFuture<Void> createIfNotExists() {
+    return create("IF NOT EXISTS ");
   }
 
-  private void create(String addition) {
+  private CompletableFuture<Void> create(String addition) {
     var query = new StringBuilder("CREATE KEYSPACE ");
     query.append(addition);
     query.append(name);
@@ -36,7 +40,10 @@ public final class DatabaseKeyspace {
     query.append("', 'replication_factor' : ");
     query.append(replicationFactor);
     query.append("};");
-    connection.session().executeAsync(query.toString());
+    var result = connection.session().executeAsync(query.toString());
+    var futureResponse = new CompletableFuture<Void>();
+    result.thenAccept(resultSet -> futureResponse.complete(null));
+    return futureResponse;
   }
 
   /**
