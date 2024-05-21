@@ -13,6 +13,9 @@ import net.taskwolf.core.condition.text.ConditionTextEquals;
 import net.taskwolf.core.condition.text.ConditionTextStartsWith;
 import net.taskwolf.core.intro.Intro;
 import net.taskwolf.core.log.Log;
+import net.taskwolf.core.tutorial.level.TutorialLevelRegistry;
+import net.taskwolf.core.tutorial.level.dashboard.DashboardTutorialLevel;
+import net.taskwolf.core.tutorial.level.dashboard.WorkflowTutorialLevel;
 import net.taskwolf.core.worker.WorkerConfiguration;
 import net.taskwolf.core.worker.WorkerDistribution;
 import org.springframework.boot.SpringApplication;
@@ -35,8 +38,8 @@ public class CoreApplication {
     log.info("Initializing Taskwolf - Core");
     var application = injector.getInstance(SpringApplication.class);
     registerConditions(injector.getInstance(ConditionInformationRepository.class));
-    var distributionConfiguration = injector.getInstance(
-      WorkerConfiguration.class);
+    registerTutorialLevels(injector.getInstance(TutorialLevelRegistry.class));
+    var distributionConfiguration = injector.getInstance(WorkerConfiguration.class);
     var distribution = injector.getInstance(WorkerDistribution.class);
     distribution.initialize();
     var coreModule = injector.getInstance(CoreModule.class);
@@ -56,6 +59,11 @@ public class CoreApplication {
     repository.register(ConditionTextEndsWith.information());
     repository.register(ConditionNumberGreaterThan.information());
     repository.register(ConditionNumberSmallerThan.information());
+  }
+
+  private static void registerTutorialLevels(TutorialLevelRegistry registry) {
+    registry.registerLevel(DashboardTutorialLevel.create());
+    registry.registerLevel(WorkflowTutorialLevel.create());
   }
 
   private static void registerCommands(

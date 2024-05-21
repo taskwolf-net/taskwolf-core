@@ -1,0 +1,31 @@
+package net.taskwolf.core.tutorial.level.dashboard;
+
+import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.tutorial.level.TutorialLevel;
+import net.taskwolf.core.tutorial.level.TutorialStep;
+
+import java.util.List;
+
+@RequiredArgsConstructor(staticName = "create")
+public final class WorkflowTutorialLevel implements TutorialLevel {
+  @Override
+  public int id() {
+    return 1;
+  }
+
+  @Override
+  public String page() {
+    return "/workflows/";
+  }
+
+  @Override
+  public List<TutorialStep> steps() {
+    var steps = Lists.<TutorialStep>newArrayList();
+    steps.add(TutorialStep.create("tutorial.workflow.step.1.title",
+      "tutorial.workflow.step.1.description", ""));
+    steps.add(TutorialStep.create("tutorial.workflow.step.2.title",
+      "tutorial.workflow.step.2.description", "#workflow-create"));
+    return steps;
+  }
+}

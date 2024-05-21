@@ -8,6 +8,17 @@
   "condition.number.smaller.than": "Ist kleiner",
   "condition.not.a.number": "Bei der Überprüfung einer Bedingung ist ein Fehler aufgetreten. Der Fehler trat auf, weil der Eingabe- oder Vergleichswert keiner Zahl entsprachen.",
 
+  "tutorial.continue": "Weiter",
+  "tutorial.cancel": "Abbrechen",
+  "tutorial.dashboard.step.1.title": "Willkommen bei Taskwolf",
+  "tutorial.dashboard.step.1.description": "Hallo, wir haben bemerkt, dass Sie neu bei Taskwolf sind. Wir möchten Ihnen im Folgenden eine kurze Einführung in das Produkt geben. Wenn Sie fortfahren möchten, klicken Sie auf \"Weiter\", wenn nicht, klicken Sie auf \"Abbrechen\".",
+  "tutorial.dashboard.step.2.title": "Die Übersicht",
+  "tutorial.dashboard.step.2.description": "Großartig, fangen wir an. Auf dieser Seite findest du einen Überblick über Taskwolf.",
+  "tutorial.workflow.step.1.title": "Workflows",
+  "tutorial.workflow.step.1.description": "Workflows sind eine der wichtigsten Funktionen von Taskwolf. Sie bilden eine Brücke zwischen verschiedenen Diensten und ermöglichen eine große Automatisierung und Zeitersparnis.",
+  "tutorial.workflow.step.2.title": "Workflow erstellen",
+  "tutorial.workflow.step.2.description": "Sie können jederzeit einen Workflow erstellen, indem Sie hier klicken.",
+
   "workflow.timeline.entry.created.title": "Workflow wurde erstellt",
   "workflow.timeline.entry.created.description": "Der Workflow wurde von %CREATOR% veröffentlicht.",
   "workflow.timeline.entry.executed.title": "Workflow wurde ausgeführt",

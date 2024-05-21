@@ -21,6 +21,7 @@ import net.taskwolf.core.organization.OrganizationInjectionModule;
 import net.taskwolf.core.template.TemplateInjectionModule;
 import net.taskwolf.core.ticket.TicketInjectionModule;
 import net.taskwolf.core.trigger.TriggerInjectionModule;
+import net.taskwolf.core.tutorial.TutorialInjectionModule;
 import net.taskwolf.core.user.UserInjectionModule;
 import net.taskwolf.core.whitelist.WhitelistInjectionModule;
 import net.taskwolf.core.worker.WorkerInjectionModule;
@@ -50,6 +51,7 @@ public class CoreInjectionModule extends AbstractModule {
     install(WorkerInjectionModule.create());
     install(WhitelistInjectionModule.create());
     install(LocaleInjectionModule.create());
+    install(TutorialInjectionModule.create());
     install(AccessInjectionModule.create());
     install(ModuleInjectionModule.create());
     install(CommandInjectionModule.create());
