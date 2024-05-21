@@ -8,24 +8,26 @@ import net.taskwolf.core.tutorial.level.TutorialStep;
 import java.util.List;
 
 @RequiredArgsConstructor(staticName = "create")
-public final class DashboardTutorialLevel implements TutorialLevel {
+public final class ProcessesTutorialLevel implements TutorialLevel {
   @Override
   public int id() {
-    return 0;
+    return 4;
   }
 
   @Override
   public String page() {
-    return "/dashboard/";
+    return "/processes/";
   }
 
   @Override
   public List<TutorialStep> steps() {
     var steps = Lists.<TutorialStep>newArrayList();
-    steps.add(TutorialStep.create("tutorial.dashboard.step.1.title",
-      "tutorial.dashboard.step.1.description"));
-    steps.add(TutorialStep.create("tutorial.dashboard.step.2.title",
-      "tutorial.dashboard.step.2.description"));
+    steps.add(TutorialStep.create("tutorial.processes.step.1.title",
+      "tutorial.processes.step.1.description", true));
+    steps.add(TutorialStep.create("tutorial.processes.step.2.title",
+      "tutorial.processes.step.2.description", true));
+    steps.add(TutorialStep.create("tutorial.processes.step.3.title",
+      "tutorial.processes.step.3.description", "#process-create", true));
     return steps;
   }
 }

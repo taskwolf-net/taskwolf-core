@@ -14,8 +14,7 @@ import net.taskwolf.core.condition.text.ConditionTextStartsWith;
 import net.taskwolf.core.intro.Intro;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.tutorial.level.TutorialLevelRegistry;
-import net.taskwolf.core.tutorial.level.dashboard.DashboardTutorialLevel;
-import net.taskwolf.core.tutorial.level.dashboard.WorkflowTutorialLevel;
+import net.taskwolf.core.tutorial.level.dashboard.*;
 import net.taskwolf.core.worker.WorkerConfiguration;
 import net.taskwolf.core.worker.WorkerDistribution;
 import org.springframework.boot.SpringApplication;
@@ -63,7 +62,13 @@ public class CoreApplication {
 
   private static void registerTutorialLevels(TutorialLevelRegistry registry) {
     registry.registerLevel(DashboardTutorialLevel.create());
+    registry.registerLevel(WorkflowsTutorialLevel.create());
     registry.registerLevel(WorkflowTutorialLevel.create());
+    registry.registerLevel(TemplateTutorialLevel.create());
+    registry.registerLevel(ProcessesTutorialLevel.create());
+    registry.registerLevel(ProcessTutorialLevel.create());
+    registry.registerLevel(DatabasesTutorialLevel.create());
+    registry.registerLevel(WebhooksTutorialLevel.create());
   }
 
   private static void registerCommands(
