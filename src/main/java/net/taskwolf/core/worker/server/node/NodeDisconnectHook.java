@@ -22,5 +22,6 @@ public final class NodeDisconnectHook implements Hook {
     } else if (reason.isTimeOut()) {
       log.severe("The connection to the proxy timed out");
     }
+    System.exit(0);
   }
 }
