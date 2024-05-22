@@ -4,16 +4,8 @@ import java.util.List;
 
 public interface TutorialLevel {
   /**
-   * The id for uniquely identifying the level
-   * Important: The ID of the level also determines the order in which the
-   * levels are played one after the other
-   * @return The id of the level
-   */
-  int id();
-
-  /**
-   * The URL of the page on which the level takes place
-   * @return The URL that belongs to the tutorial step
+   * The list of page URLs on which the level takes place
+   * @return The list of URLs that belongs to the tutorial step
    */
   String page();
 

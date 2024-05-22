@@ -1,4 +1,4 @@
-package net.taskwolf.core.tutorial.level.dashboard;
+package net.taskwolf.core.tutorial.level.account;
 
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
@@ -9,11 +9,6 @@ import java.util.List;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class AccountsTutorialLevel implements TutorialLevel {
-  @Override
-  public int id() {
-    return 9;
-  }
-
   @Override
   public String page() {
     return "/account/apps/";

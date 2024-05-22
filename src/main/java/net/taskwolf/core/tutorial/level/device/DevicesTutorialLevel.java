@@ -1,4 +1,4 @@
-package net.taskwolf.core.tutorial.level.dashboard;
+package net.taskwolf.core.tutorial.level.device;
 
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
@@ -9,11 +9,6 @@ import java.util.List;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class DevicesTutorialLevel implements TutorialLevel {
-  @Override
-  public int id() {
-    return 10;
-  }
-
   @Override
   public String page() {
     return "/devices/";

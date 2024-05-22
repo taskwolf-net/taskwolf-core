@@ -1,4 +1,4 @@
-package net.taskwolf.core.tutorial.level.dashboard;
+package net.taskwolf.core.tutorial.level.workflow;
 
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
@@ -9,11 +9,6 @@ import java.util.List;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class WorkflowsTutorialLevel implements TutorialLevel {
-  @Override
-  public int id() {
-    return 1;
-  }
-
   @Override
   public String page() {
     return "/workflows/";

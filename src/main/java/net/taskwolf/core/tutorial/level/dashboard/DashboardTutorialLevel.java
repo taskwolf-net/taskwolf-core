@@ -10,11 +10,6 @@ import java.util.List;
 @RequiredArgsConstructor(staticName = "create")
 public final class DashboardTutorialLevel implements TutorialLevel {
   @Override
-  public int id() {
-    return 0;
-  }
-
-  @Override
   public String page() {
     return "/dashboard/";
   }

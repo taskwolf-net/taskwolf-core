@@ -1,4 +1,4 @@
-package net.taskwolf.core.tutorial.level.dashboard;
+package net.taskwolf.core.tutorial.level.organization;
 
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
@@ -9,11 +9,6 @@ import java.util.List;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class OrganizationsTutorialLevel implements TutorialLevel {
-  @Override
-  public int id() {
-    return 8;
-  }
-
   @Override
   public String page() {
     return "/organizations/";

@@ -32,19 +32,11 @@ public final class TutorialLevelRegistry {
 
   /**
    * Is used to find a tutorial level by id
-   * @param id The id of the level
+   * @param index The index of the level
    * @return The tutorial level if it could be found
    */
-  public Optional<TutorialLevel> findLevel(int id) {
-    return levels.stream().filter(level -> level.id() == id).findFirst();
-  }
-
-  /**
-   * Is used to find the highest / last id of a level
-   * @return The highest level id
-   */
-  public Integer findHighestLevelId() {
-    return levels.stream().map(TutorialLevel::id).sorted().toList().getLast();
+  public TutorialLevel findLevel(int index) {
+    return levels.get(index);
   }
 
   /**
@@ -53,5 +45,13 @@ public final class TutorialLevelRegistry {
    */
   public List<TutorialLevel> findAll() {
     return List.copyOf(levels);
+  }
+
+  /**
+   * Is used to find the number of levels
+   * @return The number of levels
+   */
+  public int size() {
+    return levels.size();
   }
 }
