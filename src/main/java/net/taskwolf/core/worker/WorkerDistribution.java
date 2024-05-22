@@ -5,7 +5,6 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.event.EventExecutor;
 import net.taskwolf.core.event.HookRegistry;
 import net.taskwolf.core.packet.PacketEventRepository;
 import net.taskwolf.core.packet.PacketRegistry;
@@ -20,7 +19,6 @@ import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingDisconnect;
 import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingHandshakeRequest;
 import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingModuleLoad;
 import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingModuleUnload;
-import net.taskwolf.core.worker.server.WorkerServer;
 import net.taskwolf.core.worker.server.node.NodeDisconnectHook;
 import net.taskwolf.core.worker.server.node.NodeHandshakeResponseHook;
 import net.taskwolf.core.worker.server.node.NodePingHook;
@@ -35,12 +33,10 @@ public final class WorkerDistribution {
   private final Injector injector;
   private final WorkerConfiguration configuration;
   private final PacketRegistry packetRegistry;
-  private final EventExecutor eventExecutor;
   private final HookRegistry hookRegistry;
   private final WorkerUserAssignment userAssignment;
   private final PacketEventRepository packetEventRepository;
   private final WorkerProxyClient workerProxyClient;
-  private WorkerServer workerServer;
 
   /**
    * Initializes node distribution (registers packets, hooks, events and
@@ -48,16 +44,9 @@ public final class WorkerDistribution {
    * @throws Exception
    */
   public void initialize() throws Exception {
-    workerServer = WorkerServer.create(configuration, packetRegistry,
-      eventExecutor, workerProxyClient, packetEventRepository,
-      configuration.distributionPort());
     registerPackets();
     registerHooks();
     registerEvents();
-    workerServer.openAsync(this::connectToProxy);
-  }
-
-  private void connectToProxy() {
     workerProxyClient.connectAsync(() -> workerProxyClient.sendPacket(
       new PacketOutgoingHandshakeRequest(configuration.distributionKey())));
   }
@@ -131,10 +120,9 @@ public final class WorkerDistribution {
   }
 
   /**
-   * Closes server and sends farewell greeting
+   * Sends farewell greeting
    */
   public void disconnect() {
     workerProxyClient.sendPacket(new PacketOutgoingDisconnect());
-    workerServer.close();
   }
 }
