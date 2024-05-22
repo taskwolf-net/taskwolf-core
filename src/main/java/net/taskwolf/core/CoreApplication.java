@@ -69,6 +69,10 @@ public class CoreApplication {
     registry.registerLevel(ProcessTutorialLevel.create());
     registry.registerLevel(DatabasesTutorialLevel.create());
     registry.registerLevel(WebhooksTutorialLevel.create());
+    registry.registerLevel(OrganizationsTutorialLevel.create());
+    registry.registerLevel(AccountsTutorialLevel.create());
+    registry.registerLevel(DevicesTutorialLevel.create());
+    registry.registerLevel(HelpTutorialLevel.create());
   }
 
   private static void registerCommands(
