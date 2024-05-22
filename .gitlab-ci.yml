@@ -1,7 +1,7 @@
 stages:
   - test
   - build
-#  - deploy
+  - deploy
 
 before_script:
   - GRADLE_USER_HOME="$(pwd)/.gradle"
