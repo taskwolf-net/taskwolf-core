@@ -18,9 +18,9 @@ public final class TemplateTutorialLevel implements TutorialLevel {
   public List<TutorialStep> steps() {
     var steps = Lists.<TutorialStep>newArrayList();
     steps.add(TutorialStep.create("tutorial.templates.step.1.title",
-      "tutorial.templates.step.1.description"));
+      "tutorial.templates.step.1.description", true));
     steps.add(TutorialStep.create("tutorial.templates.step.2.title",
-      "tutorial.templates.step.2.description"));
+      "tutorial.templates.step.2.description", true));
     return steps;
   }
 }
