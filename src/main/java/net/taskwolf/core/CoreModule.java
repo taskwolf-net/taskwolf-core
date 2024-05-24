@@ -16,6 +16,7 @@ import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.module.Module;
 import net.taskwolf.core.module.ModuleInformation;
 import net.taskwolf.core.module.ModuleLoader;
+import net.taskwolf.core.module.RegisteredModule;
 import net.taskwolf.core.trigger.Trigger;
 import net.taskwolf.core.trigger.TriggerDatabaseTable;
 import net.taskwolf.core.trigger.TriggerEntry;
@@ -86,11 +87,11 @@ public class CoreModule {
    * @return The information of the module
    */
   public Optional<ModuleInformation> findModuleInformation(String moduleName) {
-    var moduleOptional = moduleLoader.findModule(moduleName);
+    var moduleOptional = moduleLoader.findRegisteredModuleById(moduleName);
     if (moduleOptional.isEmpty()) {
       return Optional.empty();
     }
-    return moduleOptional.map(Module::moduleInformation);
+    return moduleOptional.map(RegisteredModule::module).map(Module::moduleInformation);
   }
 
   /**
@@ -100,12 +101,12 @@ public class CoreModule {
    * @return The trigger if it could be found
    */
   public Optional<Trigger> findTrigger(String moduleName, String triggerType) {
-    var moduleOptional = moduleLoader.findModule(moduleName);
+    var moduleOptional = moduleLoader.findRegisteredModuleById(moduleName);
     if (moduleOptional.isEmpty()) {
       return Optional.empty();
     }
     var module = moduleOptional.get();
-    return module.triggerRepository().findTrigger(triggerType);
+    return module.module().triggerRepository().findTrigger(triggerType);
   }
 
   /**
@@ -117,12 +118,12 @@ public class CoreModule {
   public Optional<Action<? extends ActionExecutor>> findAction(
     String moduleName, String actionType
   ) {
-    var moduleOptional = moduleLoader.findModule(moduleName);
+    var moduleOptional = moduleLoader.findRegisteredModuleById(moduleName);
     if (moduleOptional.isEmpty()) {
       return Optional.empty();
     }
     var module = moduleOptional.get();
-    return module.actionRepository().findAction(actionType);
+    return module.module().actionRepository().findAction(actionType);
   }
 
   /**
@@ -176,8 +177,8 @@ public class CoreModule {
     String moduleName, String triggerType, String condition,
     Map<String, Object> information, boolean checkDistribution
   ) {
-    var module = moduleLoader.findModule(moduleName).get();
-    var trigger = module.triggerRepository()
+    var module = moduleLoader.findRegisteredModuleById(moduleName).get();
+    var trigger = module.module().triggerRepository()
       .findTrigger(triggerType).get();
     if (!condition.isEmpty()) {
       condition = " WHERE " + condition + " ALLOW FILTERING";
@@ -298,8 +299,8 @@ public class CoreModule {
   public CompletableFuture<ActionExecutor> createAction(
     String moduleName, String actionType, UUID actionId
   ) {
-    var module = moduleLoader.findModule(moduleName).get();
-    var action = module.actionRepository()
+    var module = moduleLoader.findRegisteredModuleById(moduleName).get();
+    var action = module.module().actionRepository()
       .findAction(actionType).get();
     return (CompletableFuture<ActionExecutor>) action.build(actionId);
   }
