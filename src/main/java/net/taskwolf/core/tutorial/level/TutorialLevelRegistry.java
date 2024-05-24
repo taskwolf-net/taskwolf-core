@@ -48,6 +48,36 @@ public final class TutorialLevelRegistry {
   }
 
   /**
+   * Is used to find the index of step in all steps of all levels
+   * @param target The target step
+   * @return The index of the step
+   */
+  public int findStepProgress(TutorialStep target) {
+    var progress = 0;
+    for (var level : levels) {
+       for (var step : level.steps()) {
+         progress++;
+         if (step.equals(target)) {
+           return progress;
+         }
+       }
+    }
+    return progress;
+  }
+
+  /**
+   * Is used to find the number of all steps
+   * @return The number of the steps inside the registered levels
+   */
+  public int findStepNumber() {
+    var number = 0;
+    for (var level : levels) {
+      number += level.steps().size();
+    }
+    return number;
+  }
+
+  /**
    * Is used to find the number of levels
    * @return The number of levels
    */

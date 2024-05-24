@@ -107,4 +107,14 @@ public final class TutorialStep {
   private final String element;
   private final String position;
   private final boolean shiftContentDown;
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof TutorialStep step)) {
+      return false;
+    }
+    return step.title().equals(title) && step.description().equals(description) &&
+      step.element().equals(element) && step.position().equals(position) &&
+      step.shiftContentDown() == shiftContentDown;
+  }
 }
