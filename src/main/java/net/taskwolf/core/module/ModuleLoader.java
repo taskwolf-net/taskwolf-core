@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ModuleLoader {
   public static ModuleLoader create(
-          Log log, String directory, WorkerDistribution distribution, Injector injector
+    Log log, String directory, WorkerDistribution distribution, Injector injector
   ) {
     var jars = findJarsInDirectory(directory);
     var urls = jars.stream().map(ModuleLoader::findFileUrl).toArray(URL[]::new);
@@ -83,14 +83,14 @@ public final class ModuleLoader {
    * Is used to load specific module
    * @param file The file of the module
    * @param classLoader The class loader that is use to load the module
-   * @return The loaded registered module
    * @throws Exception
    */
-  private RegisteredModule loadModule(
+  private void loadModule(
     File file, ClassLoader classLoader
   ) throws Exception {
     var jarFile = new JarFile(file);
     var entries = jarFile.entries();
+    var newModules = Lists.<RegisteredModule>newArrayList();
     while (entries.hasMoreElements()) {
       var entry = entries.nextElement();
       var optionalModuleClass = findModuleClass(entry, classLoader);
@@ -98,11 +98,13 @@ public final class ModuleLoader {
         continue;
       }
       var registeredModule = createRegisteredModule(optionalModuleClass.get(), file);
-      modules.add(registeredModule);
-      return registeredModule;
+      newModules.add(registeredModule);
     }
-    log.log(Level.SEVERE, "Could not find module class for " + file.getName());
-    return null;
+    if (newModules.isEmpty()) {
+      log.log(Level.SEVERE, "Could not find module class for " + file.getName());
+      return;
+    }
+    modules.addAll(newModules);
   }
 
   /**
@@ -134,7 +136,7 @@ public final class ModuleLoader {
   }
 
   /**
-   * Searches for the module class inside module jar
+   * Searches for the module class inside module jar entry
    * @param entry The jar file entry of the module
    * @param classLoader The regarding class loader
    * @return The module class if it could be found
@@ -194,6 +196,16 @@ public final class ModuleLoader {
     return Arrays.stream(suspect.getAnnotations())
       .filter(annotation -> annotation.annotationType()
         .equals(ModuleDescription.class)).findFirst();
+  }
+
+  /**
+   * Used to find a registered module
+   * @param id The {@link ModuleDescription} name of the module you are
+   *          searching for in
+   * @return The {@link RegisteredModule} if it could be found
+   */
+  public Optional<RegisteredModule> findRegisteredModuleById(String id) {
+    return modules.stream().filter(module -> module.name().equals(id)).findFirst();
   }
 
   /**
