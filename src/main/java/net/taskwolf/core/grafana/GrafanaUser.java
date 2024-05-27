@@ -81,11 +81,11 @@ public final class GrafanaUser {
         password, userId, organizationId, datasourceId, datasourceUid, 1,
         json.getInt("dashboardId"), json.getString("uid"), 1,
         json.getString("importedUrl")));
-    futureAccount.thenAccept(grafanaDatabaseTable::insertAccount);
     futureAccount.thenAccept(account -> updateUserRole(organizationId, userId,
       "Viewer", userToken));
     futureAccount.thenAccept(account ->
       updateDashboardPermission(account.dashboardUid(), userId, 1, userToken));
+    futureAccount.thenAccept(grafanaDatabaseTable::insertAccount);
   }
 
   /**
