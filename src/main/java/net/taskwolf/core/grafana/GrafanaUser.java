@@ -73,15 +73,19 @@ public final class GrafanaUser {
     String username, String password, int datasourceId, String datasourceUid,
     int userId, int organizationId, String userToken
   ) {
-    sendAuthorizedRequest("https://analytics.taskwolf.net/api/dashboards/import",
-      "POST", configuration.dashboard().replace("%DATASOURCE%", datasourceUid),
-      userToken)
+    var futureAccount = sendAuthorizedRequest(
+      "https://analytics.taskwolf.net/api/dashboards/import", "POST",
+      configuration.dashboard().replace("%DATASOURCE%", datasourceUid), userToken)
       .thenApply(response -> new JSONObject(response.body()))
-      .thenAccept(json -> grafanaDatabaseTable.insertAccount(ownerId, username,
+      .thenApply(json -> GrafanaAccount.create(ownerId, username,
         password, userId, organizationId, datasourceId, datasourceUid, 1,
         json.getInt("dashboardId"), json.getString("uid"), 1,
-        json.getString("importedUrl")))
-      .thenAccept(value -> updateUserRole(organizationId, userId, "Viewer", userToken));
+        json.getString("importedUrl")));
+    futureAccount.thenAccept(grafanaDatabaseTable::insertAccount);
+    futureAccount.thenAccept(account -> updateUserRole(organizationId, userId,
+      "Viewer", userToken));
+    futureAccount.thenAccept(account ->
+      updateDashboardPermission(account.dashboardUid(), userId, 1, userToken));
   }
 
   /**
@@ -162,6 +166,17 @@ public final class GrafanaUser {
     return sendAuthorizedRequest("https://analytics.taskwolf.net/api/orgs/" +
         organizationId + "/users/" + userId,
       "PATCH", Map.of("role", role), token).thenAccept(response -> {});
+  }
+
+  private static final String DASHBOARD_PERMISSION_QUERY = "{ \"items\": [ { \"role\": \"Viewer\", \"permission\": 1 }, { \"role\": \"Editor\", \"permission\": 2 }, { \"role\": \"Admin\", \"permission\": 4 }, { \"userId\": %s, \"permission\": %s } ] }";
+
+  private CompletableFuture<Void> updateDashboardPermission(
+    String dashboardUid, int userId, int role, String token
+  ) {
+    return sendAuthorizedRequest("https://analytics.taskwolf.net/api/" +
+        "dashboards/uid/" + dashboardUid + "/permissions",
+      "POST", String.format(DASHBOARD_PERMISSION_QUERY, userId, role), token)
+        .thenAccept(response -> {});
   }
 
   private CompletableFuture<String> loginUser(String username, String password) {
