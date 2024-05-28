@@ -229,6 +229,20 @@
   "google.calendar.action.event.cancel.output.event.start.time": "Event Start Time",
   "google.calendar.action.event.cancel.output.event.end.time": "Event End Time",
 
+  "google.drive.trigger.file.create.name": "File Create",
+  "google.drive.trigger.file.create.description": "Is triggered when a new file is created",
+  "google.drive.trigger.file.create.input.account.name": "Account",
+  "google.drive.trigger.file.create.input.account.description": "The Google account whose drive you want to work with",
+  "google.drive.trigger.file.create.output.file.id": "File ID",
+  "google.drive.trigger.file.create.output.file.name": "File Name",
+
+  "google.drive.trigger.file.delete.name": "File Create",
+  "google.drive.trigger.file.delete.description": "Is triggered when a new file is deleted",
+  "google.drive.trigger.file.delete.input.account.name": "Account",
+  "google.drive.trigger.file.delete.input.account.description": "The Google account whose drive you want to work with",
+  "google.drive.trigger.file.delete.output.file.id": "File ID",
+  "google.drive.trigger.file.delete.output.file.name": "File Name",
+
   "table.link.description": "Great news! You don't need to link an account to use this module. Just click on \"skip\" to go to the next page.",
 
   "table.trigger.entry.insert.name": "Database entry insertion",

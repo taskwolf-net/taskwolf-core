@@ -229,6 +229,20 @@
   "google.calendar.action.event.cancel.output.event.start.time": "Ergeignis Startzeit",
   "google.calendar.action.event.cancel.output.event.end.time": "Ergeignis Endzeit",
 
+  "google.drive.trigger.file.create.name": "Datei Erstellung",
+  "google.drive.trigger.file.create.description": "Wird ausgelöst, wenn eine neue Datei erstellt wird",
+  "google.drive.trigger.file.create.input.account.name": "Konto",
+  "google.drive.trigger.file.create.input.account.description": "Das Google-Konto, mit dessen Drive Sie arbeiten möchten",
+  "google.drive.trigger.file.create.output.file.id": "Datei ID",
+  "google.drive.trigger.file.create.output.file.name": "Datei Name",
+
+  "google.drive.trigger.file.delete.name": "Datei Löschung",
+  "google.drive.trigger.file.delete.description": "Wird ausgelöst, wenn eine Datei gelöscht wird",
+  "google.drive.trigger.file.delete.input.account.name": "Konto",
+  "google.drive.trigger.file.delete.input.account.description": "Das Google-Konto, mit dessen Drive Sie arbeiten möchten",
+  "google.drive.trigger.file.delete.output.file.id": "Datei ID",
+  "google.drive.trigger.file.delete.output.file.name": "Datei Name",
+
   "table.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen.",
 
   "table.trigger.entry.insert.name": "Einfügen von Datenbankeinträgen",
