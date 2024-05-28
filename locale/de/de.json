@@ -243,6 +243,13 @@
   "google.drive.trigger.file.delete.output.file.id": "Datei ID",
   "google.drive.trigger.file.delete.output.file.name": "Datei Name",
 
+  "google.drive.action.file.create.name": "Datei erstellen",
+  "google.drive.action.file.create.description": "Wird verwendet, um eine Datei zu erstellen",
+  "google.drive.action.file.create.input.account.name": "Konto",
+  "google.drive.action.file.create.input.account.description": "Das Google-Konto, mit dessen Drive Sie arbeiten möchten",
+  "google.drive.action.file.create.output.file.id": "Datei ID",
+  "google.drive.action.file.create.output.file.name": "Datei Name",
+
   "table.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen.",
 
   "table.trigger.entry.insert.name": "Einfügen von Datenbankeinträgen",
