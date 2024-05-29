@@ -237,11 +237,25 @@
   "google.drive.trigger.file.create.output.file.name": "File Name",
 
   "google.drive.trigger.file.delete.name": "File Delete",
-  "google.drive.trigger.file.delete.description": "Is triggered when a new file is deleted",
+  "google.drive.trigger.file.delete.description": "Is triggered when a file is deleted",
   "google.drive.trigger.file.delete.input.account.name": "Account",
   "google.drive.trigger.file.delete.input.account.description": "The Google account whose drive you want to work with",
   "google.drive.trigger.file.delete.output.file.id": "File ID",
   "google.drive.trigger.file.delete.output.file.name": "File Name",
+
+  "google.drive.trigger.folder.create.name": "Folder Create",
+  "google.drive.trigger.folder.create.description": "Is triggered when a new folder is created",
+  "google.drive.trigger.folder.create.input.account.name": "Account",
+  "google.drive.trigger.folder.create.input.account.description": "The Google account whose drive you want to work with",
+  "google.drive.trigger.folder.create.output.folder.id": "Folder ID",
+  "google.drive.trigger.folder.create.output.folder.name": "Folder Name",
+
+  "google.drive.trigger.folder.delete.name": "Folder Delete",
+  "google.drive.trigger.folder.delete.description": "Is triggered when a folder is deleted",
+  "google.drive.trigger.folder.delete.input.account.name": "Account",
+  "google.drive.trigger.folder.delete.input.account.description": "The Google account whose drive you want to work with",
+  "google.drive.trigger.folder.delete.output.folder.id": "Folder ID",
+  "google.drive.trigger.folder.delete.output.folder.name": "Folder Name",
 
   "google.drive.action.file.create.name": "File Create",
   "google.drive.action.file.create.description": "Is used to create a file",
