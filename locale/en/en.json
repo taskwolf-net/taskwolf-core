@@ -236,7 +236,7 @@
   "google.drive.trigger.file.create.output.file.id": "File ID",
   "google.drive.trigger.file.create.output.file.name": "File Name",
 
-  "google.drive.trigger.file.delete.name": "File Create",
+  "google.drive.trigger.file.delete.name": "File Delete",
   "google.drive.trigger.file.delete.description": "Is triggered when a new file is deleted",
   "google.drive.trigger.file.delete.input.account.name": "Account",
   "google.drive.trigger.file.delete.input.account.description": "The Google account whose drive you want to work with",
@@ -249,6 +249,13 @@
   "google.drive.action.file.create.input.account.description": "The Google account whose drive you want to work with",
   "google.drive.action.file.create.output.file.id": "File ID",
   "google.drive.action.file.create.output.file.name": "File Name",
+
+  "google.drive.action.folder.create.name": "Folder Create",
+  "google.drive.action.folder.create.description": "Is used to create a folder",
+  "google.drive.action.folder.create.input.account.name": "Account",
+  "google.drive.action.folder.create.input.account.description": "The Google account whose drive you want to work with",
+  "google.drive.action.folder.create.output.file.id": "Folder ID",
+  "google.drive.action.folder.create.output.file.name": "Folder Name",
 
   "table.link.description": "Great news! You don't need to link an account to use this module. Just click on \"skip\" to go to the next page.",
 

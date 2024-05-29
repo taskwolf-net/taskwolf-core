@@ -250,6 +250,13 @@
   "google.drive.action.file.create.output.file.id": "Datei ID",
   "google.drive.action.file.create.output.file.name": "Datei Name",
 
+  "google.drive.action.folder.create.name": "Ordner erstellen",
+  "google.drive.action.folder.create.description": "Wird verwendet, um einen Ordner zu erstellen",
+  "google.drive.action.folder.create.input.account.name": "Konto",
+  "google.drive.action.folder.create.input.account.description": "Das Google-Konto, mit dessen Drive Sie arbeiten möchten",
+  "google.drive.action.folder.create.output.file.id": "Ordner ID",
+  "google.drive.action.folder.create.output.file.name": "Ordner Name",
+
   "table.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen.",
 
   "table.trigger.entry.insert.name": "Einfügen von Datenbankeinträgen",
