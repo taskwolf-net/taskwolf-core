@@ -229,6 +229,48 @@
   "google.calendar.action.event.cancel.output.event.start.time": "Ergeignis Startzeit",
   "google.calendar.action.event.cancel.output.event.end.time": "Ergeignis Endzeit",
 
+  "google.drive.trigger.file.create.name": "Datei Erstellung",
+  "google.drive.trigger.file.create.description": "Wird ausgelöst, wenn eine neue Datei erstellt wird",
+  "google.drive.trigger.file.create.input.account.name": "Konto",
+  "google.drive.trigger.file.create.input.account.description": "Das Google-Konto, mit dessen Drive Sie arbeiten möchten",
+  "google.drive.trigger.file.create.output.file.id": "Datei ID",
+  "google.drive.trigger.file.create.output.file.name": "Datei Name",
+
+  "google.drive.trigger.file.delete.name": "Datei Löschung",
+  "google.drive.trigger.file.delete.description": "Wird ausgelöst, wenn eine Datei gelöscht wird",
+  "google.drive.trigger.file.delete.input.account.name": "Konto",
+  "google.drive.trigger.file.delete.input.account.description": "Das Google-Konto, mit dessen Drive Sie arbeiten möchten",
+  "google.drive.trigger.file.delete.output.file.id": "Datei ID",
+  "google.drive.trigger.file.delete.output.file.name": "Datei Name",
+
+  "google.drive.trigger.folder.create.name": "Ordner Erstellung",
+  "google.drive.trigger.folder.create.description": "Wird ausgelöst, wenn ein neuer Ordner erstellt wird",
+  "google.drive.trigger.folder.create.input.account.name": "Konto",
+  "google.drive.trigger.folder.create.input.account.description": "Das Google-Konto, mit dessen Drive Sie arbeiten möchten",
+  "google.drive.trigger.folder.create.output.folder.id": "Ordner ID",
+  "google.drive.trigger.folder.create.output.folder.name": "Ordner Name",
+
+  "google.drive.trigger.folder.delete.name": "Ordner Löschung",
+  "google.drive.trigger.folder.delete.description": "Wird ausgelöst, wenn ein Ordner gelöscht wird",
+  "google.drive.trigger.folder.delete.input.account.name": "Konto",
+  "google.drive.trigger.folder.delete.input.account.description": "Das Google-Konto, mit dessen Drive Sie arbeiten möchten",
+  "google.drive.trigger.folder.delete.output.folder.id": "Ordner ID",
+  "google.drive.trigger.folder.delete.output.folder.name": "Ordner Name",
+
+  "google.drive.action.file.create.name": "Datei erstellen",
+  "google.drive.action.file.create.description": "Wird verwendet, um eine Datei zu erstellen",
+  "google.drive.action.file.create.input.account.name": "Konto",
+  "google.drive.action.file.create.input.account.description": "Das Google-Konto, mit dessen Drive Sie arbeiten möchten",
+  "google.drive.action.file.create.output.file.id": "Datei ID",
+  "google.drive.action.file.create.output.file.name": "Datei Name",
+
+  "google.drive.action.folder.create.name": "Ordner erstellen",
+  "google.drive.action.folder.create.description": "Wird verwendet, um einen Ordner zu erstellen",
+  "google.drive.action.folder.create.input.account.name": "Konto",
+  "google.drive.action.folder.create.input.account.description": "Das Google-Konto, mit dessen Drive Sie arbeiten möchten",
+  "google.drive.action.folder.create.output.file.id": "Ordner ID",
+  "google.drive.action.folder.create.output.file.name": "Ordner Name",
+
   "table.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen.",
 
   "table.trigger.entry.insert.name": "Einfügen von Datenbankeinträgen",
