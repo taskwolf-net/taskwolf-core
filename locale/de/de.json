@@ -266,6 +266,14 @@
   "google.drive.action.file.create.output.file.id": "Datei ID",
   "google.drive.action.file.create.output.file.name": "Datei Name",
 
+  "google.drive.action.file.delete.name": "Datei löschen",
+  "google.drive.action.file.delete.description": "Wird verwendet, um einen Datei zu löschen",
+  "google.drive.action.file.delete.input.account.name": "Konto",
+  "google.drive.action.file.delete.input.account.description": "Das Google-Konto, mit dessen Drive Sie arbeiten möchten",
+  "google.drive.action.file.delete.input.file.id.name": "Datei ID",
+  "google.drive.action.file.delete.input.file.id.description": "Die ID der Datei, den Sie löschen möchten",
+  "google.drive.action.file.delete.output.file.id": "Datei ID",
+
   "google.drive.action.folder.create.name": "Ordner erstellen",
   "google.drive.action.folder.create.description": "Wird verwendet, um einen Ordner zu erstellen",
   "google.drive.action.folder.create.input.account.name": "Konto",
