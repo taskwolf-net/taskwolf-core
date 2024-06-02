@@ -261,6 +261,8 @@
   "google.drive.action.file.create.description": "Is used to create a file",
   "google.drive.action.file.create.input.account.name": "Account",
   "google.drive.action.file.create.input.account.description": "The Google account whose drive you want to work with",
+  "google.drive.action.file.create.input.file.name.name": "File Name",
+  "google.drive.action.file.create.input.file.name.description": "The name you want to give the file",
   "google.drive.action.file.create.output.file.id": "File ID",
   "google.drive.action.file.create.output.file.name": "File Name",
 
@@ -268,8 +270,18 @@
   "google.drive.action.folder.create.description": "Is used to create a folder",
   "google.drive.action.folder.create.input.account.name": "Account",
   "google.drive.action.folder.create.input.account.description": "The Google account whose drive you want to work with",
-  "google.drive.action.folder.create.output.file.id": "Folder ID",
-  "google.drive.action.folder.create.output.file.name": "Folder Name",
+  "google.drive.action.folder.create.input.folder.name.name": "Folder Name",
+  "google.drive.action.folder.create.input.folder.name.description": "The name you want to give the folder",
+  "google.drive.action.folder.create.output.folder.id": "Folder ID",
+  "google.drive.action.folder.create.output.folder.name": "Folder Name",
+
+  "google.drive.action.folder.delete.name": "Folder Delete",
+  "google.drive.action.folder.delete.description": "Is used to delete a folder",
+  "google.drive.action.folder.delete.input.account.name": "Account",
+  "google.drive.action.folder.delete.input.account.description": "The Google account whose drive you want to work with",
+  "google.drive.action.folder.delete.input.folder.id.name": "Folder ID",
+  "google.drive.action.folder.delete.input.folder.id.description": "The ID of the folder you want to delete",
+  "google.drive.action.folder.delete.output.folder.id": "Folder ID",
 
   "table.link.description": "Great news! You don't need to link an account to use this module. Just click on \"skip\" to go to the next page.",
 
