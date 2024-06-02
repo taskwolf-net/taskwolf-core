@@ -286,6 +286,16 @@
   "google.drive.action.file.upload.output.file.name": "File Name",
   "google.drive.action.file.upload.output.file.content": "File Content",
 
+  "google.drive.action.file.download.name": "File Download",
+  "google.drive.action.file.download.description": "Is used to download a file",
+  "google.drive.action.file.download.input.account.name": "Account",
+  "google.drive.action.file.download.input.account.description": "The Google account whose drive you want to work with",
+  "google.drive.action.file.download.input.file.id.name": "File ID",
+  "google.drive.action.file.download.input.file.id.description": "The ID of the file you want to download",
+  "google.drive.action.file.download.output.file.id": "File ID",
+  "google.drive.action.file.download.output.file.name": "File Name",
+  "google.drive.action.file.download.output.file.content": "File Content",
+
   "google.drive.action.folder.create.name": "Folder Create",
   "google.drive.action.folder.create.description": "Is used to create a folder",
   "google.drive.action.folder.create.input.account.name": "Account",
