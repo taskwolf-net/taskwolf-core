@@ -274,6 +274,18 @@
   "google.drive.action.file.delete.input.file.id.description": "Die ID der Datei, den Sie löschen möchten",
   "google.drive.action.file.delete.output.file.id": "Datei ID",
 
+  "google.drive.action.file.upload.name": "Datei hochladen",
+  "google.drive.action.file.upload.description": "Wird verwendet, um eine Datei hochzuladen",
+  "google.drive.action.file.upload.input.account.name": "Konto",
+  "google.drive.action.file.upload.input.account.description": "Das Google-Konto, mit dessen Drive Sie arbeiten möchten",
+  "google.drive.action.file.upload.input.file.name.name": "Datei Name",
+  "google.drive.action.file.upload.input.file.name.description": "Der Name, den Sie der Datei geben möchten",
+  "google.drive.action.file.upload.input.file.content.name": "Datei Inhalt",
+  "google.drive.action.file.upload.input.file.content.description": "Die hochzuladende Datei",
+  "google.drive.action.file.upload.output.file.id": "Datei ID",
+  "google.drive.action.file.upload.output.file.name": "Datei Name",
+  "google.drive.action.file.upload.output.file.content": "Datei Inhalt",
+
   "google.drive.action.folder.create.name": "Ordner erstellen",
   "google.drive.action.folder.create.description": "Wird verwendet, um einen Ordner zu erstellen",
   "google.drive.action.folder.create.input.account.name": "Konto",

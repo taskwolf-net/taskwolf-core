@@ -274,6 +274,18 @@
   "google.drive.action.file.delete.input.file.id.description": "The ID of the file you want to delete",
   "google.drive.action.file.delete.output.file.id": "File ID",
 
+  "google.drive.action.file.upload.name": "File Upload",
+  "google.drive.action.file.upload.description": "Is used to upload a file",
+  "google.drive.action.file.upload.input.account.name": "Account",
+  "google.drive.action.file.upload.input.account.description": "The Google account whose drive you want to work with",
+  "google.drive.action.file.upload.input.file.name.name": "File Name",
+  "google.drive.action.file.upload.input.file.name.description": "The name you want to give the file",
+  "google.drive.action.file.upload.input.file.content.name": "File Content",
+  "google.drive.action.file.upload.input.file.content.description": "The file to be uploaded",
+  "google.drive.action.file.upload.output.file.id": "File ID",
+  "google.drive.action.file.upload.output.file.name": "File Name",
+  "google.drive.action.file.upload.output.file.content": "File Content",
+
   "google.drive.action.folder.create.name": "Folder Create",
   "google.drive.action.folder.create.description": "Is used to create a folder",
   "google.drive.action.folder.create.input.account.name": "Account",
