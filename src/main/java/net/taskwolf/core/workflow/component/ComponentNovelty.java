@@ -1,5 +1,9 @@
 package net.taskwolf.core.workflow.component;
 
+/**
+ * Used to present new components to customers in a special way.
+ * This effect occurs when the novelty is set to “NEW”
+ */
 public enum ComponentNovelty {
   NEW,
   OLD;
