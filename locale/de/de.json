@@ -317,6 +317,20 @@
   "google.drive.action.folder.delete.input.folder.id.description": "Die ID des Ordners, den Sie löschen möchten",
   "google.drive.action.folder.delete.output.folder.id": "Ordner ID",
 
+  "google.docs.trigger.document.create.name": "Dokumenten Erstellung",
+  "google.docs.trigger.document.create.description": "Wird ausgelöst, wenn ein neues Dokument erstellt wird",
+  "google.docs.trigger.document.create.input.account.name": "Konto",
+  "google.docs.trigger.document.create.input.account.description": "Das Google-Konto, mit dessen Dokumenten Sie arbeiten möchten",
+  "google.docs.trigger.document.create.output.document.id": "Dokumenten ID",
+  "google.docs.trigger.document.create.output.document.name": "Dokumenten Name",
+
+  "google.docs.trigger.document.delete.name": "Dokumenten Löschung",
+  "google.docs.trigger.document.delete.description": "Wird ausgelöst, wenn ein Dokument gelöscht wird",
+  "google.docs.trigger.document.delete.input.account.name": "Konto",
+  "google.docs.trigger.document.delete.input.account.description": "Das Google-Konto, mit dessen Dokumenten Sie arbeiten möchten",
+  "google.docs.trigger.document.delete.output.document.id": "Dokumenten ID",
+  "google.docs.trigger.document.delete.output.document.name": "Dokumenten Name",
+
   "table.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen.",
 
   "table.trigger.entry.insert.name": "Einfügen von Datenbankeinträgen",

@@ -317,6 +317,20 @@
   "google.drive.action.folder.delete.input.folder.id.description": "The ID of the folder you want to delete",
   "google.drive.action.folder.delete.output.folder.id": "Folder ID",
 
+  "google.docs.trigger.document.create.name": "Document Create",
+  "google.docs.trigger.document.create.description": "Is triggered when a new document is created",
+  "google.docs.trigger.document.create.input.account.name": "Account",
+  "google.docs.trigger.document.create.input.account.description": "The Google account whose documents you want to work with",
+  "google.docs.trigger.document.create.output.document.id": "Document ID",
+  "google.docs.trigger.document.create.output.document.name": "Document Name",
+
+  "google.docs.trigger.document.delete.name": "Document Delete",
+  "google.docs.trigger.document.delete.description": "Is triggered when a document is deleted",
+  "google.docs.trigger.document.delete.input.account.name": "Account",
+  "google.docs.trigger.document.delete.input.account.description": "The Google account whose documents you want to work with",
+  "google.docs.trigger.document.delete.output.document.id": "Document ID",
+  "google.docs.trigger.document.delete.output.document.name": "Document Name",
+
   "table.link.description": "Great news! You don't need to link an account to use this module. Just click on \"skip\" to go to the next page.",
 
   "table.trigger.entry.insert.name": "Database entry insertion",
