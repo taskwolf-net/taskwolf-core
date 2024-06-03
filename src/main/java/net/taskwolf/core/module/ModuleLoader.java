@@ -74,8 +74,7 @@ public final class ModuleLoader {
       log.info("Successfully loaded module " + module.name());
     }
     for (var module : modules) {
-      distribution.registerModule(module.module().moduleInformation()
-        .name().toLowerCase());
+      distribution.registerModule(module.name());
     }
   }
 
