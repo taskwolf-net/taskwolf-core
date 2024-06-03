@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * This class is used when an input variable has the {@link InputComponentDataType} SELECT.
+ */
 public interface InputComponentSelect {
   /**
    * Is used to determine the selection options of component select inputs
