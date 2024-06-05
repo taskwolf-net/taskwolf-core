@@ -351,6 +351,17 @@
   "google.docs.action.document.delete.input.document.id.description": "Die ID des Dokuments, das Sie löschen möchten",
   "google.docs.action.document.delete.output.document.id": "Dokumenten ID",
 
+  "google.docs.action.document.append.line.name": "Dokument Zeile hinzufügen",
+  "google.docs.action.document.append.line.description": "Wird verwendet, um eine Zeile an ein Dokument anzuhängen",
+  "google.docs.action.document.append.line.input.account.name": "Konto",
+  "google.docs.action.document.append.line.input.account.description": "Das Google-Konto, mit dessen Dokumenten Sie arbeiten möchten",
+  "google.docs.action.document.append.line.input.document.id.name": "Dokumenten ID",
+  "google.docs.action.document.append.line.input.document.id.description": "Die ID des Dokuments, das Sie bearbeiten möchten",
+  "google.docs.action.document.append.line.input.document.line.name": "Dokumenten Zeile",
+  "google.docs.action.document.append.line.input.document.line.description": "Die Zeile, die an das Dokument angehängt werden soll",
+  "google.docs.action.document.append.line.output.document.id": "Dokumenten ID",
+  "google.docs.action.document.append.line.output.document.line": "Dokumenten Zeile",
+
   "table.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen.",
 
   "table.trigger.entry.insert.name": "Einfügen von Datenbankeinträgen",

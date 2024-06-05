@@ -351,6 +351,17 @@
   "google.docs.action.document.delete.input.document.id.description": "The id of the document you want to delete",
   "google.docs.action.document.delete.output.document.id": "Document ID",
 
+  "google.docs.action.document.append.line.name": "Document Append Line",
+  "google.docs.action.document.append.line.description": "Is used to append a line to a document",
+  "google.docs.action.document.append.line.input.account.name": "Account",
+  "google.docs.action.document.append.line.input.account.description": "The Google account whose documents you want to work with",
+  "google.docs.action.document.append.line.input.document.id.name": "Document ID",
+  "google.docs.action.document.append.line.input.document.id.description": "The id of the document you want to edit",
+  "google.docs.action.document.append.line.input.document.line.name": "Document Line",
+  "google.docs.action.document.append.line.input.document.line.description": "The line you want to append to the document",
+  "google.docs.action.document.append.line.output.document.id": "Document ID",
+  "google.docs.action.document.append.line.output.document.line": "Document Line",
+
   "table.link.description": "Great news! You don't need to link an account to use this module. Just click on \"skip\" to go to the next page.",
 
   "table.trigger.entry.insert.name": "Database entry insertion",
