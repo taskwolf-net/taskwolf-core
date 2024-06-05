@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import net.taskwolf.core.configuration.Configuration;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.Map;
 
 @Getter
@@ -13,10 +14,14 @@ import java.util.Map;
 public final class Locale extends Configuration {
   private static final String LOCALE_PATH = "/locale/%s/%s.json";
 
-  public static Locale createAndLoad(String language) throws Exception {
-    var configuration = new Locale(String.format(LOCALE_PATH, language, language));
+  public static Locale createAndLoad(String module, String language) throws Exception {
+    var configuration = create(module, language);
     configuration.load();
     return configuration;
+  }
+
+  public static Locale create(String module, String language) {
+    return new Locale(String.format(LOCALE_PATH, module, language));
   }
 
   private final Map<String, String> locale = Maps.newHashMap();
@@ -30,6 +35,14 @@ public final class Locale extends Configuration {
     for (var key : json.keySet()) {
       locale.put(key, json.getString(key));
     }
+  }
+
+  public void addLocale(Map<String, String> newLocale) {
+    locale.putAll(newLocale);
+  }
+
+  public void removeLocale(String target) {
+    locale.remove(target);
   }
 
   public String findText(String key) {

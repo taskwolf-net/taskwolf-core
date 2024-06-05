@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.action.Action;
+import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.trigger.Trigger;
 import net.taskwolf.core.worker.WorkerDistribution;
@@ -26,12 +27,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ModuleLoader {
   public static ModuleLoader create(
-    Log log, String directory, WorkerDistribution distribution, Injector injector
+    Log log, String directory, WorkerDistribution distribution,
+    Locale englishLocale, Locale germanLocale, Injector injector
   ) {
     var jars = findJarsInDirectory(directory);
     var urls = jars.stream().map(ModuleLoader::findFileUrl).toArray(URL[]::new);
     var classLoader = new URLClassLoader(urls, ModuleLoader.class.getClassLoader());
-    return new ModuleLoader(log, jars, classLoader, distribution, injector);
+    return new ModuleLoader(log, jars, classLoader, distribution, englishLocale,
+      germanLocale, injector);
   }
 
   private static List<File> findJarsInDirectory(String directory) {
@@ -55,6 +58,8 @@ public final class ModuleLoader {
   private final ClassLoader classLoader;
   private final List<RegisteredModule> modules = Lists.newArrayList();
   private final WorkerDistribution distribution;
+  private final Locale englishLocale;
+  private final Locale germanLocale;
   private final Injector injector;
 
   /**
@@ -71,6 +76,7 @@ public final class ModuleLoader {
       module.module().enable();
       module.module().triggerRepository().allTriggers().forEach(Trigger::initialize);
       module.module().actionRepository().allActions().forEach(Action::initialize);
+      applyModuleLocales(module.name());
       log.info("Successfully loaded module " + module.name());
     }
     for (var module : modules) {
@@ -166,6 +172,22 @@ public final class ModuleLoader {
       return false;
     }
     return suspect.getSuperclass().equals(Module.class);
+  }
+
+  private void applyModuleLocales(String module) throws Exception {
+    var englishModuleLocale = Locale.create(module, "en");
+    if (englishModuleLocale.exists()) {
+      englishModuleLocale.load();
+      englishLocale.addLocale(englishModuleLocale.locale());
+    }
+    var germanModuleLocale = Locale.create(module, "de");
+    if (germanModuleLocale.exists()) {
+      germanModuleLocale.load();
+      germanLocale.addLocale(germanModuleLocale.locale());
+    }
+    if (englishModuleLocale.exists() && germanModuleLocale.exists()) {
+      log.info("Successfully loaded locales of module " + module);
+    }
   }
 
   /**

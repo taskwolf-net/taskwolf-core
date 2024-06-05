@@ -12,13 +12,13 @@ public final class LocaleInjectionModule extends AbstractModule {
   @Singleton
   @Named("englishLocale")
   Locale provideEnglishLocale() throws Exception {
-    return Locale.createAndLoad("en");
+    return Locale.createAndLoad("core", "en");
   }
 
   @Provides
   @Singleton
   @Named("germanLocale")
   Locale provideGermanLocale() throws Exception {
-    return Locale.createAndLoad("de");
+    return Locale.createAndLoad("core", "de");
   }
 }
