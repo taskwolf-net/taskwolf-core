@@ -147,8 +147,6 @@
   "discord.action.channel.message.failure.server.not.found": "An error occurred while sending a discord channel message. The error occurred because the selected server could not be found.",
   "discord.action.channel.message.failure.channel.not.found": "An error occurred while sending a discord channel message. The error occurred because the selected channel could not be found.",
 
-  "google.account.link.description": "Would you like to add another Google account to integrate it into your automation with the help of Taskwolf? Just click on the logo.",
-
   "table.link.description": "Great news! You don't need to link an account to use this module. Just click on \"skip\" to go to the next page.",
 
   "table.trigger.entry.insert.name": "Database entry insertion",

@@ -147,8 +147,6 @@
   "discord.action.channel.message.failure.server.not.found": "Beim Senden einer Discord-Kanal-Nachricht ist ein Fehler aufgetreten. Der Fehler trat auf, weil der ausgewählte Server nicht gefunden werden konnte.",
   "discord.action.channel.message.failure.channel.not.found": "Beim Senden einer Discord-Kanal-Nachricht ist ein Fehler aufgetreten. Der Fehler ist aufgetreten, weil der ausgewählte Kanal nicht gefunden werden konnte.",
 
-  "google.account.link.description": "Möchten Sie ein weiteres Google-Konto hinzufügen, um es mit Hilfe von Taskwolf in Ihre Automatisierung zu integrieren? Klicken Sie einfach auf das Logo.",
-
   "table.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen.",
 
   "table.trigger.entry.insert.name": "Einfügen von Datenbankeinträgen",
