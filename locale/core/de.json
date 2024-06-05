@@ -98,9 +98,5 @@
   "workflow.timeline.entry.condition.remove.title": "Workflow Bedingung entfernt",
   "workflow.timeline.entry.condition.remove.description": "Eine Bedingung wurde von %ACTOR% vom Workflow entfernt.",
 
-  "workflow.duplicated": "Dupliziert",
-
-  "process.link.description": "Gute Nachrichten! Sie brauchen kein Konto zu verknüpfen, um dieses Modul zu nutzen. Klicken Sie einfach auf \"Überspringen\", um zur nächsten Seite zu gelangen.",
-  "process.trigger.name": "Prozess",
-  "process.trigger.description": "Dieser Trigger wird ausgelöst, wenn ein Prozessschritt den Workflow aufruft",
+  "workflow.duplicated": "Dupliziert"
 }

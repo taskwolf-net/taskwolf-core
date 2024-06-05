@@ -98,9 +98,5 @@
   "workflow.timeline.entry.condition.remove.title": "Workflow condition removed",
   "workflow.timeline.entry.condition.remove.description": "A condition was removed from the workflow by %ACTOR%.",
 
-  "workflow.duplicated": "Duplicated",
-
-  "process.link.description": "Great news! You don't need to link an account to use this module. Just click on \"skip\" to go to the next page.",
-  "process.trigger.name": "Process",
-  "process.trigger.description": "This trigger is initiated when a process step calls the workflow",
+  "workflow.duplicated": "Duplicated"
 }
