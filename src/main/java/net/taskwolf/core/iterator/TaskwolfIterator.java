@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 @Accessors(fluent = true)
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class TaskwolfIterator<T, U> {
-private final List<T> list;
+  private final List<T> list;
   private int counter = 0;
 
   /**
