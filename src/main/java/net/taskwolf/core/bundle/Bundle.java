@@ -24,16 +24,16 @@ public final class Bundle {
       row.findCell(16).booleanValue(), row.findCell(17).longValue());
   }
 
-  public Bundle of(UUID ownerId, BundlePreset preset) {
-    return of(ownerId, preset, preset.workflowExecutionLimit(),
+  public static Bundle of(UUID ownerId, BundlePreset preset, long expiration) {
+    return of(ownerId, preset, expiration, preset.workflowExecutionLimit(),
       preset.databaseDataLimit());
   }
 
-  public Bundle of(
-    UUID ownerId, BundlePreset preset, long workflowExecutionLimit,
-    long databaseDataLimit
+  public static Bundle of(
+    UUID ownerId, BundlePreset preset, long expiration,
+    long workflowExecutionLimit, long databaseDataLimit
   ) {
-    return create(ownerId, preset.type(), preset.expiration(),
+    return create(ownerId, preset.type(), expiration,
       preset.workflowAccess(), preset.workflowNumberLimit(),
       workflowExecutionLimit, preset.workflowTemplateAccess(),
       preset.databaseAccess(), preset.databaseNumberLimit(),
