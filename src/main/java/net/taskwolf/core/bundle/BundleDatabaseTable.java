@@ -55,7 +55,7 @@ public final class BundleDatabaseTable extends DatabaseTable {
       bundle.accountsNumberLimit()));
   }
 
-  private void updateBundle(Bundle bundle) {
+  public void updateBundle(Bundle bundle) {
     update(DatabaseCell.create(bundle.ownerId()), DatabaseRow.of(bundle.ownerId(),
       bundle.type().toString(), bundle.expiration(), bundle.workflowAccess(),
       bundle.workflowNumberLimit(), bundle.workflowExecutionLimit(),
