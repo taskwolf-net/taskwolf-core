@@ -93,6 +93,7 @@ public class CoreApplication {
     registry.register(injector.getInstance(HelpCommand.class));
     registry.register(injector.getInstance(TemplateCommand.class));
     registry.register(injector.getInstance(UserCommand.class));
+    registry.register(injector.getInstance(BundleCommand.class));
     registry.register(injector.getInstance(ExitCommand.class));
   }
 }
