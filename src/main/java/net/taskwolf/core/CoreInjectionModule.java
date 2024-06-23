@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.access.AccessInjectionModule;
 import net.taskwolf.core.action.ActionInjectionModule;
+import net.taskwolf.core.bundle.BundleInjectionModule;
 import net.taskwolf.core.command.CommandInjectionModule;
 import net.taskwolf.core.condition.ConditionInjectionModule;
 import net.taskwolf.core.database.DatabaseInjectionModule;
@@ -41,6 +42,7 @@ public class CoreInjectionModule extends AbstractModule {
     install(DatabaseInjectionModule.create());
     install(UserInjectionModule.create());
     install(OrganizationInjectionModule.create());
+    install(BundleInjectionModule.create());
     install(TriggerInjectionModule.create());
     install(ActionInjectionModule.create());
     install(ConditionInjectionModule.create());
