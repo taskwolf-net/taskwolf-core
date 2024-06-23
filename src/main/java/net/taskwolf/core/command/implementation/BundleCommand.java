@@ -62,11 +62,11 @@ public final class BundleCommand extends Command {
   }
 
   private void printBundleInfo(Bundle bundle) {
-    System.out.println("Type: " + bundle.type());
-    System.out.println("Expiration: " + bundle.expiration());
-    System.out.println("Workflow execution limit: " +
+    log().info("Type: " + bundle.type());
+    log().info("Expiration: " + bundle.expiration());
+    log().info("Workflow execution limit: " +
       bundle.workflowExecutionLimit());
-    System.out.println("Database data limit: " + bundle.databaseDataLimit());
+    log().info("Database data limit: " + bundle.databaseDataLimit());
   }
 
   private boolean applyBundle(String[] arguments) throws Exception {
@@ -77,7 +77,7 @@ public final class BundleCommand extends Command {
     var type = BundleType.valueOf(arguments[2].toUpperCase());
     var expiration = Long.valueOf(arguments[3]);
     if (type.isEnterprise() && arguments.length != 6) {
-      System.out.println("If you want to use the Enterprise bundle, you must " +
+      log().info("If you want to use the Enterprise bundle, you must " +
         "specify a workflow execution limit and a database data limit.");
       return true;
     }
@@ -87,10 +87,11 @@ public final class BundleCommand extends Command {
       bundleDatabaseTable.insertBundle(Bundle.of(owner,
         BundlePreset.createAndLoad(type), executionLimit,  executionLimit,
         dataLimit));
-      return true;
+    } else {
+      bundleDatabaseTable.insertBundle(Bundle.of(owner,
+        BundlePreset.createAndLoad(type), expiration));
     }
-    bundleDatabaseTable.insertBundle(Bundle.of(owner,
-      BundlePreset.createAndLoad(type), expiration));
+    log().info("You have successfully applied the bundle");
     return true;
   }
 
@@ -102,7 +103,7 @@ public final class BundleCommand extends Command {
     var type = BundleType.valueOf(arguments[2].toUpperCase());
     var expiration = Long.valueOf(arguments[3]);
     if (type.isEnterprise() && arguments.length != 6) {
-      System.out.println("If you want to use the Enterprise bundle, you must " +
+      log().info("If you want to use the Enterprise bundle, you must " +
         "specify a workflow execution limit and a database data limit.");
       return true;
     }
@@ -112,10 +113,11 @@ public final class BundleCommand extends Command {
       bundleDatabaseTable.updateBundle(Bundle.of(owner,
         BundlePreset.createAndLoad(type), executionLimit,  executionLimit,
         dataLimit));
-      return true;
+    } else {
+      bundleDatabaseTable.updateBundle(Bundle.of(owner,
+        BundlePreset.createAndLoad(type), expiration));
     }
-    bundleDatabaseTable.updateBundle(Bundle.of(owner,
-      BundlePreset.createAndLoad(type), expiration));
+    log().info("You have successfully changed the bundle");
     return true;
   }
 
@@ -125,6 +127,7 @@ public final class BundleCommand extends Command {
     }
     var owner = UUID.fromString(arguments[1]);
     bundleDatabaseTable.deleteBundle(owner);
+    log().info("You have successfully deleted the bundle");
     return true;
   }
 }
