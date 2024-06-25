@@ -20,8 +20,8 @@ public final class Bundle {
       row.findCell(8).longValue(), row.findCell(9).doubleValue(),
       row.findCell(10).booleanValue(), row.findCell(11).longValue(),
       row.findCell(12).booleanValue(), row.findCell(13).longValue(),
-      row.findCell(14).booleanValue(), row.findCell(15).longValue(),
-      row.findCell(16).booleanValue(), row.findCell(17).longValue());
+      row.findCell(14).booleanValue(), row.findCell(15).booleanValue(),
+      row.findCell(16).longValue());
   }
 
   public static Bundle of(UUID ownerId, BundlePreset preset, long expiration) {
@@ -39,8 +39,7 @@ public final class Bundle {
       preset.databaseAccess(), preset.databaseNumberLimit(),
       databaseDataLimit, preset.webhookAccess(), preset.webhookNumberLimit(),
       preset.organizationAccess(), preset.organizationMemberLimit(),
-      preset.deviceAccess(), preset.deviceNumberLimit(), preset.accountsAccess(),
-      preset.accountsNumberLimit());
+      preset.deviceAccess(), preset.accountsAccess(), preset.accountsNumberLimit());
   }
 
   private final UUID ownerId;
@@ -58,7 +57,6 @@ public final class Bundle {
   private final boolean organizationAccess;
   private final long organizationMemberLimit;
   private final boolean deviceAccess;
-  private final long deviceNumberLimit;
   private final boolean accountsAccess;
   private final long accountsNumberLimit;
 }

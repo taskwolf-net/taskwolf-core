@@ -30,7 +30,6 @@ public final class BundleDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("organizationAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("organizationMemberLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("deviceAccess", DatabaseDataType.BOOLEAN));
-    columns.add(DatabaseColumn.create("deviceNumberLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("accountsAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("accountsNumberLimit", DatabaseDataType.BIGINT));
     return new BundleDatabaseTable(connection, keyspace, TABLE_NAME, columns);
@@ -51,8 +50,7 @@ public final class BundleDatabaseTable extends DatabaseTable {
       bundle.databaseDataLimit(), bundle.webhookAccess(),
       bundle.webhookNumberLimit(), bundle.organizationAccess(),
       bundle.organizationMemberLimit(), bundle.deviceAccess(),
-      bundle.deviceNumberLimit(), bundle.accountsAccess(),
-      bundle.accountsNumberLimit()));
+      bundle.accountsAccess(), bundle.accountsNumberLimit()));
   }
 
   public void updateBundle(Bundle bundle) {
@@ -63,7 +61,7 @@ public final class BundleDatabaseTable extends DatabaseTable {
       bundle.databaseNumberLimit(), bundle.databaseDataLimit(),
       bundle.webhookAccess(), bundle.webhookNumberLimit(),
       bundle.organizationAccess(), bundle.organizationMemberLimit(),
-      bundle.deviceAccess(), bundle.deviceNumberLimit(), bundle.accountsAccess(),
+      bundle.deviceAccess(), bundle.accountsAccess(),
       bundle.accountsNumberLimit()));
   }
 

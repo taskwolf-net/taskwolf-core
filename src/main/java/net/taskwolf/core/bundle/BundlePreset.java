@@ -31,7 +31,6 @@ public final class BundlePreset extends Configuration {
   private boolean organizationAccess;
   private long organizationMemberLimit;
   private boolean deviceAccess;
-  private long deviceNumberLimit;
   private boolean accountsAccess;
   private long accountsNumberLimit;
 
@@ -55,7 +54,6 @@ public final class BundlePreset extends Configuration {
     organizationAccess = json.getBoolean("organizationAccess");
     organizationMemberLimit = json.getLong("organizationMemberLimit");
     deviceAccess = json.getBoolean("deviceAccess");
-    deviceNumberLimit = json.getLong("deviceNumberLimit");
     accountsAccess = json.getBoolean("accountsAccess");
     accountsNumberLimit = json.getLong("accountsNumberLimit");
   }
