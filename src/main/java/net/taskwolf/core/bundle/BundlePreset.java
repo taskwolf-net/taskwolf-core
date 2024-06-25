@@ -25,7 +25,7 @@ public final class BundlePreset extends Configuration {
   private boolean workflowTemplateAccess;
   private boolean databaseAccess;
   private long databaseNumberLimit;
-  private long databaseDataLimit;
+  private double databaseDataLimit;
   private boolean webhookAccess;
   private long webhookNumberLimit;
   private boolean organizationAccess;
@@ -49,7 +49,7 @@ public final class BundlePreset extends Configuration {
     workflowTemplateAccess = json.getBoolean("workflowTemplateAccess");
     databaseAccess = json.getBoolean("databaseAccess");
     databaseNumberLimit = json.getLong("databaseNumberLimit");
-    databaseDataLimit = json.getLong("databaseDataLimit");
+    databaseDataLimit = json.getDouble("databaseDataLimit");
     webhookAccess = json.getBoolean("webhookAccess");
     webhookNumberLimit = json.getLong("webhookNumberLimit");
     organizationAccess = json.getBoolean("organizationAccess");

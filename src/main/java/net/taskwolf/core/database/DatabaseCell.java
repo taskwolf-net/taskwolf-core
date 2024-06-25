@@ -40,6 +40,13 @@ public final class DatabaseCell {
     return (int) value;
   }
 
+  public double doubleValue() {
+    if (!(value instanceof Double)) {
+      return -1;
+    }
+    return (double) value;
+  }
+
   public long longValue() {
     if (!(value instanceof Long)) {
       return -1;

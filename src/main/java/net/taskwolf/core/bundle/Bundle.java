@@ -17,7 +17,7 @@ public final class Bundle {
       row.findCell(2).longValue(), row.findCell(3).booleanValue(),
       row.findCell(4).longValue(), row.findCell(5).longValue(),
       row.findCell(6).booleanValue(), row.findCell(7).booleanValue(),
-      row.findCell(8).longValue(), row.findCell(9).longValue(),
+      row.findCell(8).longValue(), row.findCell(9).doubleValue(),
       row.findCell(10).booleanValue(), row.findCell(11).longValue(),
       row.findCell(12).booleanValue(), row.findCell(13).longValue(),
       row.findCell(14).booleanValue(), row.findCell(15).longValue(),
@@ -31,7 +31,7 @@ public final class Bundle {
 
   public static Bundle of(
     UUID ownerId, BundlePreset preset, long expiration,
-    long workflowExecutionLimit, long databaseDataLimit
+    long workflowExecutionLimit, double databaseDataLimit
   ) {
     return create(ownerId, preset.type(), expiration,
       preset.workflowAccess(), preset.workflowNumberLimit(),
@@ -52,7 +52,7 @@ public final class Bundle {
   private final boolean workflowTemplateAccess;
   private final boolean databaseAccess;
   private final long databaseNumberLimit;
-  private final long databaseDataLimit;
+  private final double databaseDataLimit;
   private final boolean webhookAccess;
   private final long webhookNumberLimit;
   private final boolean organizationAccess;

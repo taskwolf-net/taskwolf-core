@@ -24,7 +24,7 @@ public final class BundleDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("workflowTemplateAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("databaseAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("databaseNumberLimit", DatabaseDataType.BIGINT));
-    columns.add(DatabaseColumn.create("databaseDataLimit", DatabaseDataType.BIGINT));
+    columns.add(DatabaseColumn.create("databaseDataLimit", DatabaseDataType.DOUBLE));
     columns.add(DatabaseColumn.create("webhookAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("webhookNumberLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("organizationAccess", DatabaseDataType.BOOLEAN));
