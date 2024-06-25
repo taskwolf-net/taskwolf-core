@@ -64,15 +64,4 @@ public final class UserInjectionModule extends AbstractModule {
     userEmailChangeDatabaseTable.createIfNotExists();
     return userEmailChangeDatabaseTable;
   }
-
-  @Provides
-  @Singleton
-  ProfilePictureDatabaseTable provideProfilePictureDatabaseTable(
-    DatabaseConnection connection, DatabaseKeyspace keyspace
-  ) {
-    var profilePictureDatabaseTable = ProfilePictureDatabaseTable.create(
-      connection, keyspace);
-    profilePictureDatabaseTable.createIfNotExists();
-    return profilePictureDatabaseTable;
-  }
 }
