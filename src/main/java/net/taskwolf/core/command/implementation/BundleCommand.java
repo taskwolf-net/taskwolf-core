@@ -18,8 +18,8 @@ public final class BundleCommand extends Command {
   @Inject
   private BundleCommand(Log log, BundleDatabaseTable bundleDatabaseTable) {
     super(log, "bundle", new String[0], new String[] {"info <owner>",
-      "apply <owner, type, expiration, (execution-limit), (data-limit)>",
-      "change <owner, type, expiration, (execution-limit), (data-limit)>",
+      "apply <owner, type, expiration days, (execution-limit), (data-limit)>",
+      "change <owner, type, expiration days, (execution-limit), (data-limit)>",
       "delete <owner>"});
     this.bundleDatabaseTable = bundleDatabaseTable;
   }
@@ -75,7 +75,8 @@ public final class BundleCommand extends Command {
     }
     var owner = UUID.fromString(arguments[1]);
     var type = BundleType.valueOf(arguments[2].toUpperCase());
-    var expiration = Long.valueOf(arguments[3]);
+    var expiration = System.currentTimeMillis() +
+      Long.valueOf(arguments[3]) * 1000 * 60 * 60 * 24;
     if (type.isEnterprise() && arguments.length != 6) {
       log().info("If you want to use the Enterprise bundle, you must " +
         "specify a workflow execution limit and a database data limit.");
@@ -85,8 +86,7 @@ public final class BundleCommand extends Command {
       var executionLimit = Long.parseLong(arguments[4]);
       var dataLimit = Long.parseLong(arguments[5]);
       bundleDatabaseTable.insertBundle(Bundle.of(owner,
-        BundlePreset.createAndLoad(type), executionLimit,  executionLimit,
-        dataLimit));
+        BundlePreset.createAndLoad(type), expiration, executionLimit, dataLimit));
     } else {
       bundleDatabaseTable.insertBundle(Bundle.of(owner,
         BundlePreset.createAndLoad(type), expiration));
@@ -101,7 +101,8 @@ public final class BundleCommand extends Command {
     }
     var owner = UUID.fromString(arguments[1]);
     var type = BundleType.valueOf(arguments[2].toUpperCase());
-    var expiration = Long.valueOf(arguments[3]);
+    var expiration = System.currentTimeMillis() +
+      Long.valueOf(arguments[3]) * 1000 * 60 * 60 * 24;
     if (type.isEnterprise() && arguments.length != 6) {
       log().info("If you want to use the Enterprise bundle, you must " +
         "specify a workflow execution limit and a database data limit.");
@@ -111,8 +112,7 @@ public final class BundleCommand extends Command {
       var executionLimit = Long.parseLong(arguments[4]);
       var dataLimit = Long.parseLong(arguments[5]);
       bundleDatabaseTable.updateBundle(Bundle.of(owner,
-        BundlePreset.createAndLoad(type), executionLimit,  executionLimit,
-        dataLimit));
+        BundlePreset.createAndLoad(type), expiration, executionLimit, dataLimit));
     } else {
       bundleDatabaseTable.updateBundle(Bundle.of(owner,
         BundlePreset.createAndLoad(type), expiration));
