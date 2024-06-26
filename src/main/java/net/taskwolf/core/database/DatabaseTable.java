@@ -92,6 +92,7 @@ public class DatabaseTable {
    * @return A future that is completed when the operation is completed
    */
   public CompletableFuture<Void> addColumn(DatabaseColumn column) {
+    columns.add(column);
     var query = new StringBuilder("ALTER TABLE ");
     query.append(fullName());
     query.append(" ADD ");
@@ -132,6 +133,11 @@ public class DatabaseTable {
    * @return A future that is completed when the operation is completed
    */
   public CompletableFuture<Void> dropColumn(String columnName) {
+    var newColumns = columns.stream()
+      .filter(column -> !column.name().equalsIgnoreCase(columnName))
+      .toList();
+    columns.clear();
+    columns.addAll(newColumns);
     var query = new StringBuilder("ALTER TABLE ");
     query.append(fullName());
     query.append(" DROP ");
