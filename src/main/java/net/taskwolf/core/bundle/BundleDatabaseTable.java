@@ -20,7 +20,7 @@ public final class BundleDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("expiration", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("workflowAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("workflowNumberLimit", DatabaseDataType.BIGINT));
-    columns.add(DatabaseColumn.create("workflowExecutionLimit", DatabaseDataType.BIGINT));
+    columns.add(DatabaseColumn.create("workflowOperationLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("workflowTemplateAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("databaseAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("databaseNumberLimit", DatabaseDataType.BIGINT));
@@ -45,7 +45,7 @@ public final class BundleDatabaseTable extends DatabaseTable {
   public void insertBundle(Bundle bundle) {
     insert(DatabaseRow.of(bundle.ownerId(), bundle.type().toString(),
       bundle.expiration(), bundle.workflowAccess(), bundle.workflowNumberLimit(),
-      bundle.workflowExecutionLimit(), bundle.workflowTemplateAccess(),
+      bundle.workflowOperationLimit(), bundle.workflowTemplateAccess(),
       bundle.databaseAccess(), bundle.databaseNumberLimit(),
       bundle.databaseDataLimit(), bundle.webhookAccess(),
       bundle.webhookNumberLimit(), bundle.organizationAccess(),
@@ -56,7 +56,7 @@ public final class BundleDatabaseTable extends DatabaseTable {
   public void updateBundle(Bundle bundle) {
     update(DatabaseCell.create(bundle.ownerId()), DatabaseRow.of(bundle.ownerId(),
       bundle.type().toString(), bundle.expiration(), bundle.workflowAccess(),
-      bundle.workflowNumberLimit(), bundle.workflowExecutionLimit(),
+      bundle.workflowNumberLimit(), bundle.workflowOperationLimit(),
       bundle.workflowTemplateAccess(), bundle.databaseAccess(),
       bundle.databaseNumberLimit(), bundle.databaseDataLimit(),
       bundle.webhookAccess(), bundle.webhookNumberLimit(),

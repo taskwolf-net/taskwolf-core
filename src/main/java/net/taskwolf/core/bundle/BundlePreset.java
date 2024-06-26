@@ -21,7 +21,7 @@ public final class BundlePreset extends Configuration {
   private long expiration;
   private boolean workflowAccess;
   private long workflowNumberLimit;
-  private long workflowExecutionLimit;
+  private long workflowOperationLimit;
   private boolean workflowTemplateAccess;
   private boolean databaseAccess;
   private long databaseNumberLimit;
@@ -44,7 +44,7 @@ public final class BundlePreset extends Configuration {
     expiration = json.getLong("expiration");
     workflowAccess = json.getBoolean("workflowAccess");
     workflowNumberLimit = json.getLong("workflowNumberLimit");
-    workflowExecutionLimit = json.getLong("workflowExecutionLimit");
+    workflowOperationLimit = json.getLong("workflowOperationLimit");
     workflowTemplateAccess = json.getBoolean("workflowTemplateAccess");
     databaseAccess = json.getBoolean("databaseAccess");
     databaseNumberLimit = json.getLong("databaseNumberLimit");

@@ -8,20 +8,26 @@ import net.taskwolf.core.bundle.BundlePreset;
 import net.taskwolf.core.bundle.BundleType;
 import net.taskwolf.core.command.Command;
 import net.taskwolf.core.log.Log;
+import net.taskwolf.core.workflow.operation.OperationDatabaseTable;
 
 import java.util.UUID;
 
 @Singleton
 public final class BundleCommand extends Command {
   private final BundleDatabaseTable bundleDatabaseTable;
+  private final OperationDatabaseTable operationDatabaseTable;
 
   @Inject
-  private BundleCommand(Log log, BundleDatabaseTable bundleDatabaseTable) {
+  private BundleCommand(
+    Log log, BundleDatabaseTable bundleDatabaseTable,
+    OperationDatabaseTable operationDatabaseTable
+  ) {
     super(log, "bundle", new String[0], new String[] {"info <owner>",
-      "apply <owner, type, expiration days, (execution-limit), (data-limit)>",
-      "change <owner, type, expiration days, (execution-limit), (data-limit)>",
+      "apply <owner, type, expiration days, (operation-limit), (data-limit)>",
+      "change <owner, type, expiration days, (operation-limit), (data-limit)>",
       "delete <owner>"});
     this.bundleDatabaseTable = bundleDatabaseTable;
+    this.operationDatabaseTable = operationDatabaseTable;
   }
 
   @Override
@@ -64,8 +70,8 @@ public final class BundleCommand extends Command {
   private void printBundleInfo(Bundle bundle) {
     log().info("Type: " + bundle.type());
     log().info("Expiration: " + bundle.expiration());
-    log().info("Workflow execution limit: " +
-      bundle.workflowExecutionLimit());
+    log().info("Workflow operation limit: " +
+      bundle.workflowOperationLimit());
     log().info("Database data limit: " + bundle.databaseDataLimit());
   }
 
@@ -83,14 +89,15 @@ public final class BundleCommand extends Command {
       return true;
     }
     if (arguments.length == 6) {
-      var executionLimit = Long.parseLong(arguments[4]);
+      var operationLimit = Long.parseLong(arguments[4]);
       var dataLimit = Long.parseLong(arguments[5]);
       bundleDatabaseTable.insertBundle(Bundle.of(owner,
-        BundlePreset.createAndLoad(type), expiration, executionLimit, dataLimit));
+        BundlePreset.createAndLoad(type), expiration, operationLimit, dataLimit));
     } else {
       bundleDatabaseTable.insertBundle(Bundle.of(owner,
         BundlePreset.createAndLoad(type), expiration));
     }
+    operationDatabaseTable.insertOperations(owner);
     log().info("You have successfully applied the bundle");
     return true;
   }
@@ -109,14 +116,15 @@ public final class BundleCommand extends Command {
       return true;
     }
     if (arguments.length == 6) {
-      var executionLimit = Long.parseLong(arguments[4]);
+      var operationLimit = Long.parseLong(arguments[4]);
       var dataLimit = Long.parseLong(arguments[5]);
       bundleDatabaseTable.updateBundle(Bundle.of(owner,
-        BundlePreset.createAndLoad(type), expiration, executionLimit, dataLimit));
+        BundlePreset.createAndLoad(type), expiration, operationLimit, dataLimit));
     } else {
       bundleDatabaseTable.updateBundle(Bundle.of(owner,
         BundlePreset.createAndLoad(type), expiration));
     }
+    operationDatabaseTable.resetExpiration(owner);
     log().info("You have successfully changed the bundle");
     return true;
   }
@@ -127,6 +135,7 @@ public final class BundleCommand extends Command {
     }
     var owner = UUID.fromString(arguments[1]);
     bundleDatabaseTable.deleteBundle(owner);
+    operationDatabaseTable.deleteOperations(owner);
     log().info("You have successfully deleted the bundle");
     return true;
   }

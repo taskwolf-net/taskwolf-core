@@ -7,8 +7,6 @@ plugins {
 
 group = "net.taskwolf"
 version = "1.0.0-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_21
-java.targetCompatibility = JavaVersion.VERSION_21
 
 publishing {
   publications {
@@ -21,8 +19,7 @@ publishing {
       url = uri("https://git.taskwolf.net/api/v4/projects/8/packages/maven")
       credentials(HttpHeaderCredentials::class) {
         name = "Private-Token"
-        value = System.getenv("TASKWOLF_GITLAB_PRIVATE_TOKEN") ?:
-          findProperty("taskwolfGitlabPrivateToken") as String?
+        value = "***REMOVED***"
       }
       authentication {
         create("header", HttpHeaderAuthentication::class)

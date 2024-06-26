@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
+import net.taskwolf.core.workflow.operation.OperationDatabaseTable;
 import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
 
 @RequiredArgsConstructor(staticName = "create")
@@ -41,5 +42,16 @@ public final class WorkflowInjectionModule extends AbstractModule {
       keyspace);
     timelineDatabaseTable.createIfNotExists();
     return timelineDatabaseTable;
+  }
+
+  @Provides
+  @Singleton
+  OperationDatabaseTable provideOperationDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var operationDatabaseTable = OperationDatabaseTable.create(connection,
+      keyspace);
+    operationDatabaseTable.createIfNotExists();
+    return operationDatabaseTable;
   }
 }

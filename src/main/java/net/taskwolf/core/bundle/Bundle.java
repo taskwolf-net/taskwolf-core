@@ -25,17 +25,17 @@ public final class Bundle {
   }
 
   public static Bundle of(UUID ownerId, BundlePreset preset, long expiration) {
-    return of(ownerId, preset, expiration, preset.workflowExecutionLimit(),
+    return of(ownerId, preset, expiration, preset.workflowOperationLimit(),
       preset.databaseDataLimit());
   }
 
   public static Bundle of(
     UUID ownerId, BundlePreset preset, long expiration,
-    long workflowExecutionLimit, double databaseDataLimit
+    long workflowOperationLimit, double databaseDataLimit
   ) {
     return create(ownerId, preset.type(), expiration,
       preset.workflowAccess(), preset.workflowNumberLimit(),
-      workflowExecutionLimit, preset.workflowTemplateAccess(),
+      workflowOperationLimit, preset.workflowTemplateAccess(),
       preset.databaseAccess(), preset.databaseNumberLimit(),
       databaseDataLimit, preset.webhookAccess(), preset.webhookNumberLimit(),
       preset.organizationAccess(), preset.organizationMemberLimit(),
@@ -47,7 +47,7 @@ public final class Bundle {
   private final long expiration;
   private final boolean workflowAccess;
   private final long workflowNumberLimit;
-  private final long workflowExecutionLimit;
+  private final long workflowOperationLimit;
   private final boolean workflowTemplateAccess;
   private final boolean databaseAccess;
   private final long databaseNumberLimit;

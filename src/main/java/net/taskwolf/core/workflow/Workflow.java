@@ -5,6 +5,8 @@ import com.google.common.collect.Multimap;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.action.ActionExecutor;
 import net.taskwolf.core.action.ActionResult;
+import net.taskwolf.core.bundle.Bundle;
+import net.taskwolf.core.bundle.BundleDatabaseTable;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.mail.TaskwolfMail;
@@ -14,6 +16,8 @@ import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.user.User;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.notification.WorkflowFailureNotification;
+import net.taskwolf.core.workflow.operation.Operation;
+import net.taskwolf.core.workflow.operation.OperationDatabaseTable;
 import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
 import org.json.JSONObject;
 
@@ -26,6 +30,8 @@ public final class Workflow {
   private final WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable;
   private final TimelineDatabaseTable timelineDatabaseTable;
   private final UserDatabaseTable userDatabaseTable;
+  private final BundleDatabaseTable bundleDatabaseTable;
+  private final OperationDatabaseTable operationDatabaseTable;
   private final OrganizationDatabaseTable organizationDatabaseTable;
   private final NotificationDatabaseTable notificationDatabaseTable;
   private final Locale englishLocale;
@@ -40,7 +46,31 @@ public final class Workflow {
    * @param information The information provided by the trigger
    */
   public void trigger(Map<String, Object> information) {
+    checkOperationLimit().thenAccept(limitReached ->
+      trigger(information, limitReached));
+  }
+
+  private void trigger(Map<String, Object> information, boolean limitReached) {
+    if (limitReached) {
+      postExecutionFailure("workflow.operations.limit.reached");
+      return;
+    }
     executeNextAction(Maps.newHashMap(information));
+  }
+
+  private CompletableFuture<Boolean> checkOperationLimit() {
+    return bundleDatabaseTable.findBundle(workflowEntry.ownerId()).thenCompose(
+      bundle -> operationDatabaseTable.findOperations(workflowEntry.ownerId())
+        .thenApply(operations -> checkOperationLimit(bundle, operations)));
+  }
+
+  private boolean checkOperationLimit(Bundle bundle, Operation operations) {
+    if (System.currentTimeMillis() > operations.expiration()) {
+      operationDatabaseTable.extendExpiration(operations);
+      return true;
+    }
+    return operations.operations() + actions.size() >
+      bundle.workflowOperationLimit();
   }
 
   private void executeNextAction(Map<String, Object> information) {
@@ -77,6 +107,7 @@ public final class Workflow {
     timelineDatabaseTable.generateAvailableEntryId().thenAccept(id ->
       timelineDatabaseTable.insertEntry(id, workflowEntry.id(), currentTime,
         "timeline-workflow-execute", "{}"));
+    operationDatabaseTable.addOperations(workflowEntry.ownerId(), actions.size());
   }
 
   private boolean checkConditions(int index, Map<String, Object> information) {
@@ -110,6 +141,10 @@ public final class Workflow {
     findNotificationTarget().thenAccept(target -> notificationDatabaseTable
       .findNotificationSettings(target.id()).thenAccept(setting ->
         sendExecutionFailureNotification(target, setting, failureMessage)));
+    if (currentActionIndex > 0) {
+      operationDatabaseTable.addOperations(workflowEntry.ownerId(),
+        currentActionIndex);
+    }
   }
 
   private CompletableFuture<User> findNotificationTarget() {

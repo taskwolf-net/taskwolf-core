@@ -82,6 +82,8 @@
   "tutorial.help.step.3.title": "Das Ende",
   "tutorial.help.step.3.description": "Wir haben das Ende unserer kurzen Einführung in Taskwolf erreicht. Wir hoffen, dass Sie das Produkt besser kennenlernen konnten. Wir danken Ihnen für Ihre Aufmerksamkeit.",
 
+  "workflow.operations.limit.reached": "Sie haben die maximale Anzahl von Workflow-Operationen pro Monat ausgeschöpft. Aus diesem Grund konnte der Workflow nicht ausgeführt werden. Sie können Ihr Paket jederzeit aktualisieren, um zusätzliche Workflow-Operationen zu erhalten.",
+
   "workflow.timeline.entry.created.title": "Workflow wurde erstellt",
   "workflow.timeline.entry.created.description": "Der Workflow wurde von %CREATOR% veröffentlicht.",
   "workflow.timeline.entry.executed.title": "Workflow wurde ausgeführt",
