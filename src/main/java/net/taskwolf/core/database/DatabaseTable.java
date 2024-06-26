@@ -89,8 +89,9 @@ public class DatabaseTable {
   /**
    * Is used to add a new column to the database table
    * @param column The new column
+   * @return A future that is completed when the operation is completed
    */
-  public void addColumn(DatabaseColumn column) {
+  public CompletableFuture<Void> addColumn(DatabaseColumn column) {
     var query = new StringBuilder("ALTER TABLE ");
     query.append(fullName());
     query.append(" ADD ");
@@ -98,15 +99,19 @@ public class DatabaseTable {
     query.append(" ");
     query.append(column.dataType());
     query.append(";");
-    connection.session().executeAsync(query.toString());
+    var result = connection.session().executeAsync(query.toString());
+    var futureResponse = new CompletableFuture<Void>();
+    result.thenAccept(resultSet -> futureResponse.complete(null));
+    return futureResponse;
   }
 
   /**
    * Is used to rename an existing column
    * @param oldColumnName The old name of the column
    * @param newColumnName The new name of the column
+   * @return A future that is completed when the operation is completed
    */
-  public void renameColumn(String oldColumnName, String newColumnName) {
+  public CompletableFuture<Void> renameColumn(String oldColumnName, String newColumnName) {
     var query = new StringBuilder("ALTER TABLE ");
     query.append(fullName());
     query.append(" RENAME ");
@@ -115,19 +120,28 @@ public class DatabaseTable {
     query.append(newColumnName);
     query.append(";");
     connection.session().executeAsync(query.toString());
+    var result = connection.session().executeAsync(query.toString());
+    var futureResponse = new CompletableFuture<Void>();
+    result.thenAccept(resultSet -> futureResponse.complete(null));
+    return futureResponse;
   }
 
   /**
    * Is used to delete a column and all its content
    * @param columnName The name of the column that is to be dropped
+   * @return A future that is completed when the operation is completed
    */
-  public void dropColumn(String columnName) {
+  public CompletableFuture<Void> dropColumn(String columnName) {
     var query = new StringBuilder("ALTER TABLE ");
     query.append(fullName());
     query.append(" DROP ");
     query.append(columnName);
     query.append(";");
     connection.session().executeAsync(query.toString());
+    var result = connection.session().executeAsync(query.toString());
+    var futureResponse = new CompletableFuture<Void>();
+    result.thenAccept(resultSet -> futureResponse.complete(null));
+    return futureResponse;
   }
 
   /**
@@ -248,44 +262,6 @@ public class DatabaseTable {
     result.thenAccept(resultSet -> futureResponse.complete(
       resultSet.one().get(0, Long.class)));
     return futureResponse;
-  }
-
-  /**
-   * Calculates the average size of a single row (in bytes)
-   * @return The average row size
-   */
-  public CompletableFuture<Long> averageRowSize() {
-    return averageRowSize(10);
-  }
-
-  protected CompletableFuture<Long> averageRowSize(int samples) {
-    var query = new StringBuilder("SELECT * FROM ");
-    query.append(fullName());
-    query.append(" LIMIT ");
-    query.append(samples);
-    query.append(";");
-    var result = connection.session().executeAsync(query.toString());
-    var futureResponse = new CompletableFuture<Long>();
-    result.thenAccept(resultSet -> futureResponse.complete(
-      calculateAverageRowSize(resultSet)));
-    return futureResponse;
-  }
-
-  private long calculateAverageRowSize(AsyncResultSet resultSet) {
-    var rows = resultSet.currentPage();
-    var rowsNumber = 0;
-    var sum = 0D;
-    for (var row : rows) {
-      rowsNumber++;
-      var columnsNumber = row.size();
-      for (var i = 0; i < columnsNumber; i++) {
-        var bytes = row.getBytesUnsafe(i);
-        if (bytes != null) {
-          sum += bytes.remaining();
-        }
-      }
-    }
-    return rowsNumber > 0 ? Math.round(sum / rowsNumber) : 0;
   }
 
   /**
