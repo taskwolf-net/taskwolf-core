@@ -16,7 +16,10 @@ public final class BundleDatabaseTable extends DatabaseTable {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
-    columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("bundleType", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("bundleClass", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("bundlerRuntime", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("price", DatabaseDataType.DOUBLE));
     columns.add(DatabaseColumn.create("expiration", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("workflowAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("workflowNumberLimit", DatabaseDataType.BIGINT));
@@ -43,19 +46,9 @@ public final class BundleDatabaseTable extends DatabaseTable {
   }
 
   public void insertBundle(Bundle bundle) {
-    insert(DatabaseRow.of(bundle.ownerId(), bundle.type().toString(),
-      bundle.expiration(), bundle.workflowAccess(), bundle.workflowNumberLimit(),
-      bundle.workflowOperationLimit(), bundle.workflowTemplateAccess(),
-      bundle.databaseAccess(), bundle.databaseNumberLimit(),
-      bundle.databaseDataLimit(), bundle.webhookAccess(),
-      bundle.webhookNumberLimit(), bundle.organizationAccess(),
-      bundle.organizationMemberLimit(), bundle.deviceAccess(),
-      bundle.accountsAccess(), bundle.accountsNumberLimit()));
-  }
-
-  public void updateBundle(Bundle bundle) {
-    update(DatabaseCell.create(bundle.ownerId()), DatabaseRow.of(bundle.ownerId(),
-      bundle.type().toString(), bundle.expiration(), bundle.workflowAccess(),
+    insert(DatabaseRow.of(bundle.ownerId(), bundle.bundleType().toString(),
+      bundle.bundleClass().toString(), bundle.bundleRuntime().toString(),
+      bundle.price(), bundle.expiration(), bundle.workflowAccess(),
       bundle.workflowNumberLimit(), bundle.workflowOperationLimit(),
       bundle.workflowTemplateAccess(), bundle.databaseAccess(),
       bundle.databaseNumberLimit(), bundle.databaseDataLimit(),
@@ -63,6 +56,19 @@ public final class BundleDatabaseTable extends DatabaseTable {
       bundle.organizationAccess(), bundle.organizationMemberLimit(),
       bundle.deviceAccess(), bundle.accountsAccess(),
       bundle.accountsNumberLimit()));
+  }
+
+  public void updateBundle(Bundle bundle) {
+    update(DatabaseCell.create(bundle.ownerId()), DatabaseRow.of(bundle.ownerId(),
+      bundle.bundleType().toString(), bundle.bundleClass().toString(),
+      bundle.bundleRuntime().toString(), bundle.price(), bundle.expiration(),
+      bundle.workflowAccess(), bundle.workflowNumberLimit(),
+      bundle.workflowOperationLimit(), bundle.workflowTemplateAccess(),
+      bundle.databaseAccess(), bundle.databaseNumberLimit(),
+      bundle.databaseDataLimit(), bundle.webhookAccess(),
+      bundle.webhookNumberLimit(), bundle.organizationAccess(),
+      bundle.organizationMemberLimit(), bundle.deviceAccess(),
+      bundle.accountsAccess(), bundle.accountsNumberLimit()));
   }
 
   public void deleteBundle(UUID ownerId) {

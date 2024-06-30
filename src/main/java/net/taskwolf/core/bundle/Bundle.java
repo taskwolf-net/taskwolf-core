@@ -14,27 +14,34 @@ public final class Bundle {
   public static Bundle of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(),
       BundleType.valueOf(row.findCell(1).stringValue()),
-      row.findCell(2).longValue(), row.findCell(3).booleanValue(),
-      row.findCell(4).longValue(), row.findCell(5).longValue(),
-      row.findCell(6).booleanValue(), row.findCell(7).booleanValue(),
-      row.findCell(8).longValue(), row.findCell(9).doubleValue(),
+      BundleClass.valueOf(row.findCell(2).stringValue()),
+      BundleRuntime.valueOf(row.findCell(3).stringValue()),
+      row.findCell(4).doubleValue(), row.findCell(5).longValue(),
+      row.findCell(6).booleanValue(), row.findCell(7).longValue(),
+      row.findCell(8).longValue(), row.findCell(9).booleanValue(),
       row.findCell(10).booleanValue(), row.findCell(11).longValue(),
-      row.findCell(12).booleanValue(), row.findCell(13).longValue(),
-      row.findCell(14).booleanValue(), row.findCell(15).booleanValue(),
-      row.findCell(16).longValue());
+      row.findCell(12).doubleValue(), row.findCell(13).booleanValue(),
+      row.findCell(14).longValue(), row.findCell(15).booleanValue(),
+      row.findCell(16).longValue(), row.findCell(17).booleanValue(),
+      row.findCell(18).booleanValue(), row.findCell(19).longValue());
   }
 
-  public static Bundle of(UUID ownerId, BundlePreset preset, long expiration) {
-    return of(ownerId, preset, expiration, preset.workflowOperationLimit(),
+  public static Bundle of(
+    UUID ownerId, BundlePreset preset, BundleRuntime runtime
+  ) {
+    return of(ownerId, preset, runtime, preset.workflowOperationLimit(),
       preset.databaseDataLimit());
   }
 
   public static Bundle of(
-    UUID ownerId, BundlePreset preset, long expiration,
+    UUID ownerId, BundlePreset preset, BundleRuntime runtime,
     long workflowOperationLimit, double databaseDataLimit
   ) {
-    return create(ownerId, preset.type(), expiration,
-      preset.workflowAccess(), preset.workflowNumberLimit(),
+    var expiration = System.currentTimeMillis() + (runtime.isMonthly() ?
+      1000L * 60 * 60 * 24 * 30 : 1000L * 60 * 60 * 24 * 365);
+    return create(ownerId, preset.bundleType(), preset.bundleClass(), runtime,
+      runtime.isMonthly() ? preset.monthlyPrice() : preset.yearlyPrice(),
+      expiration, preset.workflowAccess(), preset.workflowNumberLimit(),
       workflowOperationLimit, preset.workflowTemplateAccess(),
       preset.databaseAccess(), preset.databaseNumberLimit(),
       databaseDataLimit, preset.webhookAccess(), preset.webhookNumberLimit(),
@@ -43,7 +50,10 @@ public final class Bundle {
   }
 
   private final UUID ownerId;
-  private final BundleType type;
+  private final BundleType bundleType;
+  private final BundleClass bundleClass;
+  private final BundleRuntime bundleRuntime;
+  private final double price;
   private final long expiration;
   private final boolean workflowAccess;
   private final long workflowNumberLimit;
