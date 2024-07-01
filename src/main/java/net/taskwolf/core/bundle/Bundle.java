@@ -29,24 +29,39 @@ public final class Bundle {
   public static Bundle of(
     UUID ownerId, BundlePreset preset, BundleRuntime runtime
   ) {
-    return of(ownerId, preset, runtime, preset.workflowOperationLimit(),
-      preset.databaseDataLimit());
+    return of(ownerId, preset, runtime, calculatePresetPrice(preset, runtime),
+      preset.workflowOperationLimit(), preset.databaseDataLimit());
+  }
+
+  private static double calculatePresetPrice(
+    BundlePreset preset, BundleRuntime runtime
+  ) {
+    if (preset.bundleType() == BundleType.TRIAL) {
+      return 0;
+    }
+    return runtime.isMonthly() ? preset.monthlyPrice() : preset.yearlyPrice();
   }
 
   public static Bundle of(
     UUID ownerId, BundlePreset preset, BundleRuntime runtime,
-    long workflowOperationLimit, double databaseDataLimit
+    double price, long workflowOperationLimit, double databaseDataLimit
   ) {
-    var expiration = System.currentTimeMillis() + (runtime.isMonthly() ?
-      1000L * 60 * 60 * 24 * 30 : 1000L * 60 * 60 * 24 * 365);
     return create(ownerId, preset.bundleType(), preset.bundleClass(), runtime,
-      runtime.isMonthly() ? preset.monthlyPrice() : preset.yearlyPrice(),
-      expiration, preset.workflowAccess(), preset.workflowNumberLimit(),
-      workflowOperationLimit, preset.workflowTemplateAccess(),
-      preset.databaseAccess(), preset.databaseNumberLimit(),
-      databaseDataLimit, preset.webhookAccess(), preset.webhookNumberLimit(),
-      preset.organizationAccess(), preset.organizationMemberLimit(),
-      preset.deviceAccess(), preset.accountsAccess(), preset.accountsNumberLimit());
+      price, calculateBundleExpiration(runtime), preset.workflowAccess(),
+      preset.workflowNumberLimit(), workflowOperationLimit,
+      preset.workflowTemplateAccess(), preset.databaseAccess(),
+      preset.databaseNumberLimit(), databaseDataLimit, preset.webhookAccess(),
+      preset.webhookNumberLimit(), preset.organizationAccess(),
+      preset.organizationMemberLimit(), preset.deviceAccess(),
+      preset.accountsAccess(), preset.accountsNumberLimit());
+  }
+
+  private static long calculateBundleExpiration(BundleRuntime runtime) {
+    return System.currentTimeMillis() + 1000L * 60 * 60 * 24 * switch (runtime) {
+      case WEEKLY -> 7;
+      case MONTHLY -> 30;
+      case YEARLY -> 365;
+    };
   }
 
   private final UUID ownerId;
