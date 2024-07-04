@@ -87,6 +87,7 @@ public final class BundleCommand extends Command {
     if (bundleType.isTrial()) {
       bundleDatabaseTable.insertBundle(Bundle.of(owner,
         presetRepository.findPreset(bundleType).get(), BundleRuntime.WEEKLY));
+      log().info("You have successfully applied the bundle");
       return true;
     }
     var bundleClass = BundleClass.valueOf(arguments[3].toUpperCase());
@@ -121,6 +122,7 @@ public final class BundleCommand extends Command {
     if (bundleType.isTrial()) {
       bundleDatabaseTable.updateBundle(Bundle.of(owner,
         presetRepository.findPreset(bundleType).get(), BundleRuntime.WEEKLY));
+      log().info("You have successfully applied the bundle");
       return true;
     }
     var bundleClass = BundleClass.valueOf(arguments[3].toUpperCase());
