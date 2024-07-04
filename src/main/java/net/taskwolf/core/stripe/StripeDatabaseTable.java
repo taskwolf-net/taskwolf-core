@@ -2,7 +2,6 @@ package net.taskwolf.core.stripe;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
-import net.taskwolf.core.workflow.operation.Operation;
 
 import java.util.List;
 import java.util.UUID;
@@ -36,30 +35,21 @@ public final class StripeDatabaseTable extends DatabaseTable {
     insert(DatabaseRow.of(userId, accountId));
   }
 
-  public void resetExpiration(UUID targetId) {
-    findOperations(targetId).thenAccept(this::resetExpiration);
+  private void updateStripeAccount(StripeAccount account) {
+    update(DatabaseCell.create(account.userId()), DatabaseRow.of(
+      account.userId(), account.accountId()));
   }
 
-  public void resetExpiration(Operation operation) {
-    operation.resetExpiration();
-    updateOperations(operation);
+  public void deleteStripeAccount(UUID userId) {
+    delete(DatabaseCell.create(userId));
   }
 
-  private void updateOperations(Operation operation) {
-    update(DatabaseCell.create(operation.targetId()), DatabaseRow.of(
-      operation.targetId(), operation.operations(), operation.expiration()));
+  public CompletableFuture<Boolean> stripeAccountExists(UUID userId) {
+    return exists(DatabaseCell.create(userId));
   }
 
-  public void deleteStripeAccount(UUID targetId) {
-    delete(DatabaseCell.create(targetId));
-  }
-
-  public CompletableFuture<Boolean> operationsExists(UUID targetId) {
-    return exists(DatabaseCell.create(targetId));
-  }
-
-  public CompletableFuture<Operation> findOperations(UUID targetId) {
-    return selectRow(DatabaseCell.create(targetId)).thenApply(Operation::of);
+  public CompletableFuture<StripeAccount> findStripeAccount(UUID userId) {
+    return selectRow(DatabaseCell.create(userId)).thenApply(StripeAccount::of);
   }
 }
 
