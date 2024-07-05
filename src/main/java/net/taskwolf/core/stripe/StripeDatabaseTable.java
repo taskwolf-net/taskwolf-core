@@ -17,6 +17,7 @@ public final class StripeDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("userId", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("accountId", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("subscriptionId", DatabaseDataType.TEXT));
     return new StripeDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -32,7 +33,14 @@ public final class StripeDatabaseTable extends DatabaseTable {
   }
 
   public void insertStripeAccount(UUID userId, String accountId) {
-    insert(DatabaseRow.of(userId, accountId));
+    insert(DatabaseRow.of(userId, accountId, null));
+  }
+
+  public void updateStripeAccountSubscription(
+    StripeAccount account, String subscriptionId
+  ) {
+    account.updateSubscription(subscriptionId);
+    updateStripeAccount(account);
   }
 
   private void updateStripeAccount(StripeAccount account) {
@@ -48,8 +56,17 @@ public final class StripeDatabaseTable extends DatabaseTable {
     return exists(DatabaseCell.create(userId));
   }
 
+  public CompletableFuture<Boolean> stripeAccountExistsById(String accountId) {
+    return exists("accountId='" + accountId + "' ALLOW FILTERING");
+  }
+
   public CompletableFuture<StripeAccount> findStripeAccount(UUID userId) {
     return selectRow(DatabaseCell.create(userId)).thenApply(StripeAccount::of);
+  }
+
+  public CompletableFuture<StripeAccount> findStripeAccountById(String accountId) {
+    return selectRow("accountId='" + accountId + "' ALLOW FILTERING")
+      .thenApply(StripeAccount::of);
   }
 }
 
