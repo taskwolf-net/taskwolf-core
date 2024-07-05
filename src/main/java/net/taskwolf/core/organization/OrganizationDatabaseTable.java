@@ -91,6 +91,10 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
     return exists(DatabaseCell.create(organizationId));
   }
 
+  public CompletableFuture<Boolean> organizationExistsByOwner(UUID ownerId) {
+    return exists(DatabaseCell.create("owner=" + ownerId + " ALLOW FILTERING"));
+  }
+
   public void deleteOrganization(UUID organizationId) {
     delete(DatabaseCell.create(organizationId));
   }
@@ -99,9 +103,9 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
     return selectRow(DatabaseCell.create(organizationId)).thenApply(Organization::of);
   }
 
-  public CompletableFuture<List<Organization>> findOrganizationsByOwner(UUID ownerId) {
-    return selectRows("owner=" + ownerId + " ALLOW FILTERING").thenApply(rows ->
-      rows.stream().map(Organization::of).toList());
+  public CompletableFuture<Organization> findOrganizationByOwner(UUID ownerId) {
+    return selectRow("owner=" + ownerId + " ALLOW FILTERING")
+      .thenApply(Organization::of);
   }
 
   public CompletableFuture<List<Organization>> findAllOrganization() {
