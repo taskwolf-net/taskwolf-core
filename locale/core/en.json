@@ -129,5 +129,7 @@
   "activity.ticket.answer.title": "Ticket reply received",
   "activity.ticket.answer.description": "You have a new reply to one of your tickets",
   "activity.ticket.delete.title": "Ticket deleted",
-  "activity.ticket.delete.description": "You have deleted one of your tickets"
+  "activity.ticket.delete.description": "You have deleted one of your tickets",
+
+  "organization.default.name": "Organization of %s"
 }
