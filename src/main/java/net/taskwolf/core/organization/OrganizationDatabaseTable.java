@@ -92,7 +92,7 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> organizationExistsByOwner(UUID ownerId) {
-    return exists(DatabaseCell.create("owner=" + ownerId + " ALLOW FILTERING"));
+    return exists("owner=" + ownerId + " ALLOW FILTERING");
   }
 
   public void deleteOrganization(UUID organizationId) {
