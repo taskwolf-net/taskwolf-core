@@ -16,6 +16,7 @@ public final class StripeConfiguration extends Configuration {
     return configuration;
   }
 
+  private String apiKey;
   private String webhookSecret;
   private String professionalBeginnerMonthlyProductId;
   private String professionalAdvancedMonthlyProductId;
@@ -36,6 +37,7 @@ public final class StripeConfiguration extends Configuration {
 
   @Override
   protected void deserialize(JSONObject json) {
+    apiKey = json.getString("apiKey");
     webhookSecret = json.getString("webhookSecret");
     professionalBeginnerMonthlyProductId = json.getString("professionalBeginnerMonthlyProductId");
     professionalAdvancedMonthlyProductId = json.getString("professionalAdvancedMonthlyProductId");
