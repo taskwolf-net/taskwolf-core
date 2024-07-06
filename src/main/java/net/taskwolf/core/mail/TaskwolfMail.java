@@ -1,11 +1,17 @@
 package net.taskwolf.core.mail;
 
+import com.google.common.collect.Lists;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
+import javax.activation.DataHandler;
+import javax.activation.FileDataSource;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -68,16 +74,25 @@ public class TaskwolfMail {
     }
   }
 
-  public void send(String target, String title, String body) {
-    send(target, title, body, "");
+  public CompletableFuture<Void> send(String target, String title, String body) {
+    return send(target, title, body, Lists.newArrayList());
   }
 
-  public void send(String target, String title, String body, String dataType) {
-    send(new Address[] {createAddress(target)}, title, body, dataType);
+  public CompletableFuture<Void> send(
+    String target, String title, String body,
+    List<TaskwolfMailAttachment> attachments
+  ) {
+    return send(new Address[] {createAddress(target)}, title, body, attachments);
   }
 
-  public void send(Address[] addresses, String title, String body, String dataType) {
-    new Thread(() -> sendEmail(addresses, title, body, dataType)).start();
+  public CompletableFuture<Void> send(
+    Address[] addresses, String title, String body,
+    List<TaskwolfMailAttachment> attachments
+  ) {
+    var futureResponse = new CompletableFuture<Void>();
+    new Thread(() -> sendEmail(addresses, title, body, attachments, futureResponse))
+      .start();
+    return futureResponse;
   }
 
   private Address createAddress(String email) {
@@ -90,15 +105,18 @@ public class TaskwolfMail {
   }
 
   private void sendEmail(
-    Address[] addresses, String title, String body, String dataType
+    Address[] addresses, String title, String body,
+    List<TaskwolfMailAttachment> attachments,
+    CompletableFuture<Void> futureResponse
   ) {
     try {
       var session = createSession("smtp", smtpMailHost, smtpMailPort);
-      var message = createMessage(session, addresses, title, body, dataType);
+      var message = createMessage(session, addresses, title, body, attachments);
       var transport = session.getTransport("smtp");
       transport.connect(smtpMailHost, mailUser, mailPassword);
       transport.sendMessage(message, message.getAllRecipients());
       transport.close();
+      futureResponse.complete(null);
     } catch (Exception exception) {
       exception.printStackTrace();
     }
@@ -118,18 +136,41 @@ public class TaskwolfMail {
 
   private Message createMessage(
     Session session, Address[] addresses, String title, String body,
-    String dataType
+    List<TaskwolfMailAttachment> attachments
   ) throws Exception {
     var message = new MimeMessage(session);
     message.setFrom(new InternetAddress(mail, "Taskwolf"));
     message.setRecipients(Message.RecipientType.TO, addresses);
     message.setSentDate(new Date());
     message.setSubject(title);
-    if (dataType.equals("")) {
+    if (attachments.isEmpty()) {
       message.setText(body);
     } else {
-      message.setContent(body, dataType);
+      message.setContent(createMultipartBody(body, attachments));
     }
     return message;
+  }
+
+  private MimeMultipart createMultipartBody(
+    String body, List<TaskwolfMailAttachment> attachments
+  ) throws Exception {
+    var multipart = new MimeMultipart();
+    var textBodyPart = new MimeBodyPart();
+    textBodyPart.setText(body);
+    multipart.addBodyPart(textBodyPart);
+    for (var attachment : attachments) {
+      addAttachmentPart(attachment, multipart);
+    }
+    return multipart;
+  }
+
+  private void addAttachmentPart(
+    TaskwolfMailAttachment attachment, MimeMultipart multipart
+  ) throws Exception {
+    var attachmentBodyPart = new MimeBodyPart();
+    var source = new FileDataSource(attachment.file().getAbsolutePath());
+    attachmentBodyPart.setDataHandler(new DataHandler(source));
+    attachmentBodyPart.setFileName(attachment.name());
+    multipart.addBodyPart(attachmentBodyPart);
   }
 }
