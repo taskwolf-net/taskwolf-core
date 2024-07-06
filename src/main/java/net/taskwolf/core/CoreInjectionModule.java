@@ -21,6 +21,7 @@ import net.taskwolf.core.organization.OrganizationInjectionModule;
 import net.taskwolf.core.stripe.StripeInjectionModule;
 import net.taskwolf.core.template.TemplateInjectionModule;
 import net.taskwolf.core.ticket.TicketInjectionModule;
+import net.taskwolf.core.trial.TrialInjectionModule;
 import net.taskwolf.core.trigger.TriggerInjectionModule;
 import net.taskwolf.core.tutorial.TutorialInjectionModule;
 import net.taskwolf.core.user.UserInjectionModule;
@@ -58,6 +59,7 @@ public class CoreInjectionModule extends AbstractModule {
     install(ModuleInjectionModule.create());
     install(CommandInjectionModule.create());
     install(StripeInjectionModule.create());
+    install(TrialInjectionModule.create());
   }
 
   @Provides
