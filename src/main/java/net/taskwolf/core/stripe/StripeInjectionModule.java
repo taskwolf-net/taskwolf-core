@@ -29,6 +29,17 @@ public final class StripeInjectionModule extends AbstractModule {
 
   @Provides
   @Singleton
+  TerminationDatabaseTable provideTerminationDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var terminationDatabaseTable = TerminationDatabaseTable.create(connection,
+      keyspace);
+    terminationDatabaseTable.createIfNotExists();
+    return terminationDatabaseTable;
+  }
+
+  @Provides
+  @Singleton
   StripeClient provideStripeClient(StripeConfiguration configuration) {
     return new StripeClient(configuration.apiKey());
   }
