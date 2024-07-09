@@ -45,7 +45,7 @@ public final class StripeDatabaseTable extends DatabaseTable {
 
   private CompletableFuture<Void> updateStripeAccount(StripeAccount account) {
     return update(DatabaseCell.create(account.userId()), DatabaseRow.of(
-      account.userId(), account.accountId()));
+      account.userId(), account.accountId(), account.subscriptionId()));
   }
 
   public CompletableFuture<Void> deleteStripeAccount(UUID userId) {
