@@ -14,10 +14,10 @@ public final class StripeDatabaseTable extends DatabaseTable {
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
-    columns.add(DatabaseColumn.create("userId", DatabaseDataType.UUID,
+    columns.add(DatabaseColumn.create("account", DatabaseDataType.TEXT,
       DatabaseColumn.Type.PRIMARY_KEY));
-    columns.add(DatabaseColumn.create("accountId", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("subscriptionId", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("subscription", DatabaseDataType.TEXT));
     return new StripeDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -29,36 +29,36 @@ public final class StripeDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> insertStripeAccount(
-    UUID userId, String accountId, String subscriptionId
+    String accountId, UUID userId, String subscriptionId
   ) {
-    return insert(DatabaseRow.of(userId, accountId, subscriptionId));
+    return insert(DatabaseRow.of(accountId, userId, subscriptionId));
   }
 
   public CompletableFuture<Void> updateStripeAccount(
-    UUID userId, String accountId, String subscriptionId
+    String accountId, UUID userId, String subscriptionId
   ) {
-    return update(DatabaseCell.create(userId),
-      DatabaseRow.of(userId, accountId, subscriptionId));
+    return update(DatabaseCell.create(accountId),
+      DatabaseRow.of(accountId, userId, subscriptionId));
   }
 
-  public CompletableFuture<Void> deleteStripeAccount(UUID userId) {
-    return delete(DatabaseCell.create(userId));
+  public CompletableFuture<Void> deleteStripeAccount(String accountId) {
+    return delete(DatabaseCell.create(accountId));
   }
 
-  public CompletableFuture<Boolean> stripeAccountExists(UUID userId) {
-    return exists(DatabaseCell.create(userId));
+  public CompletableFuture<Boolean> stripeAccountExists(String accountId) {
+    return exists(DatabaseCell.create(accountId));
   }
 
-  public CompletableFuture<Boolean> stripeAccountExistsById(String accountId) {
-    return exists("accountId='" + accountId + "' ALLOW FILTERING");
+  public CompletableFuture<Boolean> stripeAccountExistsByUser(UUID userId) {
+    return exists("user=" + userId + " ALLOW FILTERING");
   }
 
-  public CompletableFuture<StripeAccount> findStripeAccount(UUID userId) {
-    return selectRow(DatabaseCell.create(userId)).thenApply(StripeAccount::of);
+  public CompletableFuture<StripeAccount> findStripeAccount(String accountId) {
+    return selectRow(DatabaseCell.create(accountId)).thenApply(StripeAccount::of);
   }
 
-  public CompletableFuture<StripeAccount> findStripeAccountById(String accountId) {
-    return selectRow("accountId='" + accountId + "' ALLOW FILTERING")
+  public CompletableFuture<StripeAccount> findStripeAccountByUser(UUID userId) {
+    return selectRow("user=" + userId + " ALLOW FILTERING")
       .thenApply(StripeAccount::of);
   }
 }
