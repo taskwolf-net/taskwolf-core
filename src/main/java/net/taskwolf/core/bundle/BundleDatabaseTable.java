@@ -45,8 +45,8 @@ public final class BundleDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public void insertBundle(Bundle bundle) {
-    insert(DatabaseRow.of(bundle.ownerId(), bundle.bundleType().toString(),
+  public CompletableFuture<Void> insertBundle(Bundle bundle) {
+    return insert(DatabaseRow.of(bundle.ownerId(), bundle.bundleType().toString(),
       bundle.bundleClass().toString(), bundle.bundleRuntime().toString(),
       bundle.price(), bundle.expiration(), bundle.workflowAccess(),
       bundle.workflowNumberLimit(), bundle.workflowOperationLimit(),
@@ -58,21 +58,22 @@ public final class BundleDatabaseTable extends DatabaseTable {
       bundle.accountsNumberLimit()));
   }
 
-  public void updateBundle(Bundle bundle) {
-    update(DatabaseCell.create(bundle.ownerId()), DatabaseRow.of(bundle.ownerId(),
-      bundle.bundleType().toString(), bundle.bundleClass().toString(),
-      bundle.bundleRuntime().toString(), bundle.price(), bundle.expiration(),
-      bundle.workflowAccess(), bundle.workflowNumberLimit(),
-      bundle.workflowOperationLimit(), bundle.workflowTemplateAccess(),
-      bundle.databaseAccess(), bundle.databaseNumberLimit(),
-      bundle.databaseDataLimit(), bundle.webhookAccess(),
-      bundle.webhookNumberLimit(), bundle.organizationAccess(),
-      bundle.organizationMemberLimit(), bundle.deviceAccess(),
-      bundle.accountsAccess(), bundle.accountsNumberLimit()));
+  public CompletableFuture<Void> updateBundle(Bundle bundle) {
+    return update(DatabaseCell.create(bundle.ownerId()),
+      DatabaseRow.of(bundle.ownerId(), bundle.bundleType().toString(),
+        bundle.bundleClass().toString(), bundle.bundleRuntime().toString(),
+        bundle.price(), bundle.expiration(), bundle.workflowAccess(),
+        bundle.workflowNumberLimit(), bundle.workflowOperationLimit(),
+        bundle.workflowTemplateAccess(), bundle.databaseAccess(),
+        bundle.databaseNumberLimit(), bundle.databaseDataLimit(),
+        bundle.webhookAccess(), bundle.webhookNumberLimit(),
+        bundle.organizationAccess(), bundle.organizationMemberLimit(),
+        bundle.deviceAccess(), bundle.accountsAccess(),
+        bundle.accountsNumberLimit()));
   }
 
-  public void deleteBundle(UUID ownerId) {
-    delete(DatabaseCell.create(ownerId));
+  public CompletableFuture<Void> deleteBundle(UUID ownerId) {
+    return delete(DatabaseCell.create(ownerId));
   }
 
   public CompletableFuture<Boolean> bundleExists(UUID ownerId) {
