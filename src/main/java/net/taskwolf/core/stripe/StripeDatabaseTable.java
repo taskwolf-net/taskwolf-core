@@ -28,24 +28,17 @@ public final class StripeDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public CompletableFuture<Void> insertStripeAccount(StripeAccount account) {
-    return insertStripeAccount(account.userId(), account.accountId());
-  }
-
-  public CompletableFuture<Void> insertStripeAccount(UUID userId, String accountId) {
-    return insert(DatabaseRow.of(userId, accountId, null));
-  }
-
-  public CompletableFuture<Void> updateStripeAccountSubscription(
-    StripeAccount account, String subscriptionId
+  public CompletableFuture<Void> insertStripeAccount(
+    UUID userId, String accountId, String subscriptionId
   ) {
-    account.updateSubscription(subscriptionId);
-    return updateStripeAccount(account);
+    return insert(DatabaseRow.of(userId, accountId, subscriptionId));
   }
 
-  private CompletableFuture<Void> updateStripeAccount(StripeAccount account) {
-    return update(DatabaseCell.create(account.userId()), DatabaseRow.of(
-      account.userId(), account.accountId(), account.subscriptionId()));
+  public CompletableFuture<Void> updateStripeAccount(
+    UUID userId, String accountId, String subscriptionId
+  ) {
+    return update(DatabaseCell.create(userId),
+      DatabaseRow.of(userId, accountId, subscriptionId));
   }
 
   public CompletableFuture<Void> deleteStripeAccount(UUID userId) {
