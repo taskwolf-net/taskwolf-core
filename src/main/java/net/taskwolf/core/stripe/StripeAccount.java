@@ -12,7 +12,7 @@ import java.util.UUID;
 @RequiredArgsConstructor(staticName = "create")
 public final class StripeAccount {
   public static StripeAccount of(DatabaseRow row) {
-    return create(row.findCell(1).stringValue(), row.findCell(0).uuidValue(),
+    return create(row.findCell(0).stringValue(), row.findCell(1).uuidValue(),
       row.findCell(2).stringValue());
   }
 
