@@ -13,10 +13,11 @@ import java.util.UUID;
 public final class StripeAccount {
   public static StripeAccount of(DatabaseRow row) {
     return create(row.findCell(0).stringValue(), row.findCell(1).uuidValue(),
-      row.findCell(2).stringValue());
+      row.findCell(2).uuidValue(), row.findCell(3).stringValue());
   }
 
   private final String accountId;
+  private final UUID targetId;
   private final UUID userId;
   private final String subscriptionId;
 }

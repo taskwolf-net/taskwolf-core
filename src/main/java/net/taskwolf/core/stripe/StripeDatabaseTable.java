@@ -16,6 +16,7 @@ public final class StripeDatabaseTable extends DatabaseTable {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("account", DatabaseDataType.TEXT,
       DatabaseColumn.Type.PRIMARY_KEY));
+    columns.add(DatabaseColumn.create("target", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("subscription", DatabaseDataType.TEXT));
     return new StripeDatabaseTable(connection, keyspace, TABLE_NAME, columns);
@@ -29,16 +30,16 @@ public final class StripeDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> insertStripeAccount(
-    String accountId, UUID userId, String subscriptionId
+    String accountId, UUID targetId, UUID userId, String subscriptionId
   ) {
-    return insert(DatabaseRow.of(accountId, userId, subscriptionId));
+    return insert(DatabaseRow.of(accountId, targetId, userId, subscriptionId));
   }
 
   public CompletableFuture<Void> updateStripeAccount(
-    String accountId, UUID userId, String subscriptionId
+    String accountId, UUID targetId, UUID userId, String subscriptionId
   ) {
     return update(DatabaseCell.create(accountId),
-      DatabaseRow.of(accountId, userId, subscriptionId));
+      DatabaseRow.of(accountId, targetId, userId, subscriptionId));
   }
 
   public CompletableFuture<Void> deleteStripeAccount(String accountId) {
@@ -49,16 +50,16 @@ public final class StripeDatabaseTable extends DatabaseTable {
     return exists(DatabaseCell.create(accountId));
   }
 
-  public CompletableFuture<Boolean> stripeAccountExistsByUser(UUID userId) {
-    return exists("user=" + userId + " ALLOW FILTERING");
+  public CompletableFuture<Boolean> stripeAccountExistsByTarget(UUID targetId) {
+    return exists("target=" + targetId + " ALLOW FILTERING");
   }
 
   public CompletableFuture<StripeAccount> findStripeAccount(String accountId) {
     return selectRow(DatabaseCell.create(accountId)).thenApply(StripeAccount::of);
   }
 
-  public CompletableFuture<StripeAccount> findStripeAccountByUser(UUID userId) {
-    return selectRow("user=" + userId + " ALLOW FILTERING")
+  public CompletableFuture<StripeAccount> findStripeAccountByTarget(UUID targetId) {
+    return selectRow("target=" + targetId + " ALLOW FILTERING")
       .thenApply(StripeAccount::of);
   }
 }
