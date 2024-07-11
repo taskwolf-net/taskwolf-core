@@ -19,4 +19,15 @@ public final class OrganizationInjectionModule extends AbstractModule {
     organizationDatabaseTable.createIfNotExists();
     return organizationDatabaseTable;
   }
+
+  @Provides
+  @Singleton
+  OrganizationTeamDatabaseTable provideOrganizationTeamDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var organizationTeamDatabaseTable = OrganizationTeamDatabaseTable.create(
+      connection, keyspace);
+    organizationTeamDatabaseTable.createIfNotExists();
+    return organizationTeamDatabaseTable;
+  }
 }
