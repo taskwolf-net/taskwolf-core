@@ -96,10 +96,10 @@ public final class OrganizationTeamDatabaseTable extends DatabaseTable {
     return selectRow(DatabaseCell.create(teamId)).thenApply(OrganizationTeam::of);
   }
 
-  public CompletableFuture<OrganizationTeam> findTeamByOrganization(
+  public CompletableFuture<List<OrganizationTeam>> findTeamsByOrganization(
     UUID organizationId
   ) {
-    return selectRow("organization=" + organizationId + " ALLOW FILTERING")
-      .thenApply(OrganizationTeam::of);
+    return selectRows("organization=" + organizationId + " ALLOW FILTERING")
+      .thenApply(rows -> rows.stream().map(OrganizationTeam::of).toList());
   }
 }
