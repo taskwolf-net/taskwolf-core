@@ -31,13 +31,14 @@ public final class Bundle {
     UUID ownerId, BundlePreset preset, BundleRuntime runtime
   ) {
     return of(ownerId, preset, runtime, calculatePresetPrice(preset, runtime),
-      preset.workflowOperationLimit(), preset.databaseDataLimit());
+      preset.workflowOperationLimit(), preset.databaseDataLimit(),
+      preset.organizationMemberLimit(), preset.organizationTeamLimit());
   }
 
   private static double calculatePresetPrice(
     BundlePreset preset, BundleRuntime runtime
   ) {
-    if (preset.bundleType() == BundleType.TRIAL) {
+    if (preset.bundleType().isTrial()) {
       return 0;
     }
     return runtime.isMonthly() ? preset.monthlyPrice() : preset.yearlyPrice();
@@ -45,7 +46,8 @@ public final class Bundle {
 
   public static Bundle of(
     UUID ownerId, BundlePreset preset, BundleRuntime runtime,
-    double price, long workflowOperationLimit, double databaseDataLimit
+    double price, long workflowOperationLimit, double databaseDataLimit,
+    long organizationMemberLimit, long organizationTeamLimit
   ) {
     return create(ownerId, preset.bundleType(), preset.bundleClass(), runtime,
       price, calculateBundleExpiration(runtime), preset.workflowAccess(),
@@ -53,7 +55,7 @@ public final class Bundle {
       preset.workflowTemplateAccess(), preset.databaseAccess(),
       preset.databaseNumberLimit(), databaseDataLimit, preset.webhookAccess(),
       preset.webhookNumberLimit(), preset.organizationAccess(),
-      preset.organizationMemberLimit(), preset.organizationTeamLimit(),
+      organizationMemberLimit, organizationTeamLimit,
       preset.deviceAccess(), preset.accountsAccess(), preset.accountsNumberLimit());
   }
 

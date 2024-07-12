@@ -22,8 +22,10 @@ public final class BundleCommand extends Command {
     BundlePresetRepository presetRepository
   ) {
     super(log, "bundle", new String[0], new String[] {"info <owner>",
-      "apply <owner, type, class, monthly / yearly, (price), (operation-limit), (data-limit)>",
-      "change <owner, type, class, monthly / yearly, (price), (operation-limit), (data-limit)>",
+      "apply <owner, type, class, monthly / yearly, (price), (operation-limit), " +
+        "(data-limit), (organization-members), (organization-teams)>",
+      "change <owner, type, class, monthly / yearly, (price), (operation-limit), " +
+        "(data-limit), (organization-members), (organization-teams)>",
       "delete <owner>"});
     this.bundleDatabaseTable = bundleDatabaseTable;
     this.operationDatabaseTable = operationDatabaseTable;
@@ -79,7 +81,7 @@ public final class BundleCommand extends Command {
   }
 
   private boolean applyBundle(String[] arguments) throws Exception {
-    if (arguments.length != 3 && arguments.length != 5 && arguments.length != 8) {
+    if (arguments.length != 3 && arguments.length != 5 && arguments.length != 10) {
       return false;
     }
     var owner = UUID.fromString(arguments[1]);
@@ -92,18 +94,21 @@ public final class BundleCommand extends Command {
     }
     var bundleClass = BundleClass.valueOf(arguments[3].toUpperCase());
     var bundleRuntime = BundleRuntime.valueOf(arguments[4].toUpperCase());
-    if (bundleType.isEnterprise() && arguments.length != 8) {
+    if (bundleType.isEnterprise() && arguments.length != 10) {
       log().info("If you want to use the Enterprise bundle, you must " +
-        "specify a workflow execution limit and a database data limit.");
+        "specify a workflow execution limit, a database data limit, " +
+        "an organization member limit and an organization team limit.");
       return true;
     }
-    if (arguments.length == 8) {
+    if (arguments.length == 10) {
       var price = Double.parseDouble(arguments[5]);
       var operationLimit = Long.parseLong(arguments[6]);
       var dataLimit = Long.parseLong(arguments[7]);
+      var memberLimit = Long.parseLong(arguments[8]);
+      var teamLimit = Long.parseLong(arguments[9]);
       bundleDatabaseTable.insertBundle(Bundle.of(owner,
         presetRepository.findPreset(bundleType, bundleClass).get(), bundleRuntime,
-        price, operationLimit, dataLimit));
+        price, operationLimit, dataLimit, memberLimit, teamLimit));
     } else {
       bundleDatabaseTable.insertBundle(Bundle.of(owner,
         presetRepository.findPreset(bundleType, bundleClass).get(), bundleRuntime));
@@ -114,7 +119,7 @@ public final class BundleCommand extends Command {
   }
 
   private boolean changeBundle(String[] arguments) throws Exception {
-    if (arguments.length != 3 && arguments.length != 5 && arguments.length != 8) {
+    if (arguments.length != 3 && arguments.length != 5 && arguments.length != 10) {
       return false;
     }
     var owner = UUID.fromString(arguments[1]);
@@ -127,18 +132,21 @@ public final class BundleCommand extends Command {
     }
     var bundleClass = BundleClass.valueOf(arguments[3].toUpperCase());
     var bundleRuntime = BundleRuntime.valueOf(arguments[4].toUpperCase());
-    if (bundleType.isEnterprise() && arguments.length != 8) {
+    if (bundleType.isEnterprise() && arguments.length != 10) {
       log().info("If you want to use the Enterprise bundle, you must " +
-        "specify a workflow execution limit and a database data limit.");
+        "specify a workflow execution limit, a database data limit, " +
+        "an organization member limit and an organization team limit.");
       return true;
     }
-    if (arguments.length == 8) {
+    if (arguments.length == 10) {
       var price = Double.parseDouble(arguments[5]);
       var operationLimit = Long.parseLong(arguments[6]);
       var dataLimit = Long.parseLong(arguments[7]);
+      var memberLimit = Long.parseLong(arguments[8]);
+      var teamLimit = Long.parseLong(arguments[9]);
       bundleDatabaseTable.updateBundle(Bundle.of(owner,
         BundlePreset.createAndLoad(bundleType, bundleClass), bundleRuntime,
-        price, operationLimit, dataLimit));
+        price, operationLimit, dataLimit, memberLimit, teamLimit));
     } else {
       bundleDatabaseTable.updateBundle(Bundle.of(owner,
         BundlePreset.createAndLoad(bundleType, bundleClass), bundleRuntime));
