@@ -26,7 +26,8 @@ public final class StripeConfiguration extends Configuration {
   }
 
   private String apiKey;
-  private String webhookSecret;
+  private String checkoutWebhookSecret;
+  private String paymentWebhookSecret;
   private Map<String, String> priceIds;
 
   private StripeConfiguration(String path) {
@@ -36,7 +37,8 @@ public final class StripeConfiguration extends Configuration {
   @Override
   protected void deserialize(JSONObject json) {
     apiKey = json.getString("apiKey");
-    webhookSecret = json.getString("webhookSecret");
+    checkoutWebhookSecret = json.getString("checkoutWebhookSecret");
+    paymentWebhookSecret = json.getString("paymentWebhookSecret");
     priceIds = Maps.newHashMap();
     registerPriceId(json, BundleType.PROFESSIONAL, BundleClass.BEGINNER, BundleRuntime.MONTHLY);
     registerPriceId(json, BundleType.PROFESSIONAL, BundleClass.ADVANCED, BundleRuntime.MONTHLY);
