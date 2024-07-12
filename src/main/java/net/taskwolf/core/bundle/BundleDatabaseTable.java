@@ -32,6 +32,7 @@ public final class BundleDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("webhookNumberLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("organizationAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("organizationMemberLimit", DatabaseDataType.BIGINT));
+    columns.add(DatabaseColumn.create("organizationTeamLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("deviceAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("accountsAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("accountsNumberLimit", DatabaseDataType.BIGINT));
@@ -54,8 +55,8 @@ public final class BundleDatabaseTable extends DatabaseTable {
       bundle.databaseNumberLimit(), bundle.databaseDataLimit(),
       bundle.webhookAccess(), bundle.webhookNumberLimit(),
       bundle.organizationAccess(), bundle.organizationMemberLimit(),
-      bundle.deviceAccess(), bundle.accountsAccess(),
-      bundle.accountsNumberLimit()));
+      bundle.organizationTeamLimit(), bundle.deviceAccess(),
+      bundle.accountsAccess(), bundle.accountsNumberLimit()));
   }
 
   public CompletableFuture<Void> updateBundle(Bundle bundle) {
@@ -68,8 +69,8 @@ public final class BundleDatabaseTable extends DatabaseTable {
         bundle.databaseNumberLimit(), bundle.databaseDataLimit(),
         bundle.webhookAccess(), bundle.webhookNumberLimit(),
         bundle.organizationAccess(), bundle.organizationMemberLimit(),
-        bundle.deviceAccess(), bundle.accountsAccess(),
-        bundle.accountsNumberLimit()));
+        bundle.organizationTeamLimit(), bundle.deviceAccess(),
+        bundle.accountsAccess(), bundle.accountsNumberLimit()));
   }
 
   public CompletableFuture<Void> deleteBundle(UUID ownerId) {

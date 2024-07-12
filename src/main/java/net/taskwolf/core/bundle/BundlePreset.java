@@ -45,6 +45,7 @@ public final class BundlePreset extends Configuration {
   private long webhookNumberLimit;
   private boolean organizationAccess;
   private long organizationMemberLimit;
+  private long organizationTeamLimit;
   private boolean deviceAccess;
   private boolean accountsAccess;
   private long accountsNumberLimit;
@@ -81,6 +82,7 @@ public final class BundlePreset extends Configuration {
     webhookNumberLimit = json.getLong("webhookNumberLimit");
     organizationAccess = json.getBoolean("organizationAccess");
     organizationMemberLimit = json.getLong("organizationMemberLimit");
+    organizationTeamLimit = json.getLong("organizationTeamLimit");
     deviceAccess = json.getBoolean("deviceAccess");
     accountsAccess = json.getBoolean("accountsAccess");
     accountsNumberLimit = json.getLong("accountsNumberLimit");

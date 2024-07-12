@@ -22,8 +22,9 @@ public final class Bundle {
       row.findCell(10).booleanValue(), row.findCell(11).longValue(),
       row.findCell(12).doubleValue(), row.findCell(13).booleanValue(),
       row.findCell(14).longValue(), row.findCell(15).booleanValue(),
-      row.findCell(16).longValue(), row.findCell(17).booleanValue(),
-      row.findCell(18).booleanValue(), row.findCell(19).longValue());
+      row.findCell(16).longValue(), row.findCell(17).longValue(),
+      row.findCell(18).booleanValue(), row.findCell(19).booleanValue(),
+      row.findCell(20).longValue());
   }
 
   public static Bundle of(
@@ -52,8 +53,8 @@ public final class Bundle {
       preset.workflowTemplateAccess(), preset.databaseAccess(),
       preset.databaseNumberLimit(), databaseDataLimit, preset.webhookAccess(),
       preset.webhookNumberLimit(), preset.organizationAccess(),
-      preset.organizationMemberLimit(), preset.deviceAccess(),
-      preset.accountsAccess(), preset.accountsNumberLimit());
+      preset.organizationMemberLimit(), preset.organizationTeamLimit(),
+      preset.deviceAccess(), preset.accountsAccess(), preset.accountsNumberLimit());
   }
 
   private static long calculateBundleExpiration(BundleRuntime runtime) {
@@ -81,6 +82,7 @@ public final class Bundle {
   private final long webhookNumberLimit;
   private final boolean organizationAccess;
   private final long organizationMemberLimit;
+  private final long organizationTeamLimit;
   private final boolean deviceAccess;
   private final boolean accountsAccess;
   private final long accountsNumberLimit;
