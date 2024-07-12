@@ -84,5 +84,10 @@ public final class BundleDatabaseTable extends DatabaseTable {
   public CompletableFuture<Bundle> findBundle(UUID ownerId) {
     return selectRow(DatabaseCell.create(ownerId)).thenApply(Bundle::of);
   }
+
+  public CompletableFuture<List<Bundle>> findAllBundles() {
+    return selectAllRows().thenApply(rows ->
+      rows.stream().map(Bundle::of).toList());
+  }
 }
 
