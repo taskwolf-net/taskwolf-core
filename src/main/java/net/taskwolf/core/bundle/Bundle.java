@@ -1,5 +1,6 @@
 package net.taskwolf.core.bundle;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -9,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Accessors(fluent = true)
-@RequiredArgsConstructor(staticName = "create")
+@AllArgsConstructor(staticName = "create")
 public final class Bundle {
   public static Bundle of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(),
@@ -72,7 +73,7 @@ public final class Bundle {
   private final BundleClass bundleClass;
   private final BundleRuntime bundleRuntime;
   private final double price;
-  private final long expiration;
+  private long expiration;
   private final boolean workflowAccess;
   private final long workflowNumberLimit;
   private final long workflowOperationLimit;
@@ -88,4 +89,8 @@ public final class Bundle {
   private final boolean deviceAccess;
   private final boolean accountsAccess;
   private final long accountsNumberLimit;
+
+  public void extend() {
+    expiration = calculateBundleExpiration(bundleRuntime);
+  }
 }
