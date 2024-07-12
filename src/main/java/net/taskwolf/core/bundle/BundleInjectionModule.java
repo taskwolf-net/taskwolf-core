@@ -38,11 +38,7 @@ public final class BundleInjectionModule extends AbstractModule {
     bundlePresetRepository.registerPreset(BundlePreset.createAndLoad(
       BundleType.TEAM, BundleClass.EXPERT));
     bundlePresetRepository.registerPreset(BundlePreset.createAndLoad(
-      BundleType.ENTERPRISE, BundleClass.BEGINNER));
-    bundlePresetRepository.registerPreset(BundlePreset.createAndLoad(
-      BundleType.ENTERPRISE, BundleClass.ADVANCED));
-    bundlePresetRepository.registerPreset(BundlePreset.createAndLoad(
-      BundleType.ENTERPRISE, BundleClass.EXPERT));
+      BundleType.ENTERPRISE));
     return bundlePresetRepository;
   }
 }
