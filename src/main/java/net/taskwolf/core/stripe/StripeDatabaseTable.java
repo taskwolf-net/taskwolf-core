@@ -46,6 +46,10 @@ public final class StripeDatabaseTable extends DatabaseTable {
     return delete(DatabaseCell.create(accountId));
   }
 
+  public CompletableFuture<Void> deleteStripeAccountByTarget(UUID targetId) {
+    return delete("target=" + targetId + " ALLOW FILTERING");
+  }
+
   public CompletableFuture<Boolean> stripeAccountExists(String accountId) {
     return exists(DatabaseCell.create(accountId));
   }
