@@ -16,7 +16,9 @@ public final class VerificationConfiguration extends Configuration {
   }
 
   @Getter
-  private String verificationSecret;
+  private String homeSecret;
+  @Getter
+  private String productSecret;
 
   private VerificationConfiguration(String path) {
     super(path);
@@ -24,6 +26,7 @@ public final class VerificationConfiguration extends Configuration {
 
   @Override
   protected void deserialize(JSONObject json) {
-    verificationSecret = json.getString("verificationSecret");
+    homeSecret = json.getString("homeSecret");
+    productSecret = json.getString("productSecret");
   }
 }
