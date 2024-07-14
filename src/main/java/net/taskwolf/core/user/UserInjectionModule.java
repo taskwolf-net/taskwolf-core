@@ -8,6 +8,7 @@ import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.user.activity.UserActivityDatabaseTable;
+import net.taskwolf.core.user.mfa.MultiFactorAuthDatabaseTable;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class UserInjectionModule extends AbstractModule {
@@ -75,5 +76,16 @@ public final class UserInjectionModule extends AbstractModule {
       connection, keyspace);
     userActivityDatabaseTable.createIfNotExists();
     return userActivityDatabaseTable;
+  }
+
+  @Provides
+  @Singleton
+  MultiFactorAuthDatabaseTable provideMultiFactorAuthDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var multiFactorAuthDatabaseTable = MultiFactorAuthDatabaseTable.create(
+      connection, keyspace);
+    multiFactorAuthDatabaseTable.createIfNotExists();
+    return multiFactorAuthDatabaseTable;
   }
 }

@@ -28,16 +28,18 @@ public final class MultiFactorAuthDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public void insertAuth(UUID userId, String secret, List<String> recoveryCodes) {
-    insert(DatabaseRow.of(userId, secret, recoveryCodes));
+  public CompletableFuture<Void> insertAuth(
+    UUID userId, String secret, List<String> recoveryCodes
+  ) {
+    return insert(DatabaseRow.of(userId, secret, recoveryCodes));
   }
 
   public CompletableFuture<Boolean> authExists(UUID userId) {
     return exists(DatabaseCell.create(userId));
   }
 
-  public void deleteAuth(UUID userId) {
-    delete(DatabaseCell.create(userId));
+  public CompletableFuture<Void> deleteAuth(UUID userId) {
+    return delete(DatabaseCell.create(userId));
   }
 
   public CompletableFuture<MultiFactorAuthUser> findAuth(UUID userId) {

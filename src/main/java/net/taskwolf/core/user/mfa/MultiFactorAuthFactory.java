@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.user.UserDatabaseTable;
 
 import java.util.UUID;
 
@@ -11,8 +12,10 @@ import java.util.UUID;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
 public final class MultiFactorAuthFactory {
   private final MultiFactorAuthDatabaseTable multiFactorAuthDatabaseTable;
+  private final UserDatabaseTable userDatabaseTable;
 
-  public MultiFactorAuth createTimeline(UUID userId) {
-    return MultiFactorAuth.create(multiFactorAuthDatabaseTable, userId);
+  public MultiFactorAuth createAuth(UUID userId) {
+    return MultiFactorAuth.create(multiFactorAuthDatabaseTable, userDatabaseTable,
+      userId);
   }
 }
