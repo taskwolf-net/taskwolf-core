@@ -63,6 +63,19 @@ public final class MultiFactorAuth {
   }
 
   public CompletableFuture<Boolean> verifyCode(String code) {
+    return multiFactorAuthDatabaseTable.authExists(userId)
+      .thenCompose(exists -> verifyCode(code, exists));
+  }
+
+  private CompletableFuture<Boolean> verifyCode(
+    String code, boolean multiFactorAuthEnabled
+  ) {
+    if (!multiFactorAuthEnabled) {
+      return CompletableFuture.completedFuture(true);
+    }
+    if (code.contains("-")) {
+      return verifyRecoveryCode(code);
+    }
     var timeProvider = new SystemTimeProvider();
     var codeGenerator = new DefaultCodeGenerator();
     var verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
