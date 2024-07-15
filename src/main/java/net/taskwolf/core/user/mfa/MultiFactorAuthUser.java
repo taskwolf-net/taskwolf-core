@@ -14,10 +14,11 @@ import java.util.UUID;
 public final class MultiFactorAuthUser {
   public static MultiFactorAuthUser of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).stringValue(),
-      row.findCell(2).listValue());
+      row.findCell(2).listValue(), row.findCell(3).booleanValue());
   }
 
   private final UUID userId;
   private final String secret;
   private final List<String> recoveryCodes;
+  private final boolean confirmed;
 }

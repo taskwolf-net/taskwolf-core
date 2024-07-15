@@ -18,6 +18,7 @@ public final class MultiFactorAuthDatabaseTable extends DatabaseTable {
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("secret", DatabaseDataType.TEXT));
     columns.add(DatabaseListColumn.create("recoveryCodes", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("confirmed", DatabaseDataType.BOOLEAN));
     return new MultiFactorAuthDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -31,7 +32,14 @@ public final class MultiFactorAuthDatabaseTable extends DatabaseTable {
   public CompletableFuture<Void> insertAuth(
     UUID userId, String secret, List<String> recoveryCodes
   ) {
-    return insert(DatabaseRow.of(userId, secret, recoveryCodes));
+    return insert(DatabaseRow.of(userId, secret, recoveryCodes, false),
+      "USING TTL " + (60 * 60));
+  }
+
+  public CompletableFuture<Void> confirmAuth(UUID userId) {
+    return findAuth(userId).thenCompose(auth ->
+      deleteAuth(userId).thenCompose(value ->
+        insert(DatabaseRow.of(userId, auth.secret(), auth.recoveryCodes(), true))));
   }
 
   public CompletableFuture<Boolean> authExists(UUID userId) {
