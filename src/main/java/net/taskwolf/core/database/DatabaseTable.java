@@ -156,13 +156,25 @@ public class DatabaseTable {
    * @return A future that is completed when the insertion is completed
    */
   protected CompletableFuture<Void> insert(DatabaseRow row) {
+    return insert(row, "");
+  }
+
+  /**
+   * Inserts a new database row into the database table
+   * @param row The database row that is to be inserted
+   * @param addition An addition insertion argument (for example for ttl)
+   * @return A future that is completed when the insertion is completed
+   */
+  protected CompletableFuture<Void> insert(DatabaseRow row, String addition) {
     var query = new StringBuilder("INSERT INTO ");
     query.append(fullName());
     query.append(" (");
     query.append(columnNameCompilation());
     query.append(") VALUES (");
     query.append(row.valuesCompilation());
-    query.append(");");
+    query.append(") ");
+    query.append(addition);
+    query.append(";");
     var result = connection.session().executeAsync(query.toString());
     var futureResponse = new CompletableFuture<Void>();
     result.thenAccept(resultSet -> futureResponse.complete(null));
