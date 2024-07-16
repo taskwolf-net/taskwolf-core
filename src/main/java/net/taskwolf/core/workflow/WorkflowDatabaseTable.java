@@ -81,21 +81,21 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     return selectRow(DatabaseCell.create(workflowId)).thenApply(WorkflowEntry::of);
   }
 
-  public CompletableFuture<List<WorkflowEntry>> findWorkflowsOfOwner(UUID ownerId) {
+  public CompletableFuture<List<WorkflowEntry>> findWorkflowsOfUser(UUID ownerId) {
     return selectRows("owner=" + ownerId + " ALLOW FILTERING").thenApply(rows ->
       rows.stream().map(WorkflowEntry::of).collect(Collectors.toList()));
+  }
+
+  public CompletableFuture<List<WorkflowEntry>> findWorkflowsOfOrganizationAndTeam(
+    UUID ownerId, UUID teamId
+  ) {
+    return selectRows("owner=" + ownerId + " AND team=" + teamId + " ALLOW FILTERING")
+      .thenApply(rows -> rows.stream().map(WorkflowEntry::of)
+        .collect(Collectors.toList()));
   }
 
   public CompletableFuture<WorkflowEntry> findWorkflowByTrigger(UUID triggerId) {
     return selectRow("trigger=" + triggerId.toString() + " ALLOW FILTERING")
       .thenApply(WorkflowEntry::of);
-  }
-
-  public CompletableFuture<List<WorkflowEntry>> findWorkflowByOwnerAndModule(
-    UUID ownerId, String module
-    ) {
-    return selectRows("owner=" + ownerId + " AND modules CONTAINS '" +
-        module + "' ALLOW FILTERING")
-      .thenApply(rows -> rows.stream().map(WorkflowEntry::of).toList());
   }
 }
