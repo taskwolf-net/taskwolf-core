@@ -12,6 +12,7 @@ import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.mail.TaskwolfMail;
 import net.taskwolf.core.notification.NotificationDatabaseTable;
 import net.taskwolf.core.notification.NotificationSetting;
+import net.taskwolf.core.organization.Organization;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.user.User;
 import net.taskwolf.core.user.UserDatabaseTable;
@@ -148,14 +149,12 @@ public final class Workflow {
   }
 
   private CompletableFuture<User> findNotificationTarget() {
-    if (workflowEntry.affiliation().isPrivate()) {
-      return userDatabaseTable.findUser(workflowEntry.ownerId());
-    }
-    var futureResponse = new CompletableFuture<User>();
-    organizationDatabaseTable.findOrganization(workflowEntry.ownerId())
-      .thenAccept(organization -> userDatabaseTable.findUser(organization.owner())
-        .thenAccept(futureResponse::complete));
-    return futureResponse;
+    return userDatabaseTable.userExists(workflowEntry.ownerId())
+      .thenCompose(exists -> exists ?
+        CompletableFuture.completedFuture(workflowEntry.ownerId()) :
+        organizationDatabaseTable.findOrganization(workflowEntry.ownerId())
+          .thenApply(Organization::owner))
+      .thenCompose(userDatabaseTable::findUser);
   }
 
   private void sendExecutionFailureNotification(

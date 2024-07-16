@@ -18,8 +18,8 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("creator", DatabaseDataType.UUID));
-    columns.add(DatabaseColumn.create("affiliation", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("team", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("trigger", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("actions", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("conditions", DatabaseDataType.UUID));
@@ -39,26 +39,25 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   public void insertWorkflow(WorkflowEntry entry) {
-    insertWorkflow(entry.id(), entry.creatorId(), entry.affiliation().toString(),
-      entry.ownerId(), entry.triggerId(), entry.actionIds(), entry.conditionIds(),
-      entry.modules(), entry.created(), entry.name(), entry.description(),
-      entry.state().toString());
+    insertWorkflow(entry.id(), entry.creatorId(), entry.ownerId(), entry.teamId(),
+      entry.triggerId(), entry.actionIds(), entry.conditionIds(), entry.modules(),
+      entry.created(), entry.name(), entry.description(), entry.state().toString());
   }
 
   public void insertWorkflow(
-    UUID id, UUID creatorId, String affiliation, UUID ownerId, UUID triggerId,
+    UUID id, UUID creatorId, UUID ownerId, UUID teamId, UUID triggerId,
     List<UUID> actionIds, List<UUID> conditionIds, List<String> modules,
     long created, String name, String description, String state
   ) {
-    insert(DatabaseRow.of(id, creatorId, affiliation, ownerId, triggerId, actionIds,
+    insert(DatabaseRow.of(id, creatorId, ownerId, teamId, triggerId, actionIds,
       conditionIds, modules, created, name, description, state));
   }
 
   public void updateWorkflowState(WorkflowEntry entry, WorkflowState state) {
     update(DatabaseCell.create(entry.id()), DatabaseRow.of(entry.id(),
-      entry.creatorId(), entry.affiliation().toString(), entry.ownerId(),
-      entry.triggerId(), entry.actionIds(), entry.conditionIds(), entry.modules(),
-      entry.created(), entry.name(), entry.description(), state.toString()));
+      entry.creatorId(), entry.ownerId(), entry.teamId(), entry.triggerId(),
+      entry.actionIds(), entry.conditionIds(), entry.modules(), entry.created(),
+      entry.name(), entry.description(), state.toString()));
   }
 
   public void deleteWorkflow(UUID workflowId) {
