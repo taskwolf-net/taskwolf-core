@@ -15,11 +15,13 @@ import net.taskwolf.core.intro.Intro;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.tutorial.level.TutorialLevelRegistry;
 import net.taskwolf.core.tutorial.level.account.AccountsTutorialLevel;
+import net.taskwolf.core.tutorial.level.bundle.BundleTutorialLevel;
 import net.taskwolf.core.tutorial.level.dashboard.*;
 import net.taskwolf.core.tutorial.level.database.DatabasesTutorialLevel;
 import net.taskwolf.core.tutorial.level.device.DevicesTutorialLevel;
 import net.taskwolf.core.tutorial.level.help.HelpTutorialLevel;
-import net.taskwolf.core.tutorial.level.organization.OrganizationsTutorialLevel;
+import net.taskwolf.core.tutorial.level.organization.OrganizationMembersTutorialLevel;
+import net.taskwolf.core.tutorial.level.organization.OrganizationTeamsTutorialLevel;
 import net.taskwolf.core.tutorial.level.process.ProcessTutorialLevel;
 import net.taskwolf.core.tutorial.level.process.ProcessesTutorialLevel;
 import net.taskwolf.core.tutorial.level.template.TemplateTutorialLevel;
@@ -80,9 +82,11 @@ public class CoreApplication {
     registry.registerLevel(ProcessTutorialLevel.create());
     registry.registerLevel(DatabasesTutorialLevel.create());
     registry.registerLevel(WebhooksTutorialLevel.create());
-    registry.registerLevel(OrganizationsTutorialLevel.create());
-    registry.registerLevel(AccountsTutorialLevel.create());
     registry.registerLevel(DevicesTutorialLevel.create());
+    registry.registerLevel(AccountsTutorialLevel.create());
+    registry.registerLevel(BundleTutorialLevel.create());
+    registry.registerLevel(OrganizationMembersTutorialLevel.create());
+    registry.registerLevel(OrganizationTeamsTutorialLevel.create());
     registry.registerLevel(HelpTutorialLevel.create());
   }
 

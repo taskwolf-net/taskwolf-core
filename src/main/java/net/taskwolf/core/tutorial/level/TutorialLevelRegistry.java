@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,12 +32,23 @@ public final class TutorialLevelRegistry {
   }
 
   /**
-   * Is used to find a tutorial level by id
+   * Is used to find a tutorial level by index
    * @param index The index of the level
    * @return The tutorial level if it could be found
    */
-  public TutorialLevel findLevel(int index) {
+  public TutorialLevel findLevelByIndex(int index) {
     return levels.get(index);
+  }
+
+  /**
+   * Is used to find a tutorial level by class
+   * @param target The class of the level
+   * @return The tutorial level if it could be found
+   */
+  public TutorialLevel findLevelByClass(Class<? extends TutorialLevel> target) {
+    return levels.stream()
+      .filter(level -> level.getClass().equals(target))
+      .findFirst().get();
   }
 
   /**
@@ -50,11 +62,19 @@ public final class TutorialLevelRegistry {
   /**
    * Is used to find the index of step in all steps of all levels
    * @param target The target step
+   * @param exclusions Levels that should not be included in the calculation
    * @return The index of the step
    */
-  public int findStepProgress(TutorialStep target) {
+  public int findStepProgress(
+    TutorialStep target, Class<? extends TutorialLevel>[] exclusions
+  ) {
     var progress = 0;
     for (var level : levels) {
+      var isExcluded = Arrays.stream(exclusions)
+        .anyMatch(exclusion -> exclusion.equals(level.getClass()));
+      if (isExcluded) {
+        continue;
+      }
        for (var step : level.steps()) {
          progress++;
          if (step.equals(target)) {
@@ -67,11 +87,17 @@ public final class TutorialLevelRegistry {
 
   /**
    * Is used to find the number of all steps
+   * @param exclusions Levels that should not be included in the calculation
    * @return The number of the steps inside the registered levels
    */
-  public int findStepNumber() {
+  public int findStepNumber(Class<? extends TutorialLevel>[] exclusions) {
     var number = 0;
     for (var level : levels) {
+      var isExcluded = Arrays.stream(exclusions)
+        .anyMatch(exclusion -> exclusion.equals(level.getClass()));
+      if (isExcluded) {
+        continue;
+      }
       number += level.steps().size();
     }
     return number;
