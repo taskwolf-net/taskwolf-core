@@ -49,6 +49,9 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     List<UUID> actionIds, List<UUID> conditionIds, List<String> modules,
     long created, String name, String description, String state
   ) {
+    if (teamId == null) {
+      teamId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    }
     insert(DatabaseRow.of(id, creatorId, ownerId, teamId, triggerId, actionIds,
       conditionIds, modules, created, name, description, state));
   }
@@ -98,7 +101,9 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<WorkflowEntry>> findGlobalOrganizationWorkflows(
     UUID organizationId
   ) {
-    return selectRows("owner=" + organizationId + " AND team=NULL ALLOW FILTERING")
+    var query = "owner=" + organizationId + " AND " +
+      "team=00000000-0000-0000-0000-000000000000 ALLOW FILTERING";
+    return selectRows(query)
       .thenApply(rows -> rows.stream().map(WorkflowEntry::of)
         .collect(Collectors.toList()));
   }

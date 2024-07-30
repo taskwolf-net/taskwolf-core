@@ -72,8 +72,11 @@ public final class TeamDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<UUID> generateAvailableTeamId() {
-    var futureResponse = new CompletableFuture<UUID>();
     var id = UUID.randomUUID();
+    if (id.equals(UUID.fromString("00000000-0000-0000-0000-000000000000"))) {
+      return generateAvailableTeamId();
+    }
+    var futureResponse = new CompletableFuture<UUID>();
     teamExists(id).thenApply(exists -> exists ?
       generateAvailableTeamId().thenApply(futureResponse::complete) :
       CompletableFuture.completedFuture(futureResponse.complete(id)));
