@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -106,6 +107,17 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     return selectRows(query)
       .thenApply(rows -> rows.stream().map(WorkflowEntry::of)
         .collect(Collectors.toList()));
+  }
+
+  public CompletableFuture<List<WorkflowEntry>> findWorkflowByModule(
+    UUID ownerId, Optional<UUID> teamId, String module
+  ) {
+    var query = new StringBuilder();
+    query.append("owner=" + ownerId);
+    teamId.ifPresent(uuid -> query.append(" AND team=" + uuid));
+    query.append(" AND modules CONTAINS '" + module + "' ALLOW FILTERING");
+    return selectRows(query.toString())
+      .thenApply(rows -> rows.stream().map(WorkflowEntry::of).toList());
   }
 
   public CompletableFuture<WorkflowEntry> findWorkflowByTrigger(UUID triggerId) {
