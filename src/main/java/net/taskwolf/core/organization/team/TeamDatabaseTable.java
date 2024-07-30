@@ -1,4 +1,4 @@
-package net.taskwolf.core.organization;
+package net.taskwolf.core.organization.team;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public final class OrganizationTeamDatabaseTable extends DatabaseTable {
+public final class TeamDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "organization_team";
 
-  public static OrganizationTeamDatabaseTable create(
+  public static TeamDatabaseTable create(
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
@@ -19,17 +19,17 @@ public final class OrganizationTeamDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("organization", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseListColumn.create("members", DatabaseDataType.UUID));
-    return new OrganizationTeamDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    return new TeamDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
-  private OrganizationTeamDatabaseTable(
+  private TeamDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
     List<DatabaseColumn> columns
   ) {
     super(connection, keyspace, name, columns);
   }
 
-  public void insertTeam(OrganizationTeam team) {
+  public void insertTeam(Team team) {
     insertTeam(team.id(), team.organizationId(), team.name(), team.members());
   }
 
@@ -43,7 +43,7 @@ public final class OrganizationTeamDatabaseTable extends DatabaseTable {
     findTeam(teamId).thenAccept(team -> addTeamMember(team, memberId));
   }
 
-  public void addTeamMember(OrganizationTeam team, UUID memberId) {
+  public void addTeamMember(Team team, UUID memberId) {
     team.addMember(memberId);
     updateTeam(team);
   }
@@ -52,7 +52,7 @@ public final class OrganizationTeamDatabaseTable extends DatabaseTable {
     findTeam(teamId).thenAccept(team -> removeTeamMember(team, memberId));
   }
 
-  public void removeTeamMember(OrganizationTeam team, UUID memberId) {
+  public void removeTeamMember(Team team, UUID memberId) {
     team.removeMember(memberId);
     updateTeam(team);
   }
@@ -61,12 +61,12 @@ public final class OrganizationTeamDatabaseTable extends DatabaseTable {
     findTeam(teamId).thenAccept(team -> renameTeam(team, name));
   }
 
-  public void renameTeam(OrganizationTeam team, String name) {
+  public void renameTeam(Team team, String name) {
     team.rename(name);
     updateTeam(team);
   }
 
-  private void updateTeam(OrganizationTeam team) {
+  private void updateTeam(Team team) {
     update(DatabaseCell.create(team.id()), DatabaseRow.of(team.id(),
       team.organizationId(), team.name(), team.members()));
   }
@@ -92,14 +92,14 @@ public final class OrganizationTeamDatabaseTable extends DatabaseTable {
     delete(DatabaseCell.create(teamId));
   }
 
-  public CompletableFuture<OrganizationTeam> findTeam(UUID teamId) {
-    return selectRow(DatabaseCell.create(teamId)).thenApply(OrganizationTeam::of);
+  public CompletableFuture<Team> findTeam(UUID teamId) {
+    return selectRow(DatabaseCell.create(teamId)).thenApply(Team::of);
   }
 
-  public CompletableFuture<List<OrganizationTeam>> findTeamsByOrganization(
+  public CompletableFuture<List<Team>> findTeamsByOrganization(
     UUID organizationId
   ) {
     return selectRows("organization=" + organizationId + " ALLOW FILTERING")
-      .thenApply(rows -> rows.stream().map(OrganizationTeam::of).toList());
+      .thenApply(rows -> rows.stream().map(Team::of).toList());
   }
 }

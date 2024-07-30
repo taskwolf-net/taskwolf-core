@@ -81,15 +81,24 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     return selectRow(DatabaseCell.create(workflowId)).thenApply(WorkflowEntry::of);
   }
 
-  public CompletableFuture<List<WorkflowEntry>> findWorkflowsOfUser(UUID ownerId) {
+  public CompletableFuture<List<WorkflowEntry>> findWorkflowsOfOwner(UUID ownerId) {
     return selectRows("owner=" + ownerId + " ALLOW FILTERING").thenApply(rows ->
       rows.stream().map(WorkflowEntry::of).collect(Collectors.toList()));
   }
 
-  public CompletableFuture<List<WorkflowEntry>> findWorkflowsOfOrganizationAndTeam(
-    UUID ownerId, UUID teamId
+  public CompletableFuture<List<WorkflowEntry>> findOrganizationTeamWorkflows(
+    UUID organizationId, UUID teamId
   ) {
-    return selectRows("owner=" + ownerId + " AND team=" + teamId + " ALLOW FILTERING")
+    var query = "owner=" + organizationId + " AND team=" + teamId +
+      " ALLOW FILTERING";
+    return selectRows(query).thenApply(rows ->
+      rows.stream().map(WorkflowEntry::of).collect(Collectors.toList()));
+  }
+
+  public CompletableFuture<List<WorkflowEntry>> findGlobalOrganizationWorkflows(
+    UUID organizationId
+  ) {
+    return selectRows("owner=" + organizationId + " AND team=NULL ALLOW FILTERING")
       .thenApply(rows -> rows.stream().map(WorkflowEntry::of)
         .collect(Collectors.toList()));
   }

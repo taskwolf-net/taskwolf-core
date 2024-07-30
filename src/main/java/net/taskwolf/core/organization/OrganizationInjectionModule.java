@@ -6,6 +6,8 @@ import com.google.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
+import net.taskwolf.core.organization.team.TeamDatabaseTable;
+import net.taskwolf.core.organization.team.TeamTargetDatabaseTable;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class OrganizationInjectionModule extends AbstractModule {
@@ -22,12 +24,24 @@ public final class OrganizationInjectionModule extends AbstractModule {
 
   @Provides
   @Singleton
-  OrganizationTeamDatabaseTable provideOrganizationTeamDatabaseTable(
+  TeamDatabaseTable provideTeamDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
-    var organizationTeamDatabaseTable = OrganizationTeamDatabaseTable.create(
+    var organizationTeamDatabaseTable = TeamDatabaseTable.create(
       connection, keyspace);
     organizationTeamDatabaseTable.createIfNotExists();
     return organizationTeamDatabaseTable;
+  }
+
+  @Provides
+  @Singleton
+  TeamTargetDatabaseTable provideTeamTargetDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace,
+    TeamDatabaseTable teamDatabaseTable
+  ) {
+    var teamTargetDatabaseTable = TeamTargetDatabaseTable.create(
+      connection, keyspace, teamDatabaseTable);
+    teamTargetDatabaseTable.createIfNotExists();
+    return teamTargetDatabaseTable;
   }
 }

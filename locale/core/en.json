@@ -141,5 +141,6 @@
   "activity.ticket.delete.title": "Ticket deleted",
   "activity.ticket.delete.description": "You have deleted one of your tickets",
 
-  "organization.default.name": "Organization of %s"
+  "organization.default.name": "Organization of %s",
+  "organization.team.target.global": "Entire organization"
 }

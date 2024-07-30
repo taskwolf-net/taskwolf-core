@@ -1,4 +1,4 @@
-package net.taskwolf.core.organization;
+package net.taskwolf.core.organization.team;
 
 
 import lombok.AllArgsConstructor;
@@ -11,8 +11,8 @@ import java.util.UUID;
 
 @Accessors(fluent = true)
 @AllArgsConstructor(staticName = "create")
-public final class OrganizationTeam {
-  public static OrganizationTeam of(DatabaseRow row) {
+public final class Team {
+  public static Team of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
       row.findCell(2).stringValue(), row.findCell(3).listValue());
   }
