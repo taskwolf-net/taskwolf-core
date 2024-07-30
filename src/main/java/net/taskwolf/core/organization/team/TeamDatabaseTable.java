@@ -18,6 +18,7 @@ public final class TeamDatabaseTable extends DatabaseTable {
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("organization", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("sequence", DatabaseDataType.INT));
     columns.add(DatabaseListColumn.create("members", DatabaseDataType.UUID));
     return new TeamDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
@@ -30,13 +31,14 @@ public final class TeamDatabaseTable extends DatabaseTable {
   }
 
   public void insertTeam(Team team) {
-    insertTeam(team.id(), team.organizationId(), team.name(), team.members());
+    insertTeam(team.id(), team.organizationId(), team.name(), team.sequence(),
+      team.members());
   }
 
   public void insertTeam(
-    UUID id, UUID organizationId, String name, List<UUID> memberIds
+    UUID id, UUID organizationId, String name, int sequence, List<UUID> memberIds
   ) {
-    insert(DatabaseRow.of(id, organizationId, name, memberIds));
+    insert(DatabaseRow.of(id, organizationId, name, sequence, memberIds));
   }
 
   public void addTeamMember(UUID teamId, UUID memberId) {
@@ -66,9 +68,18 @@ public final class TeamDatabaseTable extends DatabaseTable {
     updateTeam(team);
   }
 
+  public void changeTeamSequence(UUID teamId, int sequence) {
+    findTeam(teamId).thenAccept(team -> changeTeamSequence(team, sequence));
+  }
+
+  public void changeTeamSequence(Team team, int sequence) {
+    team.changeSequence(sequence);
+    updateTeam(team);
+  }
+
   private void updateTeam(Team team) {
     update(DatabaseCell.create(team.id()), DatabaseRow.of(team.id(),
-      team.organizationId(), team.name(), team.members()));
+      team.organizationId(), team.name(), team.sequence(), team.members()));
   }
 
   public CompletableFuture<UUID> generateAvailableTeamId() {
