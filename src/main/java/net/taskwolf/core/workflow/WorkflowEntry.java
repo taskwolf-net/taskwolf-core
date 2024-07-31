@@ -15,17 +15,15 @@ public final class WorkflowEntry {
   public static WorkflowEntry of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
       row.findCell(2).uuidValue(), row.findCell(3).uuidValue(),
-      row.findCell(4).uuidValue(), row.findCell(5).listValue(),
-      row.findCell(6).listValue(), row.findCell(7).listValue(),
-      row.findCell(8).longValue(), row.findCell(9).stringValue(),
-      row.findCell(10).stringValue(),
-      WorkflowState.valueOf(row.findCell(11).stringValue()));
+      row.findCell(4).listValue(), row.findCell(5).listValue(),
+      row.findCell(6).listValue(), row.findCell(7).longValue(),
+      row.findCell(8).stringValue(), row.findCell(9).stringValue(),
+      WorkflowState.valueOf(row.findCell(10).stringValue()));
   }
 
   private final UUID id;
   private final UUID creatorId;
   private final UUID ownerId;
-  private final UUID teamId;
   private final UUID triggerId;
   private final List<UUID> actionIds;
   private final List<UUID> conditionIds;

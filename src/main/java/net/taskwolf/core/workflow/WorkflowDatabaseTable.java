@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -20,7 +19,6 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("creator", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
-    columns.add(DatabaseColumn.create("team", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("trigger", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("actions", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("conditions", DatabaseDataType.UUID));
@@ -40,28 +38,25 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   public void insertWorkflow(WorkflowEntry entry) {
-    insertWorkflow(entry.id(), entry.creatorId(), entry.ownerId(), entry.teamId(),
-      entry.triggerId(), entry.actionIds(), entry.conditionIds(), entry.modules(),
-      entry.created(), entry.name(), entry.description(), entry.state().toString());
+    insertWorkflow(entry.id(), entry.creatorId(), entry.ownerId(), entry.triggerId(),
+      entry.actionIds(), entry.conditionIds(), entry.modules(), entry.created(),
+      entry.name(), entry.description(), entry.state().toString());
   }
 
   public void insertWorkflow(
-    UUID id, UUID creatorId, UUID ownerId, UUID teamId, UUID triggerId,
-    List<UUID> actionIds, List<UUID> conditionIds, List<String> modules,
-    long created, String name, String description, String state
+    UUID id, UUID creatorId, UUID ownerId, UUID triggerId, List<UUID> actionIds,
+    List<UUID> conditionIds, List<String> modules, long created, String name,
+    String description, String state
   ) {
-    if (teamId == null) {
-      teamId = UUID.fromString("00000000-0000-0000-0000-000000000000");
-    }
-    insert(DatabaseRow.of(id, creatorId, ownerId, teamId, triggerId, actionIds,
+    insert(DatabaseRow.of(id, creatorId, ownerId, triggerId, actionIds,
       conditionIds, modules, created, name, description, state));
   }
 
   public void updateWorkflowState(WorkflowEntry entry, WorkflowState state) {
     update(DatabaseCell.create(entry.id()), DatabaseRow.of(entry.id(),
-      entry.creatorId(), entry.ownerId(), entry.teamId(), entry.triggerId(),
-      entry.actionIds(), entry.conditionIds(), entry.modules(), entry.created(),
-      entry.name(), entry.description(), state.toString()));
+      entry.creatorId(), entry.ownerId(), entry.triggerId(), entry.actionIds(),
+      entry.conditionIds(), entry.modules(), entry.created(), entry.name(),
+      entry.description(), state.toString()));
   }
 
   public void deleteWorkflow(UUID workflowId) {
@@ -90,32 +85,11 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
       rows.stream().map(WorkflowEntry::of).collect(Collectors.toList()));
   }
 
-  public CompletableFuture<List<WorkflowEntry>> findOrganizationTeamWorkflows(
-    UUID organizationId, UUID teamId
-  ) {
-    var query = "owner=" + organizationId + " AND team=" + teamId +
-      " ALLOW FILTERING";
-    return selectRows(query).thenApply(rows ->
-      rows.stream().map(WorkflowEntry::of).collect(Collectors.toList()));
-  }
-
-  public CompletableFuture<List<WorkflowEntry>> findGlobalOrganizationWorkflows(
-    UUID organizationId
-  ) {
-    var query = "owner=" + organizationId + " AND " +
-      "team=00000000-0000-0000-0000-000000000000 ALLOW FILTERING";
-    return selectRows(query)
-      .thenApply(rows -> rows.stream().map(WorkflowEntry::of)
-        .collect(Collectors.toList()));
-  }
-
   public CompletableFuture<List<WorkflowEntry>> findWorkflowByModule(
-    UUID ownerId, Optional<UUID> teamId, String module
+    UUID ownerId, String module
   ) {
-    var query = new StringBuilder();
-    query.append("owner=" + ownerId);
-    teamId.ifPresent(uuid -> query.append(" AND team=" + uuid));
-    query.append(" AND modules CONTAINS '" + module + "' ALLOW FILTERING");
+    var query = "owner=" + ownerId + " AND modules CONTAINS '" + module +
+      "' ALLOW FILTERING";
     return selectRows(query.toString())
       .thenApply(rows -> rows.stream().map(WorkflowEntry::of).toList());
   }

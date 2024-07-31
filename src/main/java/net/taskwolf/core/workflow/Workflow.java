@@ -14,6 +14,8 @@ import net.taskwolf.core.notification.NotificationDatabaseTable;
 import net.taskwolf.core.notification.NotificationSetting;
 import net.taskwolf.core.organization.Organization;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
+import net.taskwolf.core.organization.team.Team;
+import net.taskwolf.core.organization.team.TeamDatabaseTable;
 import net.taskwolf.core.user.User;
 import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.notification.WorkflowFailureNotification;
@@ -23,6 +25,7 @@ import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
 import org.json.JSONObject;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor(staticName = "create")
@@ -34,12 +37,14 @@ public final class Workflow {
   private final BundleDatabaseTable bundleDatabaseTable;
   private final OperationDatabaseTable operationDatabaseTable;
   private final OrganizationDatabaseTable organizationDatabaseTable;
+  private final TeamDatabaseTable teamDatabaseTable;
   private final NotificationDatabaseTable notificationDatabaseTable;
   private final Locale englishLocale;
   private final TaskwolfMail notificationMail;
   private final WorkflowEntry workflowEntry;
   private final Map<Integer, ActionExecutor> actions;
   private final Multimap<Integer, Condition> conditions;
+  private UUID bundleOwner;
   private int currentActionIndex = 0;
 
   /**
@@ -47,8 +52,9 @@ public final class Workflow {
    * @param information The information provided by the trigger
    */
   public void trigger(Map<String, Object> information) {
-    checkOperationLimit().thenAccept(limitReached ->
-      trigger(information, limitReached));
+    findWorkflowBundleOwner().thenAccept(owner -> bundleOwner = owner)
+      .thenAccept(value -> checkOperationLimit().thenAccept(limitReached ->
+        trigger(information, limitReached)));
   }
 
   private void trigger(Map<String, Object> information, boolean limitReached) {
@@ -60,8 +66,8 @@ public final class Workflow {
   }
 
   private CompletableFuture<Boolean> checkOperationLimit() {
-    return bundleDatabaseTable.findBundle(workflowEntry.ownerId()).thenCompose(
-      bundle -> operationDatabaseTable.findOperations(workflowEntry.ownerId())
+    return bundleDatabaseTable.findBundle(bundleOwner).thenCompose(
+      bundle -> operationDatabaseTable.findOperations(bundleOwner)
         .thenApply(operations -> checkOperationLimit(bundle, operations)));
   }
 
@@ -108,7 +114,7 @@ public final class Workflow {
     timelineDatabaseTable.generateAvailableEntryId().thenAccept(id ->
       timelineDatabaseTable.insertEntry(id, workflowEntry.id(), currentTime,
         "timeline-workflow-execute", "{}"));
-    operationDatabaseTable.addOperations(workflowEntry.ownerId(), actions.size());
+    operationDatabaseTable.addOperations(bundleOwner, actions.size());
   }
 
   private boolean checkConditions(int index, Map<String, Object> information) {
@@ -143,16 +149,15 @@ public final class Workflow {
       .findNotificationSettings(target.id()).thenAccept(setting ->
         sendExecutionFailureNotification(target, setting, failureMessage)));
     if (currentActionIndex > 0) {
-      operationDatabaseTable.addOperations(workflowEntry.ownerId(),
-        currentActionIndex);
+      operationDatabaseTable.addOperations(bundleOwner, currentActionIndex);
     }
   }
 
   private CompletableFuture<User> findNotificationTarget() {
-    return userDatabaseTable.userExists(workflowEntry.ownerId())
+    return userDatabaseTable.userExists(bundleOwner)
       .thenCompose(exists -> exists ?
-        CompletableFuture.completedFuture(workflowEntry.ownerId()) :
-        organizationDatabaseTable.findOrganization(workflowEntry.ownerId())
+        CompletableFuture.completedFuture(bundleOwner) :
+        organizationDatabaseTable.findOrganization(bundleOwner)
           .thenApply(Organization::owner))
       .thenCompose(userDatabaseTable::findUser);
   }
@@ -165,5 +170,14 @@ public final class Workflow {
     }
     WorkflowFailureNotification.create(notificationMail, target.email(),
       englishLocale.findText(failureMessage)).send();
+  }
+
+  private CompletableFuture<UUID> findWorkflowBundleOwner() {
+    var owner = workflowEntry.ownerId();
+    return userDatabaseTable.userExists(owner)
+      .thenCompose(userExists -> organizationDatabaseTable.organizationExists(owner)
+        .thenCompose(organizationExists -> userExists || organizationExists ?
+          CompletableFuture.completedFuture(owner) :
+          teamDatabaseTable.findTeam(owner).thenApply(Team::organizationId)));
   }
 }
