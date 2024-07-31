@@ -2,6 +2,7 @@ package net.taskwolf.core.organization.team;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.target.TargetIdentificationPublish;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,7 +12,8 @@ public final class TeamDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "organization_team";
 
   public static TeamDatabaseTable create(
-    DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace,
+    TargetIdentificationPublish targetIdentificationPublish
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
@@ -20,14 +22,19 @@ public final class TeamDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("sequence", DatabaseDataType.INT));
     columns.add(DatabaseListColumn.create("members", DatabaseDataType.UUID));
-    return new TeamDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    return new TeamDatabaseTable(connection, keyspace, TABLE_NAME, columns,
+      targetIdentificationPublish);
   }
+
+  private final TargetIdentificationPublish targetIdentificationPublish;
 
   private TeamDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
-    List<DatabaseColumn> columns
+    List<DatabaseColumn> columns,
+    TargetIdentificationPublish targetIdentificationPublish
   ) {
     super(connection, keyspace, name, columns);
+    this.targetIdentificationPublish = targetIdentificationPublish;
   }
 
   public void insertTeam(Team team) {
@@ -83,15 +90,7 @@ public final class TeamDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<UUID> generateAvailableTeamId() {
-    var id = UUID.randomUUID();
-    if (id.equals(UUID.fromString("00000000-0000-0000-0000-000000000000"))) {
-      return generateAvailableTeamId();
-    }
-    var futureResponse = new CompletableFuture<UUID>();
-    teamExists(id).thenApply(exists -> exists ?
-      generateAvailableTeamId().thenApply(futureResponse::complete) :
-      CompletableFuture.completedFuture(futureResponse.complete(id)));
-    return futureResponse;
+    return targetIdentificationPublish.generateAvailableTargetId();
   }
 
   public CompletableFuture<Boolean> teamExists(UUID teamId) {

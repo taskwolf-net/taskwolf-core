@@ -2,6 +2,7 @@ package net.taskwolf.core.organization;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.target.TargetIdentificationPublish;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,7 +13,8 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "organization";
 
   public static OrganizationDatabaseTable create(
-    DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace,
+    TargetIdentificationPublish targetIdentificationPublish
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
@@ -21,14 +23,19 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("members", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("invitationToken", DatabaseDataType.TEXT));
-    return new OrganizationDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    return new OrganizationDatabaseTable(connection, keyspace, TABLE_NAME, columns,
+      targetIdentificationPublish);
   }
+
+  private final TargetIdentificationPublish targetIdentificationPublish;
 
   private OrganizationDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
-    List<DatabaseColumn> columns
+    List<DatabaseColumn> columns,
+    TargetIdentificationPublish targetIdentificationPublish
   ) {
     super(connection, keyspace, name, columns);
+    this.targetIdentificationPublish = targetIdentificationPublish;
   }
 
   public void insertOrganization(Organization organization) {
@@ -79,12 +86,7 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<UUID> generateAvailableOrganizationId() {
-    var futureResponse = new CompletableFuture<UUID>();
-    var id = UUID.randomUUID();
-    organizationExists(id).thenApply(exists -> exists ?
-      generateAvailableOrganizationId().thenApply(futureResponse::complete) :
-      CompletableFuture.completedFuture(futureResponse.complete(id)));
-    return futureResponse;
+    return targetIdentificationPublish.generateAvailableTargetId();
   }
 
   public CompletableFuture<Boolean> organizationExists(UUID organizationId) {

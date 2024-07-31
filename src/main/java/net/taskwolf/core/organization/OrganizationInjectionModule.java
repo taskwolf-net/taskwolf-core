@@ -8,16 +8,18 @@ import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.organization.team.TeamDatabaseTable;
 import net.taskwolf.core.organization.team.TeamTargetDatabaseTable;
+import net.taskwolf.core.target.TargetIdentificationPublish;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class OrganizationInjectionModule extends AbstractModule {
   @Provides
   @Singleton
   OrganizationDatabaseTable provideOrganizationDatabaseTable(
-    DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace,
+    TargetIdentificationPublish targetIdentificationPublish
   ) {
     var organizationDatabaseTable = OrganizationDatabaseTable.create(connection,
-      keyspace);
+      keyspace, targetIdentificationPublish);
     organizationDatabaseTable.createIfNotExists();
     return organizationDatabaseTable;
   }
@@ -25,10 +27,11 @@ public final class OrganizationInjectionModule extends AbstractModule {
   @Provides
   @Singleton
   TeamDatabaseTable provideTeamDatabaseTable(
-    DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace,
+    TargetIdentificationPublish targetIdentificationPublish
   ) {
     var organizationTeamDatabaseTable = TeamDatabaseTable.create(
-      connection, keyspace);
+      connection, keyspace, targetIdentificationPublish);
     organizationTeamDatabaseTable.createIfNotExists();
     return organizationTeamDatabaseTable;
   }

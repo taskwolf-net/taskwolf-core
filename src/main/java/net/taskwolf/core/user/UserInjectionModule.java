@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
+import net.taskwolf.core.target.TargetIdentificationPublish;
 import net.taskwolf.core.user.activity.UserActivityDatabaseTable;
 import net.taskwolf.core.user.mfa.MultiFactorAuthDatabaseTable;
 
@@ -15,9 +16,11 @@ public final class UserInjectionModule extends AbstractModule {
   @Provides
   @Singleton
   UserDatabaseTable provideUserDatabaseTable(
-    DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace,
+    TargetIdentificationPublish targetIdentificationPublish
   ) {
-    var userDatabaseTable = UserDatabaseTable.create(connection, keyspace);
+    var userDatabaseTable = UserDatabaseTable.create(connection, keyspace,
+      targetIdentificationPublish);
     userDatabaseTable.createIfNotExists();
     return userDatabaseTable;
   }

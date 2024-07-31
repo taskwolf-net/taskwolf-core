@@ -2,6 +2,7 @@ package net.taskwolf.core.user;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.target.TargetIdentificationPublish;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,7 +13,8 @@ public final class UserDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "user";
 
   public static UserDatabaseTable create(
-    DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace,
+    TargetIdentificationPublish targetIdentificationPublish
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
@@ -22,14 +24,19 @@ public final class UserDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("password", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("language", DatabaseDataType.TEXT));
     columns.add(DatabaseListColumn.create("organizations", DatabaseDataType.UUID));
-    return new UserDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    return new UserDatabaseTable(connection, keyspace, TABLE_NAME, columns,
+      targetIdentificationPublish);
   }
+
+  private final TargetIdentificationPublish targetIdentificationPublish;
 
   private UserDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
-    List<DatabaseColumn> columns
+    List<DatabaseColumn> columns,
+    TargetIdentificationPublish targetIdentificationPublish
   ) {
     super(connection, keyspace, name, columns);
+    this.targetIdentificationPublish = targetIdentificationPublish;
   }
 
   public void insertUser(User user) {
@@ -106,12 +113,7 @@ public final class UserDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<UUID> generateAvailableUserId() {
-    var futureResponse = new CompletableFuture<UUID>();
-    var id = UUID.randomUUID();
-    userExists(id).thenApply(exists -> exists ?
-      generateAvailableUserId().thenApply(futureResponse::complete) :
-      CompletableFuture.completedFuture(futureResponse.complete(id)));
-    return futureResponse;
+    return targetIdentificationPublish.generateAvailableTargetId();
   }
 
   public CompletableFuture<Boolean> userExists(UUID userId) {
