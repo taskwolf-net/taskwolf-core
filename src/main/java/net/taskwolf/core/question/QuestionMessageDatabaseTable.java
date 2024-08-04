@@ -17,8 +17,7 @@ public final class QuestionMessageDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("sender", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("title", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("body", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("time", DatabaseDataType.BIGINT));
     return new QuestionMessageDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
@@ -34,13 +33,13 @@ public final class QuestionMessageDatabaseTable extends DatabaseTable {
     QuestionMessage questionMessage
   ) {
     return insertQuestionMessage(questionMessage.id(), questionMessage.sender(),
-      questionMessage.title(), questionMessage.body(), questionMessage.time());
+      questionMessage.content(), questionMessage.time());
   }
 
   public CompletableFuture<Void> insertQuestionMessage(
-    UUID id, String sender, String title, String body, long time
+    UUID id, String sender, String content, long time
   ) {
-    return insert(DatabaseRow.of(id, sender, title, body, time));
+    return insert(DatabaseRow.of(id, sender, content, time));
   }
 
   public CompletableFuture<UUID> generateAvailableMessageId() {

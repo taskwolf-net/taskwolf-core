@@ -13,13 +13,11 @@ import java.util.UUID;
 public final class QuestionMessage {
   public static QuestionMessage of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).stringValue(),
-      row.findCell(2).stringValue(), row.findCell(3).stringValue(),
-      row.findCell(4).longValue());
+      row.findCell(2).stringValue(), row.findCell(3).longValue());
   }
 
   private final UUID id;
   private final String sender;
-  private final String title;
-  private final String body;
+  private final String content;
   private final long time;
 }
