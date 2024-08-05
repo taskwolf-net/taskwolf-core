@@ -79,19 +79,33 @@ public class TaskwolfMail {
   }
 
   public CompletableFuture<Void> send(
-    String target, String title, String body,
-    List<TaskwolfMailAttachment> attachments
+    String target, String title, String body, String dataType
   ) {
-    return send(new Address[] {createAddress(target)}, title, body, attachments);
+    return send(target, title, body, dataType, Lists.newArrayList());
   }
 
   public CompletableFuture<Void> send(
-    Address[] addresses, String title, String body,
+    String target, String title, String body,
+    List<TaskwolfMailAttachment> attachments
+  ) {
+    return send(target, title, body, "", attachments);
+  }
+
+  public CompletableFuture<Void> send(
+    String target, String title, String body, String dataType,
+    List<TaskwolfMailAttachment> attachments
+  ) {
+    return send(new Address[] {createAddress(target)}, title, body, dataType,
+      attachments);
+  }
+
+  public CompletableFuture<Void> send(
+    Address[] addresses, String title, String body, String dataType,
     List<TaskwolfMailAttachment> attachments
   ) {
     var futureResponse = new CompletableFuture<Void>();
-    new Thread(() -> sendEmail(addresses, title, body, attachments, futureResponse))
-      .start();
+    new Thread(() -> sendEmail(addresses, title, body, dataType,
+      attachments, futureResponse)).start();
     return futureResponse;
   }
 
@@ -105,13 +119,14 @@ public class TaskwolfMail {
   }
 
   private void sendEmail(
-    Address[] addresses, String title, String body,
+    Address[] addresses, String title, String body, String dataType,
     List<TaskwolfMailAttachment> attachments,
     CompletableFuture<Void> futureResponse
   ) {
     try {
       var session = createSession("smtp", smtpMailHost, smtpMailPort);
-      var message = createMessage(session, addresses, title, body, attachments);
+      var message = createMessage(session, addresses, title, body,
+        dataType, attachments);
       var transport = session.getTransport("smtp");
       transport.connect(smtpMailHost, mailUser, mailPassword);
       transport.sendMessage(message, message.getAllRecipients());
@@ -136,7 +151,7 @@ public class TaskwolfMail {
 
   private Message createMessage(
     Session session, Address[] addresses, String title, String body,
-    List<TaskwolfMailAttachment> attachments
+    String dataType, List<TaskwolfMailAttachment> attachments
   ) throws Exception {
     var message = new MimeMessage(session);
     message.setFrom(new InternetAddress(mail, "Taskwolf"));
@@ -144,7 +159,11 @@ public class TaskwolfMail {
     message.setSentDate(new Date());
     message.setSubject(title);
     if (attachments.isEmpty()) {
-      message.setText(body);
+      if (dataType.isEmpty()) {
+        message.setText(body);
+      } else {
+        message.setContent(body, dataType);
+      }
     } else {
       message.setContent(createMultipartBody(body, attachments));
     }
