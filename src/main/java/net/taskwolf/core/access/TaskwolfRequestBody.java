@@ -46,6 +46,32 @@ public final class TaskwolfRequestBody {
   }
 
   /**
+   * Is used to get a double from request body
+   * @param key The key to find the content
+   * @return The value behind the key
+   */
+  public double getDouble(String key) {
+    if (!body.has(key)) {
+      failure();
+      return -1;
+    }
+    return body.getDouble(key);
+  }
+
+  /**
+   * Is used to get a long from request body
+   * @param key The key to find the content
+   * @return The value behind the key
+   */
+  public long getLong(String key) {
+    if (!body.has(key)) {
+      failure();
+      return -1;
+    }
+    return body.getLong(key);
+  }
+
+  /**
    * Is used to get a boolean from request body
    * @param key The key to find the content
    * @return The value behind the key
