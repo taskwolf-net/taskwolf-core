@@ -60,6 +60,22 @@ public final class Bundle {
       preset.deviceAccess(), preset.accountsAccess(), preset.accountsNumberLimit());
   }
 
+  public static Bundle of(
+    UUID ownerId, BundlePreset preset, BundleRuntime runtime,
+    double price, long workflowNumberLimit, long workflowOperationLimit,
+    long databaseNumberLimit, double databaseDataLimit,
+    long organizationMemberLimit, long organizationTeamLimit
+  ) {
+    return create(ownerId, preset.bundleType(), preset.bundleClass(), runtime,
+      price, calculateBundleExpiration(runtime), preset.workflowAccess(),
+      workflowNumberLimit, workflowOperationLimit,
+      preset.workflowTemplateAccess(), preset.databaseAccess(),
+      databaseNumberLimit, databaseDataLimit, preset.webhookAccess(),
+      preset.webhookNumberLimit(), preset.organizationAccess(),
+      organizationMemberLimit, organizationTeamLimit,
+      preset.deviceAccess(), preset.accountsAccess(), preset.accountsNumberLimit());
+  }
+
   private static long calculateBundleExpiration(BundleRuntime runtime) {
     return System.currentTimeMillis() + 1000L * 60 * 60 * 24 * switch (runtime) {
       case WEEKLY -> 7;
