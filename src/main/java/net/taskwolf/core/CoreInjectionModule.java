@@ -17,6 +17,7 @@ import net.taskwolf.core.log.Log;
 import net.taskwolf.core.module.ModuleInjectionModule;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.notification.NotificationInjectionModule;
+import net.taskwolf.core.offer.OfferInjectionModule;
 import net.taskwolf.core.organization.OrganizationInjectionModule;
 import net.taskwolf.core.question.QuestionInjectionModule;
 import net.taskwolf.core.recaptcha.RecaptchaInjectionModule;
@@ -66,6 +67,7 @@ public class CoreInjectionModule extends AbstractModule {
     install(CommandInjectionModule.create());
     install(StripeInjectionModule.create());
     install(TrialInjectionModule.create());
+    install(OfferInjectionModule.create());
   }
 
   @Provides
