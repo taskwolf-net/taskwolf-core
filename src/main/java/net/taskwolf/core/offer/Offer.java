@@ -3,9 +3,7 @@ package net.taskwolf.core.offer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import net.taskwolf.core.bundle.BundleClass;
-import net.taskwolf.core.bundle.BundleRuntime;
-import net.taskwolf.core.bundle.BundleType;
+import net.taskwolf.core.bundle.*;
 import net.taskwolf.core.database.DatabaseRow;
 
 import java.util.UUID;
@@ -16,22 +14,40 @@ import java.util.UUID;
 public final class Offer {
   public static Offer of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
-      OfferStatus.valueOf(row.findCell(2).stringValue()),
-      BundleType.valueOf(row.findCell(3).stringValue()),
-      BundleClass.valueOf(row.findCell(4).stringValue()),
-      BundleRuntime.valueOf(row.findCell(5).stringValue()),
-      row.findCell(6).doubleValue(), row.findCell(7).booleanValue(),
-      row.findCell(8).longValue(), row.findCell(9).longValue(),
-      row.findCell(10).booleanValue(), row.findCell(11).booleanValue(),
-      row.findCell(12).longValue(), row.findCell(13).doubleValue(),
-      row.findCell(14).booleanValue(), row.findCell(15).longValue(),
-      row.findCell(16).booleanValue(), row.findCell(17).longValue(),
-      row.findCell(18).longValue(), row.findCell(19).booleanValue(),
-      row.findCell(20).booleanValue(), row.findCell(21).longValue());
+      row.findCell(2).stringValue(),
+      OfferStatus.valueOf(row.findCell(3).stringValue()),
+      BundleType.valueOf(row.findCell(4).stringValue()),
+      BundleClass.valueOf(row.findCell(5).stringValue()),
+      BundleRuntime.valueOf(row.findCell(6).stringValue()),
+      row.findCell(7).doubleValue(), row.findCell(8).booleanValue(),
+      row.findCell(9).longValue(), row.findCell(10).longValue(),
+      row.findCell(11).booleanValue(), row.findCell(12).booleanValue(),
+      row.findCell(13).longValue(), row.findCell(14).doubleValue(),
+      row.findCell(15).booleanValue(), row.findCell(16).longValue(),
+      row.findCell(17).booleanValue(), row.findCell(18).longValue(),
+      row.findCell(19).longValue(), row.findCell(20).booleanValue(),
+      row.findCell(21).booleanValue(), row.findCell(22).longValue());
+  }
+
+  public static Offer of(
+    UUID id, UUID targetId, String priceId, OfferStatus offerStatus,
+    BundlePreset preset, BundleRuntime runtime, double price, long workflowNumberLimit,
+    long workflowOperationLimit, long databaseNumberLimit, double databaseDataLimit,
+    long organizationMemberLimit, long organizationTeamLimit
+  ) {
+    return create(id, targetId, priceId, offerStatus, preset.bundleType(),
+      preset.bundleClass(), runtime, price, preset.workflowAccess(),
+      workflowNumberLimit, workflowOperationLimit,
+      preset.workflowTemplateAccess(), preset.databaseAccess(),
+      databaseNumberLimit, databaseDataLimit, preset.webhookAccess(),
+      preset.webhookNumberLimit(), preset.organizationAccess(),
+      organizationMemberLimit, organizationTeamLimit,
+      preset.deviceAccess(), preset.accountsAccess(), preset.accountsNumberLimit());
   }
 
   private final UUID id;
   private final UUID targetId;
+  private final String priceId;
   private OfferStatus offerStatus;
   private final BundleType bundleType;
   private final BundleClass bundleClass;

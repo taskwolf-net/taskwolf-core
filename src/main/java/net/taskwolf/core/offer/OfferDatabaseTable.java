@@ -17,6 +17,8 @@ public final class OfferDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("target", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("priceId", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("offerStatus", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("bundleType", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("bundleClass", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("bundlerRuntime", DatabaseDataType.TEXT));
@@ -47,7 +49,7 @@ public final class OfferDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> insertOffer(Offer offer) {
-    return insert(DatabaseRow.of(offer.id(), offer.targetId(),
+    return insert(DatabaseRow.of(offer.id(), offer.targetId(), offer.priceId(),
       offer.offerStatus().toString(), offer.bundleType().toString(),
       offer.bundleClass().toString(), offer.bundleRuntime().toString(),
       offer.price(), offer.workflowAccess(), offer.workflowNumberLimit(),
@@ -66,7 +68,7 @@ public final class OfferDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> updateOffer(Offer offer) {
     return update(DatabaseCell.create(offer.id()), DatabaseRow.of(offer.id(),
-      offer.targetId(), offer.offerStatus().toString(),
+      offer.targetId(), offer.priceId(), offer.offerStatus().toString(),
       offer.bundleType().toString(), offer.bundleClass().toString(),
       offer.bundleRuntime().toString(), offer.price(), offer.workflowAccess(),
       offer.workflowNumberLimit(), offer.workflowOperationLimit(),
@@ -75,6 +77,15 @@ public final class OfferDatabaseTable extends DatabaseTable {
       offer.webhookNumberLimit(), offer.organizationAccess(),
       offer.organizationMemberLimit(), offer.organizationTeamLimit(),
       offer.deviceAccess(), offer.accountsAccess(), offer.accountsNumberLimit()));
+  }
+
+  public CompletableFuture<UUID> generateAvailableOfferId() {
+    var futureResponse = new CompletableFuture<UUID>();
+    var id = UUID.randomUUID();
+    offerExists(id).thenApply(exists -> exists ?
+      generateAvailableOfferId().thenApply(futureResponse::complete) :
+      CompletableFuture.completedFuture(futureResponse.complete(id)));
+    return futureResponse;
   }
 
   public CompletableFuture<Void> deleteOffer(UUID offerId) {
