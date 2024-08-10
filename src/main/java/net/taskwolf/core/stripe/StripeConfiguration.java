@@ -13,6 +13,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Getter
 @Accessors(fluent = true)
@@ -86,6 +87,10 @@ public final class StripeConfiguration extends Configuration {
       "-" + bundleRuntime.toString());
   }
 
+  public boolean priceIdExists(String priceId) {
+    return priceIds.containsValue(priceId);
+  }
+
   public List<String> findPriceIdsOfType(BundleType bundleType) {
     var priceIds = Lists.<String>newArrayList();
     priceIds.add(findPriceId(bundleType, BundleClass.BEGINNER,
@@ -131,22 +136,20 @@ public final class StripeConfiguration extends Configuration {
     return priceIds;
   }
 
-  public BundlePreset findBundlePreset(String priceId) throws Exception {
+  public Optional<BundlePreset> findBundlePreset(String priceId) throws Exception {
     if (findPriceIdsOfTypeAndClass(BundleType.PROFESSIONAL, BundleClass.BEGINNER).contains(priceId)) {
-      return BundlePreset.createAndLoad(BundleType.PROFESSIONAL, BundleClass.BEGINNER);
+      return Optional.of(BundlePreset.createAndLoad(BundleType.PROFESSIONAL, BundleClass.BEGINNER));
+    } else if (findPriceIdsOfTypeAndClass(BundleType.PROFESSIONAL, BundleClass.ADVANCED).contains(priceId)) {
+      return Optional.of(BundlePreset.createAndLoad(BundleType.PROFESSIONAL, BundleClass.ADVANCED));
+    } else if (findPriceIdsOfTypeAndClass(BundleType.PROFESSIONAL, BundleClass.EXPERT).contains(priceId)) {
+      return Optional.of(BundlePreset.createAndLoad(BundleType.PROFESSIONAL, BundleClass.EXPERT));
+    } else if (findPriceIdsOfTypeAndClass(BundleType.TEAM, BundleClass.BEGINNER).contains(priceId)) {
+      return Optional.of(BundlePreset.createAndLoad(BundleType.TEAM, BundleClass.BEGINNER));
+    } else if (findPriceIdsOfTypeAndClass(BundleType.TEAM, BundleClass.ADVANCED).contains(priceId)) {
+      return Optional.of(BundlePreset.createAndLoad(BundleType.TEAM, BundleClass.ADVANCED));
+    } else if (findPriceIdsOfTypeAndClass(BundleType.TEAM, BundleClass.EXPERT).contains(priceId)) {
+      return Optional.of(BundlePreset.createAndLoad(BundleType.TEAM, BundleClass.EXPERT));
     }
-    if (findPriceIdsOfTypeAndClass(BundleType.PROFESSIONAL, BundleClass.ADVANCED).contains(priceId)) {
-      return BundlePreset.createAndLoad(BundleType.PROFESSIONAL, BundleClass.ADVANCED);
-    }
-    if (findPriceIdsOfTypeAndClass(BundleType.PROFESSIONAL, BundleClass.EXPERT).contains(priceId)) {
-      return BundlePreset.createAndLoad(BundleType.PROFESSIONAL, BundleClass.EXPERT);
-    }
-    if (findPriceIdsOfTypeAndClass(BundleType.TEAM, BundleClass.BEGINNER).contains(priceId)) {
-      return BundlePreset.createAndLoad(BundleType.TEAM, BundleClass.BEGINNER);
-    }
-    if (findPriceIdsOfTypeAndClass(BundleType.TEAM, BundleClass.ADVANCED).contains(priceId)) {
-      return BundlePreset.createAndLoad(BundleType.TEAM, BundleClass.ADVANCED);
-    }
-    return BundlePreset.createAndLoad(BundleType.TEAM, BundleClass.EXPERT);
+    return Optional.empty();
   }
 }
