@@ -100,6 +100,11 @@ public final class OfferDatabaseTable extends DatabaseTable {
     return selectRow(DatabaseCell.create(offerId)).thenApply(Offer::of);
   }
 
+  public CompletableFuture<Offer> findOffersByPriceId(String priceId) {
+    return selectRow("priceId='" + priceId + "' ALLOW FILTERING")
+      .thenApply(Offer::of);
+  }
+
   public CompletableFuture<List<Offer>> findOffersByTarget(UUID targetId) {
     return selectRows("target=" + targetId + " ALLOW FILTERING")
       .thenApply(rows -> rows.stream().map(Offer::of).toList());

@@ -72,4 +72,21 @@ public final class Offer {
   public void updateStatus(OfferStatus newStatus) {
     offerStatus = newStatus;
   }
+
+  public Bundle toBundle() {
+    return Bundle.create(targetId, bundleType, bundleClass, bundleRuntime, price,
+      calculateBundleExpiration(bundleRuntime), workflowAccess, workflowNumberLimit,
+      workflowOperationLimit, workflowTemplateAccess, databaseAccess,
+      databaseNumberLimit, databaseDataLimit, webhookAccess, webhookNumberLimit,
+      organizationAccess, organizationMemberLimit, organizationTeamLimit,
+      deviceAccess, accountsAccess, accountsNumberLimit);
+  }
+
+  private long calculateBundleExpiration(BundleRuntime runtime) {
+    return System.currentTimeMillis() + 1000L * 60 * 60 * 24 * switch (runtime) {
+      case WEEKLY -> 7;
+      case MONTHLY -> 30;
+      case YEARLY -> 365;
+    };
+  }
 }
