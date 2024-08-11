@@ -56,15 +56,6 @@ public final class SaleDatabaseTable extends DatabaseTable {
       conversationMessages));
   }
 
-  public CompletableFuture<UUID> generateAvailableSaleId() {
-    var futureResponse = new CompletableFuture<UUID>();
-    var id = UUID.randomUUID();
-    saleExists(id).thenApply(exists -> exists ?
-      generateAvailableSaleId().thenApply(futureResponse::complete) :
-      CompletableFuture.completedFuture(futureResponse.complete(id)));
-    return futureResponse;
-  }
-
   public CompletableFuture<Void> addSaleMessage(
     UUID id, UUID conversationMessage
   ) {

@@ -44,15 +44,6 @@ public final class QuestionDatabaseTable extends DatabaseTable {
       conversationMessages));
   }
 
-  public CompletableFuture<UUID> generateAvailableQuestionId() {
-    var futureResponse = new CompletableFuture<UUID>();
-    var id = UUID.randomUUID();
-    questionExists(id).thenApply(exists -> exists ?
-      generateAvailableQuestionId().thenApply(futureResponse::complete) :
-      CompletableFuture.completedFuture(futureResponse.complete(id)));
-    return futureResponse;
-  }
-
   public CompletableFuture<Void> addQuestionMessage(
     UUID id, UUID conversationMessage
   ) {
