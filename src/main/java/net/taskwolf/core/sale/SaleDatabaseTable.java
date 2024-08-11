@@ -116,9 +116,10 @@ public final class SaleDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> updateSale(Sale sale) {
     return update(DatabaseCell.create(sale.requestMessage()),
-      DatabaseRow.of(sale.requestMessage(), sale.sender(),
-        sale.title(), sale.expirationTime(),
-        sale.conversationMessages()));
+      DatabaseRow.of(sale.requestMessage(), sale.sender(), sale.firstName(),
+        sale.lastName(), sale.phoneNumber(), sale.country(), sale.companyName(),
+        sale.companySize(), sale.companyRole(), sale.title(),
+        sale.expirationTime(), sale.conversationMessages()));
   }
 
   public CompletableFuture<Void> deleteSale(UUID id) {
