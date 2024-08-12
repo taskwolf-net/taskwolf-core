@@ -88,7 +88,8 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<WorkflowEntry>> findWorkflowByModule(
     UUID ownerId, String module
   ) {
-    var query = "owner=" + ownerId + " AND modules CONTAINS '" + module + "'";
+    var query = "owner=" + ownerId + " AND modules CONTAINS '" + module + "' " +
+      "ALLOW FILTERING";
     return selectRows(query.toString())
       .thenApply(rows -> rows.stream().map(WorkflowEntry::of).toList());
   }
