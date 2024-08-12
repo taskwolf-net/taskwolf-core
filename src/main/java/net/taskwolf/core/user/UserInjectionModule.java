@@ -22,6 +22,7 @@ public final class UserInjectionModule extends AbstractModule {
     var userDatabaseTable = UserDatabaseTable.create(connection, keyspace,
       targetIdentificationPublish);
     userDatabaseTable.createIfNotExists();
+    userDatabaseTable.createIndexIfNotExists("email");
     return userDatabaseTable;
   }
 
@@ -78,6 +79,7 @@ public final class UserInjectionModule extends AbstractModule {
     var userActivityDatabaseTable = UserActivityDatabaseTable.create(
       connection, keyspace);
     userActivityDatabaseTable.createIfNotExists();
+    userActivityDatabaseTable.createIndexIfNotExists("user");
     return userActivityDatabaseTable;
   }
 

@@ -19,6 +19,9 @@ public final class WorkflowInjectionModule extends AbstractModule {
     var workflowDatabaseTable = WorkflowDatabaseTable.create(connection,
       keyspace);
     workflowDatabaseTable.createIfNotExists();
+    workflowDatabaseTable.createIndexIfNotExists("owner");
+    workflowDatabaseTable.createIndexIfNotExists("trigger");
+    workflowDatabaseTable.createIndexIfNotExists("modules");
     return workflowDatabaseTable;
   }
 
@@ -41,6 +44,7 @@ public final class WorkflowInjectionModule extends AbstractModule {
     var timelineDatabaseTable = TimelineDatabaseTable.create(connection,
       keyspace);
     timelineDatabaseTable.createIfNotExists();
+    timelineDatabaseTable.createIndexIfNotExists("workflow");
     return timelineDatabaseTable;
   }
 

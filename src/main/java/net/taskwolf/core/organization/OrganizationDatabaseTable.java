@@ -94,7 +94,7 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> organizationExistsByOwner(UUID ownerId) {
-    return exists("owner=" + ownerId + " ALLOW FILTERING");
+    return exists("owner=" + ownerId);
   }
 
   public void deleteOrganization(UUID organizationId) {
@@ -106,8 +106,7 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Organization> findOrganizationByOwner(UUID ownerId) {
-    return selectRow("owner=" + ownerId + " ALLOW FILTERING")
-      .thenApply(Organization::of);
+    return selectRow("owner=" + ownerId).thenApply(Organization::of);
   }
 
   public CompletableFuture<List<Organization>> findAllOrganization() {

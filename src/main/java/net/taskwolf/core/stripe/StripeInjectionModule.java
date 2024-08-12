@@ -24,6 +24,7 @@ public final class StripeInjectionModule extends AbstractModule {
     var stripeDatabaseTable = StripeDatabaseTable.create(connection,
       keyspace);
     stripeDatabaseTable.createIfNotExists();
+    stripeDatabaseTable.createIndexIfNotExists("target");
     return stripeDatabaseTable;
   }
 

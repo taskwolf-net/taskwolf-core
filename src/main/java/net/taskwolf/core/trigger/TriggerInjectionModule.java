@@ -16,6 +16,7 @@ public final class TriggerInjectionModule extends AbstractModule {
   ) {
     var triggerDatabaseTable = TriggerDatabaseTable.create(connection, keyspace);
     triggerDatabaseTable.createIfNotExists();
+    triggerDatabaseTable.createIndexIfNotExists("workflow");
     return triggerDatabaseTable;
   }
 }

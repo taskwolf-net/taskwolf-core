@@ -135,7 +135,7 @@ public final class SaleDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<List<Sale>> findSalesBySender(String sender) {
-    return selectRows("sender='" + sender + "' ALLOW FILTERING")
+    return selectRows("sender='" + sender + "'")
       .thenApply(rows -> rows.stream().map(Sale::of).toList());
   }
 

@@ -121,7 +121,7 @@ public final class UserDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> userExists(String email) {
-    return exists("email='" + email.toLowerCase() + "' ALLOW FILTERING");
+    return exists("email='" + email.toLowerCase() + "'");
   }
 
   public void deleteUser(UUID userId) {
@@ -149,7 +149,7 @@ public final class UserDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<User> findUser(String email) {
-    return selectRow("email='" + email.toLowerCase() + "' ALLOW FILTERING")
+    return selectRow("email='" + email.toLowerCase() + "'")
       .thenApply(User::of);
   }
 

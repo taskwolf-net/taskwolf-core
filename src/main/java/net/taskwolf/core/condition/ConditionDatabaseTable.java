@@ -70,7 +70,7 @@ public final class ConditionDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<ConditionEntry>> findConditionsByWorkflow(
     UUID workflowId
   ) {
-    return selectRows("workflow=" + workflowId + " ALLOW FILTERING")
+    return selectRows("workflow=" + workflowId)
       .thenApply(rows -> rows.stream().map(ConditionEntry::of)
         .collect(Collectors.toList()));
   }

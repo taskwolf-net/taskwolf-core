@@ -16,6 +16,7 @@ public final class ActionInjectionModule extends AbstractModule {
   ) {
     var actionDatabaseTable = ActionDatabaseTable.create(connection, keyspace);
     actionDatabaseTable.createIfNotExists();
+    actionDatabaseTable.createIndexIfNotExists("workflow");
     return actionDatabaseTable;
   }
 }

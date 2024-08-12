@@ -72,7 +72,7 @@ public final class UserActivityDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<List<Activity>> findActivitiesOfUser(UUID userId) {
-    return selectRows("user=" + userId + " ALLOW FILTERING").thenApply(rows ->
+    return selectRows("user=" + userId).thenApply(rows ->
       rows.stream().map(Activity::of).toList());
   }
 }

@@ -47,7 +47,7 @@ public final class StripeDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteStripeAccountByTarget(UUID targetId) {
-    return delete("target=" + targetId + " ALLOW FILTERING");
+    return delete("target=" + targetId);
   }
 
   public CompletableFuture<Boolean> stripeAccountExists(String accountId) {
@@ -55,7 +55,7 @@ public final class StripeDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> stripeAccountExistsByTarget(UUID targetId) {
-    return exists("target=" + targetId + " ALLOW FILTERING");
+    return exists("target=" + targetId);
   }
 
   public CompletableFuture<StripeAccount> findStripeAccount(String accountId) {
@@ -63,8 +63,7 @@ public final class StripeDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<StripeAccount> findStripeAccountByTarget(UUID targetId) {
-    return selectRow("target=" + targetId + " ALLOW FILTERING")
-      .thenApply(StripeAccount::of);
+    return selectRow("target=" + targetId).thenApply(StripeAccount::of);
   }
 }
 

@@ -17,6 +17,7 @@ public final class QuestionInjectionModule extends AbstractModule {
     var questionDatabaseTable = QuestionDatabaseTable.create(
       databaseConnection, databaseKeyspace);
     questionDatabaseTable.createIfNotExists();
+    questionDatabaseTable.createIndexIfNotExists("sender");
     return questionDatabaseTable;
   }
 

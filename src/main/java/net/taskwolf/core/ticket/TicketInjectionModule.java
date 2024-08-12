@@ -16,6 +16,7 @@ public final class TicketInjectionModule extends AbstractModule {
   ) {
     var ticketDatabaseTable = TicketDatabaseTable.create(connection, keyspace);
     ticketDatabaseTable.createIfNotExists();
+    ticketDatabaseTable.createIndexIfNotExists("creator");
     return ticketDatabaseTable;
   }
 

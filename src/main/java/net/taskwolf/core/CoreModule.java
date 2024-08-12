@@ -181,7 +181,7 @@ public class CoreModule {
     var trigger = module.module().triggerRepository()
       .findTrigger(triggerType).get();
     if (!condition.isEmpty()) {
-      condition = " WHERE " + condition + " ALLOW FILTERING";
+      condition = " WHERE " + condition;
     }
     trigger.findEntries(condition).thenAccept(triggers ->
       buildWorkflowTriggers(triggers, moduleName, information, checkDistribution));

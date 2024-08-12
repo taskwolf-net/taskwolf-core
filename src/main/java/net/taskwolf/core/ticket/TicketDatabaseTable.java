@@ -104,7 +104,7 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<List<Ticket>> findTicketsByCreator(UUID creatorId) {
-    return selectRows("creator=" + creatorId + " ALLOW FILTERING").thenApply(rows ->
+    return selectRows("creator=" + creatorId).thenApply(rows ->
       rows.stream().map(Ticket::of).toList());
   }
 

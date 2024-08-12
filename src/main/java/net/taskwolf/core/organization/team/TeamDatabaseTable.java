@@ -98,7 +98,7 @@ public final class TeamDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> teamExistsByOrganization(UUID organizationId) {
-    return exists("organization=" + organizationId + " ALLOW FILTERING");
+    return exists("organization=" + organizationId);
   }
 
   public void deleteTeam(UUID teamId) {
@@ -112,7 +112,7 @@ public final class TeamDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<Team>> findTeamsByOrganization(
     UUID organizationId
   ) {
-    return selectRows("organization=" + organizationId + " ALLOW FILTERING")
+    return selectRows("organization=" + organizationId)
       .thenApply(rows -> rows.stream().map(Team::of).toList());
   }
 }

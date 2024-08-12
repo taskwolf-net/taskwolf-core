@@ -21,6 +21,7 @@ public final class OrganizationInjectionModule extends AbstractModule {
     var organizationDatabaseTable = OrganizationDatabaseTable.create(connection,
       keyspace, targetIdentificationPublish);
     organizationDatabaseTable.createIfNotExists();
+    organizationDatabaseTable.createIndexIfNotExists("owner");
     return organizationDatabaseTable;
   }
 
@@ -33,6 +34,7 @@ public final class OrganizationInjectionModule extends AbstractModule {
     var organizationTeamDatabaseTable = TeamDatabaseTable.create(
       connection, keyspace, targetIdentificationPublish);
     organizationTeamDatabaseTable.createIfNotExists();
+    organizationTeamDatabaseTable.createIndexIfNotExists("organization");
     return organizationTeamDatabaseTable;
   }
 

@@ -122,7 +122,7 @@ public final class QuestionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<List<Question>> findQuestionsBySender(String sender) {
-    return selectRows("sender='" + sender + "' ALLOW FILTERING")
+    return selectRows("sender='" + sender + "'")
       .thenApply(rows -> rows.stream().map(Question::of).toList());
   }
 

@@ -66,7 +66,7 @@ public final class TimelineDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<TimelineDatabaseEntry>> findEntriesByWorkflow(
     UUID workflowId
   ) {
-    return selectRows("workflow=" + workflowId + " ALLOW FILTERING")
+    return selectRows("workflow=" + workflowId)
       .thenApply(rows -> rows.stream().map(TimelineDatabaseEntry::of)
         .collect(Collectors.toList()));
   }
