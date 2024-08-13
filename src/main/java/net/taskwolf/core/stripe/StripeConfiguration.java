@@ -41,12 +41,12 @@ public final class StripeConfiguration extends Configuration {
     checkoutWebhookSecret = json.getString("checkoutWebhookSecret");
     paymentWebhookSecret = json.getString("paymentWebhookSecret");
     priceIds = Maps.newHashMap();
-    registerPriceId(json, BundleType.PROFESSIONAL, BundleClass.BEGINNER, BundleRuntime.MONTHLY);
-    registerPriceId(json, BundleType.PROFESSIONAL, BundleClass.ADVANCED, BundleRuntime.MONTHLY);
-    registerPriceId(json, BundleType.PROFESSIONAL, BundleClass.EXPERT, BundleRuntime.MONTHLY);
-    registerPriceId(json, BundleType.PROFESSIONAL, BundleClass.BEGINNER, BundleRuntime.YEARLY);
-    registerPriceId(json, BundleType.PROFESSIONAL, BundleClass.ADVANCED, BundleRuntime.YEARLY);
-    registerPriceId(json, BundleType.PROFESSIONAL, BundleClass.EXPERT, BundleRuntime.YEARLY);
+    registerPriceId(json, BundleType.INDIVIDUAL, BundleClass.BEGINNER, BundleRuntime.MONTHLY);
+    registerPriceId(json, BundleType.INDIVIDUAL, BundleClass.ADVANCED, BundleRuntime.MONTHLY);
+    registerPriceId(json, BundleType.INDIVIDUAL, BundleClass.EXPERT, BundleRuntime.MONTHLY);
+    registerPriceId(json, BundleType.INDIVIDUAL, BundleClass.BEGINNER, BundleRuntime.YEARLY);
+    registerPriceId(json, BundleType.INDIVIDUAL, BundleClass.ADVANCED, BundleRuntime.YEARLY);
+    registerPriceId(json, BundleType.INDIVIDUAL, BundleClass.EXPERT, BundleRuntime.YEARLY);
     registerPriceId(json, BundleType.TEAM, BundleClass.BEGINNER, BundleRuntime.MONTHLY);
     registerPriceId(json, BundleType.TEAM, BundleClass.ADVANCED, BundleRuntime.MONTHLY);
     registerPriceId(json, BundleType.TEAM, BundleClass.EXPERT, BundleRuntime.MONTHLY);
@@ -60,7 +60,7 @@ public final class StripeConfiguration extends Configuration {
     BundleRuntime bundleRuntime
   ) {
     var typeString = switch(bundleType) {
-      case PROFESSIONAL -> "Professional";
+      case INDIVIDUAL -> "Individual";
       case TEAM -> "Team";
       case TRIAL, ENTERPRISE -> "";
     };
@@ -121,11 +121,11 @@ public final class StripeConfiguration extends Configuration {
 
   public List<String> findPriceIdsOfRuntime(BundleRuntime bundleRuntime) {
     var priceIds = Lists.<String>newArrayList();
-    priceIds.add(findPriceId(BundleType.PROFESSIONAL, BundleClass.BEGINNER,
+    priceIds.add(findPriceId(BundleType.INDIVIDUAL, BundleClass.BEGINNER,
       bundleRuntime));
-    priceIds.add(findPriceId(BundleType.PROFESSIONAL, BundleClass.ADVANCED,
+    priceIds.add(findPriceId(BundleType.INDIVIDUAL, BundleClass.ADVANCED,
       bundleRuntime));
-    priceIds.add(findPriceId(BundleType.PROFESSIONAL, BundleClass.EXPERT,
+    priceIds.add(findPriceId(BundleType.INDIVIDUAL, BundleClass.EXPERT,
       bundleRuntime));
     priceIds.add(findPriceId(BundleType.TEAM, BundleClass.BEGINNER,
       bundleRuntime));
@@ -137,12 +137,12 @@ public final class StripeConfiguration extends Configuration {
   }
 
   public Optional<BundlePreset> findBundlePreset(String priceId) throws Exception {
-    if (findPriceIdsOfTypeAndClass(BundleType.PROFESSIONAL, BundleClass.BEGINNER).contains(priceId)) {
-      return Optional.of(BundlePreset.createAndLoad(BundleType.PROFESSIONAL, BundleClass.BEGINNER));
-    } else if (findPriceIdsOfTypeAndClass(BundleType.PROFESSIONAL, BundleClass.ADVANCED).contains(priceId)) {
-      return Optional.of(BundlePreset.createAndLoad(BundleType.PROFESSIONAL, BundleClass.ADVANCED));
-    } else if (findPriceIdsOfTypeAndClass(BundleType.PROFESSIONAL, BundleClass.EXPERT).contains(priceId)) {
-      return Optional.of(BundlePreset.createAndLoad(BundleType.PROFESSIONAL, BundleClass.EXPERT));
+    if (findPriceIdsOfTypeAndClass(BundleType.INDIVIDUAL, BundleClass.BEGINNER).contains(priceId)) {
+      return Optional.of(BundlePreset.createAndLoad(BundleType.INDIVIDUAL, BundleClass.BEGINNER));
+    } else if (findPriceIdsOfTypeAndClass(BundleType.INDIVIDUAL, BundleClass.ADVANCED).contains(priceId)) {
+      return Optional.of(BundlePreset.createAndLoad(BundleType.INDIVIDUAL, BundleClass.ADVANCED));
+    } else if (findPriceIdsOfTypeAndClass(BundleType.INDIVIDUAL, BundleClass.EXPERT).contains(priceId)) {
+      return Optional.of(BundlePreset.createAndLoad(BundleType.INDIVIDUAL, BundleClass.EXPERT));
     } else if (findPriceIdsOfTypeAndClass(BundleType.TEAM, BundleClass.BEGINNER).contains(priceId)) {
       return Optional.of(BundlePreset.createAndLoad(BundleType.TEAM, BundleClass.BEGINNER));
     } else if (findPriceIdsOfTypeAndClass(BundleType.TEAM, BundleClass.ADVANCED).contains(priceId)) {

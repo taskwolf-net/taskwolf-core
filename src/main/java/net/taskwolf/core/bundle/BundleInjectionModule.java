@@ -26,11 +26,11 @@ public final class BundleInjectionModule extends AbstractModule {
     bundlePresetRepository.registerPreset(BundlePreset.createAndLoad(
       BundleType.TRIAL));
     bundlePresetRepository.registerPreset(BundlePreset.createAndLoad(
-      BundleType.PROFESSIONAL, BundleClass.BEGINNER));
+      BundleType.INDIVIDUAL, BundleClass.BEGINNER));
     bundlePresetRepository.registerPreset(BundlePreset.createAndLoad(
-      BundleType.PROFESSIONAL, BundleClass.ADVANCED));
+      BundleType.INDIVIDUAL, BundleClass.ADVANCED));
     bundlePresetRepository.registerPreset(BundlePreset.createAndLoad(
-      BundleType.PROFESSIONAL, BundleClass.EXPERT));
+      BundleType.INDIVIDUAL, BundleClass.EXPERT));
     bundlePresetRepository.registerPreset(BundlePreset.createAndLoad(
       BundleType.TEAM, BundleClass.BEGINNER));
     bundlePresetRepository.registerPreset(BundlePreset.createAndLoad(

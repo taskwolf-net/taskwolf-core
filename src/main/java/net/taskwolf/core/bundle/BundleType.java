@@ -2,7 +2,7 @@ package net.taskwolf.core.bundle;
 
 public enum BundleType {
   TRIAL,
-  PROFESSIONAL,
+  INDIVIDUAL,
   TEAM,
   ENTERPRISE;
 
@@ -10,8 +10,8 @@ public enum BundleType {
     return this == TRIAL;
   }
 
-  public boolean isProfessional() {
-    return this == PROFESSIONAL;
+  public boolean isIndividual() {
+    return this == INDIVIDUAL;
   }
 
   public boolean isTeam() {
