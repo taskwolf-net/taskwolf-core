@@ -20,8 +20,9 @@ public final class TemplateDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("trigger", DatabaseDataType.TEXT));
     columns.add(DatabaseListColumn.create("actions", DatabaseDataType.TEXT));
     columns.add(DatabaseListColumn.create("modules", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("description", DatabaseDataType.TEXT));
+    columns.add(DatabaseListColumn.create("name", DatabaseDataType.TEXT));
+    columns.add(DatabaseListColumn.create("description", DatabaseDataType.TEXT));
+    columns.add(DatabaseListColumn.create("accessType", DatabaseDataType.TEXT));
     return new TemplateDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -35,14 +36,31 @@ public final class TemplateDatabaseTable extends DatabaseTable {
   public void insertTemplate(Template template) {
     insertTemplate(template.id(), template.trigger().encode(),
       template.actions().stream().map(TemplateAction::encode).toList(),
-      template.modules(), template.name(), template.description());
+      template.modules(), template.name(), template.description(),
+      template.accessType());
   }
 
   public void insertTemplate(
     UUID id, String trigger, List<String> actions, List<String> modules,
-    String name, String description
+    List<String> name, List<String> description, TemplateAccessType accessType
   ) {
-    insert(DatabaseRow.of(id, trigger, actions, modules, name, description));
+    insert(DatabaseRow.of(id, trigger, actions, modules, name, description,
+      accessType));
+  }
+
+  public void updateTemplate(Template template) {
+    updateTemplate(template.id(), template.trigger().encode(),
+      template.actions().stream().map(TemplateAction::encode).toList(),
+      template.modules(), template.name(), template.description(),
+      template.accessType());
+  }
+
+  public void updateTemplate(
+    UUID id, String trigger, List<String> actions, List<String> modules,
+    List<String> name, List<String> description, TemplateAccessType accessType
+  ) {
+    update(DatabaseCell.create(id), DatabaseRow.of(id, trigger, actions,
+      modules, name, description, accessType));
   }
 
   public void deleteTemplate(UUID templateId) {
