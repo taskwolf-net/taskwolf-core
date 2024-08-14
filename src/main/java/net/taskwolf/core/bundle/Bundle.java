@@ -21,19 +21,21 @@ public final class Bundle {
       row.findCell(6).booleanValue(), row.findCell(7).longValue(),
       row.findCell(8).longValue(), row.findCell(9).booleanValue(),
       row.findCell(10).booleanValue(), row.findCell(11).longValue(),
-      row.findCell(12).doubleValue(), row.findCell(13).booleanValue(),
-      row.findCell(14).longValue(), row.findCell(15).booleanValue(),
-      row.findCell(16).longValue(), row.findCell(17).longValue(),
-      row.findCell(18).booleanValue(), row.findCell(19).booleanValue(),
-      row.findCell(20).longValue());
+      row.findCell(12).booleanValue(), row.findCell(13).longValue(),
+      row.findCell(14).doubleValue(), row.findCell(15).booleanValue(),
+      row.findCell(16).longValue(), row.findCell(17).booleanValue(),
+      row.findCell(18).longValue(), row.findCell(19).longValue(),
+      row.findCell(20).booleanValue(), row.findCell(21).booleanValue(),
+      row.findCell(22).longValue());
   }
 
   public static Bundle of(
     UUID ownerId, BundlePreset preset, BundleRuntime runtime
   ) {
     return of(ownerId, preset, runtime, calculatePresetPrice(preset, runtime),
-      preset.workflowOperationLimit(), preset.databaseDataLimit(),
-      preset.organizationMemberLimit(), preset.organizationTeamLimit());
+      preset.workflowOperationLimit(), preset.processNumberLimit(),
+      preset.databaseDataLimit(), preset.organizationMemberLimit(),
+      preset.organizationTeamLimit());
   }
 
   private static double calculatePresetPrice(
@@ -47,32 +49,33 @@ public final class Bundle {
 
   public static Bundle of(
     UUID ownerId, BundlePreset preset, BundleRuntime runtime,
-    double price, long workflowOperationLimit, double databaseDataLimit,
-    long organizationMemberLimit, long organizationTeamLimit
+    double price, long workflowOperationLimit, long processNumberLimit,
+    double databaseDataLimit, long organizationMemberLimit,
+    long organizationTeamLimit
   ) {
     return create(ownerId, preset.bundleType(), preset.bundleClass(), runtime,
       price, calculateBundleExpiration(runtime), preset.workflowAccess(),
       preset.workflowNumberLimit(), workflowOperationLimit,
-      preset.workflowTemplateAccess(), preset.databaseAccess(),
-      preset.databaseNumberLimit(), databaseDataLimit, preset.webhookAccess(),
-      preset.webhookNumberLimit(), preset.organizationAccess(),
-      organizationMemberLimit, organizationTeamLimit,
+      preset.workflowTemplateAccess(), preset.processAccess(), processNumberLimit,
+      preset.databaseAccess(), preset.databaseNumberLimit(), databaseDataLimit,
+      preset.webhookAccess(), preset.webhookNumberLimit(),
+      preset.organizationAccess(), organizationMemberLimit, organizationTeamLimit,
       preset.deviceAccess(), preset.accountsAccess(), preset.accountsNumberLimit());
   }
 
   public static Bundle of(
     UUID ownerId, BundlePreset preset, BundleRuntime runtime,
     double price, long workflowNumberLimit, long workflowOperationLimit,
-    long databaseNumberLimit, double databaseDataLimit,
+    long processNumberLimit, long databaseNumberLimit, double databaseDataLimit,
     long organizationMemberLimit, long organizationTeamLimit
   ) {
     return create(ownerId, preset.bundleType(), preset.bundleClass(), runtime,
       price, calculateBundleExpiration(runtime), preset.workflowAccess(),
       workflowNumberLimit, workflowOperationLimit,
-      preset.workflowTemplateAccess(), preset.databaseAccess(),
-      databaseNumberLimit, databaseDataLimit, preset.webhookAccess(),
-      preset.webhookNumberLimit(), preset.organizationAccess(),
-      organizationMemberLimit, organizationTeamLimit,
+      preset.workflowTemplateAccess(), preset.processAccess(), processNumberLimit,
+      preset.databaseAccess(), databaseNumberLimit, databaseDataLimit,
+      preset.webhookAccess(), preset.webhookNumberLimit(),
+      preset.organizationAccess(), organizationMemberLimit, organizationTeamLimit,
       preset.deviceAccess(), preset.accountsAccess(), preset.accountsNumberLimit());
   }
 
@@ -94,6 +97,8 @@ public final class Bundle {
   private final long workflowNumberLimit;
   private final long workflowOperationLimit;
   private final boolean workflowTemplateAccess;
+  private final boolean processAccess;
+  private final long processNumberLimit;
   private final boolean databaseAccess;
   private final long databaseNumberLimit;
   private final double databaseDataLimit;

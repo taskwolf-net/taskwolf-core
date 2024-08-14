@@ -33,11 +33,16 @@ public final class BundlePreset extends Configuration {
   private double monthlyPrice;
   private double yearlyPrice;
   private boolean workflowAccess;
+  private boolean hasWorkflowNumberLimit;
   private long workflowNumberLimit;
   private boolean hasWorkflowOperationLimit;
   private long workflowOperationLimit;
   private boolean workflowTemplateAccess;
+  private boolean processAccess;
+  private boolean hasProcessNumberLimit;
+  private long processNumberLimit;
   private boolean databaseAccess;
+  private boolean hasDatabaseNumberLimit;
   private long databaseNumberLimit;
   private boolean hasDatabaseDataLimit;
   private double databaseDataLimit;
@@ -67,14 +72,25 @@ public final class BundlePreset extends Configuration {
       yearlyPrice = json.getDouble("yearlyPrice");
     }
     workflowAccess = json.getBoolean("workflowAccess");
-    workflowNumberLimit = json.getLong("workflowNumberLimit");
+    hasWorkflowNumberLimit = json.has("workflowNumberLimit");
+    if (hasWorkflowNumberLimit) {
+      workflowNumberLimit = json.getLong("workflowNumberLimit");
+    }
     hasWorkflowOperationLimit = json.has("workflowOperationLimit");
     if (hasWorkflowOperationLimit) {
       workflowOperationLimit = json.getLong("workflowOperationLimit");
     }
     workflowTemplateAccess = json.getBoolean("workflowTemplateAccess");
+    processAccess = json.getBoolean("processAccess");
+    hasProcessNumberLimit = json.has("processNumberLimit");
+    if (hasProcessNumberLimit) {
+      processNumberLimit = json.getLong("processNumberLimit");
+    }
     databaseAccess = json.getBoolean("databaseAccess");
-    databaseNumberLimit = json.getLong("databaseNumberLimit");
+    hasDatabaseNumberLimit = json.has("databaseNumberLimit");
+    if (hasDatabaseNumberLimit) {
+      databaseNumberLimit = json.getLong("databaseNumberLimit");
+    }
     hasDatabaseDataLimit = json.has("databaseDataLimit");
     if (hasDatabaseDataLimit) {
       databaseDataLimit = json.getDouble("databaseDataLimit");

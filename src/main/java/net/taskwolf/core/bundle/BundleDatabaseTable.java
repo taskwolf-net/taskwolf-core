@@ -25,6 +25,8 @@ public final class BundleDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("workflowNumberLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("workflowOperationLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("workflowTemplateAccess", DatabaseDataType.BOOLEAN));
+    columns.add(DatabaseColumn.create("processAccess", DatabaseDataType.BOOLEAN));
+    columns.add(DatabaseColumn.create("processNumberLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("databaseAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("databaseNumberLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("databaseDataLimit", DatabaseDataType.DOUBLE));
@@ -51,7 +53,8 @@ public final class BundleDatabaseTable extends DatabaseTable {
       bundle.bundleClass().toString(), bundle.bundleRuntime().toString(),
       bundle.price(), bundle.expiration(), bundle.workflowAccess(),
       bundle.workflowNumberLimit(), bundle.workflowOperationLimit(),
-      bundle.workflowTemplateAccess(), bundle.databaseAccess(),
+      bundle.workflowTemplateAccess(), bundle.processAccess(),
+      bundle.processNumberLimit(), bundle.databaseAccess(),
       bundle.databaseNumberLimit(), bundle.databaseDataLimit(),
       bundle.webhookAccess(), bundle.webhookNumberLimit(),
       bundle.organizationAccess(), bundle.organizationMemberLimit(),
@@ -65,7 +68,8 @@ public final class BundleDatabaseTable extends DatabaseTable {
         bundle.bundleClass().toString(), bundle.bundleRuntime().toString(),
         bundle.price(), bundle.expiration(), bundle.workflowAccess(),
         bundle.workflowNumberLimit(), bundle.workflowOperationLimit(),
-        bundle.workflowTemplateAccess(), bundle.databaseAccess(),
+        bundle.workflowTemplateAccess(), bundle.processAccess(),
+        bundle.processNumberLimit(), bundle.databaseAccess(),
         bundle.databaseNumberLimit(), bundle.databaseDataLimit(),
         bundle.webhookAccess(), bundle.webhookNumberLimit(),
         bundle.organizationAccess(), bundle.organizationMemberLimit(),

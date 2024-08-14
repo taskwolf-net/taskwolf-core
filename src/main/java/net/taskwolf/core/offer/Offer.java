@@ -22,26 +22,28 @@ public final class Offer {
       row.findCell(7).doubleValue(), row.findCell(8).booleanValue(),
       row.findCell(9).longValue(), row.findCell(10).longValue(),
       row.findCell(11).booleanValue(), row.findCell(12).booleanValue(),
-      row.findCell(13).longValue(), row.findCell(14).doubleValue(),
-      row.findCell(15).booleanValue(), row.findCell(16).longValue(),
+      row.findCell(13).longValue(), row.findCell(14).booleanValue(),
+      row.findCell(15).longValue(), row.findCell(16).doubleValue(),
       row.findCell(17).booleanValue(), row.findCell(18).longValue(),
-      row.findCell(19).longValue(), row.findCell(20).booleanValue(),
-      row.findCell(21).booleanValue(), row.findCell(22).longValue());
+      row.findCell(19).booleanValue(), row.findCell(20).longValue(),
+      row.findCell(21).longValue(), row.findCell(22).booleanValue(),
+      row.findCell(23).booleanValue(), row.findCell(24).longValue());
   }
 
   public static Offer of(
     UUID id, UUID targetId, String priceId, OfferStatus offerStatus,
-    BundlePreset preset, BundleRuntime runtime, double price, long workflowNumberLimit,
-    long workflowOperationLimit, long databaseNumberLimit, double databaseDataLimit,
+    BundlePreset preset, BundleRuntime runtime, double price,
+    long workflowNumberLimit, long workflowOperationLimit, long processNumberLimit,
+    long databaseNumberLimit, double databaseDataLimit,
     long organizationMemberLimit, long organizationTeamLimit
   ) {
     return create(id, targetId, priceId, offerStatus, preset.bundleType(),
       preset.bundleClass(), runtime, price, preset.workflowAccess(),
       workflowNumberLimit, workflowOperationLimit,
-      preset.workflowTemplateAccess(), preset.databaseAccess(),
-      databaseNumberLimit, databaseDataLimit, preset.webhookAccess(),
-      preset.webhookNumberLimit(), preset.organizationAccess(),
-      organizationMemberLimit, organizationTeamLimit,
+      preset.workflowTemplateAccess(), preset.processAccess(), processNumberLimit,
+      preset.databaseAccess(), databaseNumberLimit, databaseDataLimit,
+      preset.webhookAccess(), preset.webhookNumberLimit(),
+      preset.organizationAccess(), organizationMemberLimit, organizationTeamLimit,
       preset.deviceAccess(), preset.accountsAccess(), preset.accountsNumberLimit());
   }
 
@@ -57,6 +59,8 @@ public final class Offer {
   private final long workflowNumberLimit;
   private final long workflowOperationLimit;
   private final boolean workflowTemplateAccess;
+  private final boolean processAccess;
+  private final long processNumberLimit;
   private final boolean databaseAccess;
   private final long databaseNumberLimit;
   private final double databaseDataLimit;
@@ -76,10 +80,11 @@ public final class Offer {
   public Bundle toBundle() {
     return Bundle.create(targetId, bundleType, bundleClass, bundleRuntime, price,
       calculateBundleExpiration(bundleRuntime), workflowAccess, workflowNumberLimit,
-      workflowOperationLimit, workflowTemplateAccess, databaseAccess,
-      databaseNumberLimit, databaseDataLimit, webhookAccess, webhookNumberLimit,
-      organizationAccess, organizationMemberLimit, organizationTeamLimit,
-      deviceAccess, accountsAccess, accountsNumberLimit);
+      workflowOperationLimit, workflowTemplateAccess, processAccess,
+      processNumberLimit, databaseAccess, databaseNumberLimit, databaseDataLimit,
+      webhookAccess, webhookNumberLimit, organizationAccess,
+      organizationMemberLimit, organizationTeamLimit, deviceAccess,
+      accountsAccess, accountsNumberLimit);
   }
 
   private long calculateBundleExpiration(BundleRuntime runtime) {

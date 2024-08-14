@@ -27,6 +27,8 @@ public final class OfferDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("workflowNumberLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("workflowOperationLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("workflowTemplateAccess", DatabaseDataType.BOOLEAN));
+    columns.add(DatabaseColumn.create("processAccess", DatabaseDataType.BOOLEAN));
+    columns.add(DatabaseColumn.create("processNumberLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("databaseAccess", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("databaseNumberLimit", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("databaseDataLimit", DatabaseDataType.DOUBLE));
@@ -54,9 +56,9 @@ public final class OfferDatabaseTable extends DatabaseTable {
       offer.bundleClass().toString(), offer.bundleRuntime().toString(),
       offer.price(), offer.workflowAccess(), offer.workflowNumberLimit(),
       offer.workflowOperationLimit(), offer.workflowTemplateAccess(),
-      offer.databaseAccess(), offer.databaseNumberLimit(),
-      offer.databaseDataLimit(), offer.webhookAccess(),
-      offer.webhookNumberLimit(), offer.organizationAccess(),
+      offer.processAccess(), offer.processNumberLimit(), offer.databaseAccess(),
+      offer.databaseNumberLimit(), offer.databaseDataLimit(),
+      offer.webhookAccess(), offer.webhookNumberLimit(), offer.organizationAccess(),
       offer.organizationMemberLimit(), offer.organizationTeamLimit(),
       offer.deviceAccess(), offer.accountsAccess(), offer.accountsNumberLimit()));
   }
@@ -72,7 +74,8 @@ public final class OfferDatabaseTable extends DatabaseTable {
       offer.bundleType().toString(), offer.bundleClass().toString(),
       offer.bundleRuntime().toString(), offer.price(), offer.workflowAccess(),
       offer.workflowNumberLimit(), offer.workflowOperationLimit(),
-      offer.workflowTemplateAccess(), offer.databaseAccess(),
+      offer.workflowTemplateAccess(),  offer.processAccess(),
+      offer.processNumberLimit(), offer.databaseAccess(),
       offer.databaseNumberLimit(), offer.databaseDataLimit(), offer.webhookAccess(),
       offer.webhookNumberLimit(), offer.organizationAccess(),
       offer.organizationMemberLimit(), offer.organizationTeamLimit(),
