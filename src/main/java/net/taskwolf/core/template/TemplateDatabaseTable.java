@@ -22,7 +22,7 @@ public final class TemplateDatabaseTable extends DatabaseTable {
     columns.add(DatabaseListColumn.create("modules", DatabaseDataType.TEXT));
     columns.add(DatabaseListColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseListColumn.create("description", DatabaseDataType.TEXT));
-    columns.add(DatabaseListColumn.create("accessType", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("accessType", DatabaseDataType.TEXT));
     return new TemplateDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -45,7 +45,7 @@ public final class TemplateDatabaseTable extends DatabaseTable {
     List<String> name, List<String> description, TemplateAccessType accessType
   ) {
     insert(DatabaseRow.of(id, trigger, actions, modules, name, description,
-      accessType));
+      accessType.toString()));
   }
 
   public void updateTemplate(Template template) {
