@@ -60,7 +60,7 @@ public final class TemplateDatabaseTable extends DatabaseTable {
     List<String> name, List<String> description, TemplateAccessType accessType
   ) {
     update(DatabaseCell.create(id), DatabaseRow.of(id, trigger, actions,
-      modules, name, description, accessType));
+      modules, name, description, accessType.toString()));
   }
 
   public void deleteTemplate(UUID templateId) {
