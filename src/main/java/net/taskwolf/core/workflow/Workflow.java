@@ -21,6 +21,8 @@ import net.taskwolf.core.user.UserDatabaseTable;
 import net.taskwolf.core.workflow.notification.WorkflowFailureNotification;
 import net.taskwolf.core.workflow.operation.Operation;
 import net.taskwolf.core.workflow.operation.OperationDatabaseTable;
+import net.taskwolf.core.workflow.throttle.WorkflowThrottle;
+import net.taskwolf.core.workflow.throttle.WorkflowThrottleDatabaseTable;
 import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
 import org.json.JSONObject;
 
@@ -31,11 +33,11 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor(staticName = "create")
 public final class Workflow {
   private final WorkflowDatabaseTable workflowDatabaseTable;
-  private final WorkflowExecutionDatabaseTable workflowExecutionDatabaseTable;
   private final TimelineDatabaseTable timelineDatabaseTable;
   private final UserDatabaseTable userDatabaseTable;
   private final BundleDatabaseTable bundleDatabaseTable;
   private final OperationDatabaseTable operationDatabaseTable;
+  private final WorkflowThrottleDatabaseTable workflowThrottleDatabaseTable;
   private final OrganizationDatabaseTable organizationDatabaseTable;
   private final TeamDatabaseTable teamDatabaseTable;
   private final NotificationDatabaseTable notificationDatabaseTable;
@@ -54,12 +56,24 @@ public final class Workflow {
   public void trigger(Map<String, Object> information) {
     findWorkflowBundleOwner().thenAccept(owner -> bundleOwner = owner)
       .thenAccept(value -> checkOperationLimit().thenAccept(limitReached ->
-        trigger(information, limitReached)));
+        triggerLimit(information, limitReached)));
   }
 
-  private void trigger(Map<String, Object> information, boolean limitReached) {
+  private void triggerLimit(Map<String, Object> information, boolean limitReached) {
     if (limitReached) {
       postExecutionFailure("workflow.operations.limit.reached");
+      return;
+    }
+    WorkflowThrottle.create(workflowThrottleDatabaseTable, bundleOwner)
+      .registerWorkflowExecution().thenAccept(throttleAllowsExecution ->
+        triggerThrottle(information, throttleAllowsExecution));
+  }
+
+  private void triggerThrottle(
+    Map<String, Object> information, boolean throttleAllowsExecution
+  ) {
+    if (!throttleAllowsExecution) {
+      postExecutionFailure("workflow.throttle.intervention");
       return;
     }
     executeNextAction(Maps.newHashMap(information));
@@ -110,7 +124,6 @@ public final class Workflow {
     if (workflowEntry.state().isFailing()) {
       workflowDatabaseTable.updateWorkflowState(workflowEntry, WorkflowState.OPERATIONAL);
     }
-    workflowExecutionDatabaseTable.addWorkflowExecution(workflowEntry.id(), currentTime);
     timelineDatabaseTable.generateAvailableEntryId().thenAccept(id ->
       timelineDatabaseTable.insertEntry(id, workflowEntry.id(), currentTime,
         "timeline-workflow-execute", "{}"));

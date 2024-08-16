@@ -93,6 +93,7 @@
   "tutorial.help.step.3.description": "Wir haben das Ende unserer kurzen Einführung in Taskwolf erreicht. Wir hoffen, dass Sie das Produkt besser kennenlernen konnten. Wir danken Ihnen für Ihre Aufmerksamkeit.",
 
   "workflow.operations.limit.reached": "Sie haben die maximale Anzahl von Workflow-Operationen pro Monat ausgeschöpft. Aus diesem Grund konnte der Workflow nicht ausgeführt werden. Sie können Ihr Paket jederzeit aktualisieren, um zusätzliche Workflow-Operationen zu erhalten.",
+  "workflow.throttle.intervention": "Sie haben mehr als 50 Workflows pro Minute ausgeführt. Das System vermutete daher eine Rückkopplungsschleife innerhalb Ihrer Workflows. Um Ihr Betriebskontingent zu schützen, haben wir alle weiteren Workflow-Auslöser für die nächste Minute blockiert. Wenn Sie dies absichtlich tun und die Sperrung ungerechtfertigt ist, wenden Sie sich bitte an den Support.",
 
   "workflow.timeline.entry.created.title": "Workflow wurde erstellt",
   "workflow.timeline.entry.created.description": "Der Workflow wurde von %CREATOR% veröffentlicht.",

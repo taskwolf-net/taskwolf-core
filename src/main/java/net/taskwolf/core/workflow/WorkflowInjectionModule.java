@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.workflow.operation.OperationDatabaseTable;
+import net.taskwolf.core.workflow.throttle.WorkflowThrottleDatabaseTable;
 import net.taskwolf.core.workflow.timeline.TimelineDatabaseTable;
 
 @RequiredArgsConstructor(staticName = "create")
@@ -23,17 +24,6 @@ public final class WorkflowInjectionModule extends AbstractModule {
     workflowDatabaseTable.createIndexIfNotExists("trigger");
     workflowDatabaseTable.createIndexIfNotExists("modules");
     return workflowDatabaseTable;
-  }
-
-  @Provides
-  @Singleton
-  WorkflowExecutionDatabaseTable provideWorkflowExecutionDatabaseTable(
-    DatabaseConnection connection, DatabaseKeyspace keyspace
-  ) {
-    var workflowExecutionDatabaseTable = WorkflowExecutionDatabaseTable.create(
-      connection, keyspace);
-    workflowExecutionDatabaseTable.createIfNotExists();
-    return workflowExecutionDatabaseTable;
   }
 
   @Provides
@@ -57,5 +47,16 @@ public final class WorkflowInjectionModule extends AbstractModule {
       keyspace);
     operationDatabaseTable.createIfNotExists();
     return operationDatabaseTable;
+  }
+
+  @Provides
+  @Singleton
+  WorkflowThrottleDatabaseTable provideWorkflowThrottleDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var workflowThrottleDatabaseTable = WorkflowThrottleDatabaseTable.create(
+      connection, keyspace);
+    workflowThrottleDatabaseTable.createIfNotExists();
+    return workflowThrottleDatabaseTable;
   }
 }
