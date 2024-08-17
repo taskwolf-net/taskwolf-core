@@ -87,7 +87,7 @@ public final class Workflow {
 
   private boolean checkOperationLimit(Bundle bundle, Operation operations) {
     if (System.currentTimeMillis() > operations.expiration()) {
-      operationDatabaseTable.extendExpiration(operations);
+      operationDatabaseTable.extendExpiration(bundleOwner);
       return true;
     }
     return operations.operations() + actions.size() >

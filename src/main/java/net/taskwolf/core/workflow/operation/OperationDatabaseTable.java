@@ -2,6 +2,7 @@ package net.taskwolf.core.workflow.operation;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.workflow.throttle.WorkflowThrottleEntry;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,8 +17,8 @@ public final class OperationDatabaseTable extends DatabaseTable {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("target", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
-    columns.add(DatabaseColumn.create("operations", DatabaseDataType.BIGINT));
-    columns.add(DatabaseColumn.create("expiration", DatabaseDataType.BIGINT));
+    columns.add(DatabaseColumn.create("operations", DatabaseDataType.COUNTER));
+    columns.add(DatabaseColumn.create("expiration", DatabaseDataType.COUNTER));
     return new OperationDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -28,46 +29,59 @@ public final class OperationDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public void insertOperations(UUID targetId) {
-    insert(DatabaseRow.of(targetId, 0, System.currentTimeMillis() +
-      1000L * 60 * 60 * 24 * 30));
+  public CompletableFuture<Void> insertOperations(UUID targetId) {
+    return updateOperations(targetId, 0, System.currentTimeMillis() +
+      1000L * 60 * 60 * 24 * 30);
   }
 
-  public void addOperations(UUID targetId, long additionalOperations) {
-    findOperations(targetId).thenAccept(operation -> addOperations(operation,
-      additionalOperations));
+  public CompletableFuture<Void> addOperations(
+    UUID targetId, long additionalOperations
+  ) {
+    return updateOperations(targetId, additionalOperations, 0);
   }
 
-  public void addOperations(Operation operation, long additionalOperations) {
-    operation.addOperations(additionalOperations);
-    updateOperations(operation);
+  public CompletableFuture<Void> extendExpiration(UUID targetId) {
+    return findOperations(targetId).thenAccept(this::extendExpiration);
   }
 
-  public void extendExpiration(UUID targetId) {
-    findOperations(targetId).thenAccept(this::resetExpiration);
+  private CompletableFuture<Void> extendExpiration(Operation operation) {
+    return setOperations(operation, 0, operation.expiration() +
+      1000L * 60 * 60 * 24 * 30);
   }
 
-  public void extendExpiration(Operation operation) {
-    operation.resetExpiration();
-    updateOperations(operation);
+  public CompletableFuture<Void> resetExpiration(UUID targetId) {
+    return findOperations(targetId).thenAccept(this::resetExpiration);
   }
 
-  public void resetExpiration(UUID targetId) {
-    findOperations(targetId).thenAccept(this::resetExpiration);
+  private CompletableFuture<Void> resetExpiration(Operation operation) {
+    return setOperations(operation, 0, System.currentTimeMillis() +
+      1000L * 60 * 60 * 24 * 30);
   }
 
-  public void resetExpiration(Operation operation) {
-    operation.resetExpiration();
-    updateOperations(operation);
+  private CompletableFuture<Void> setOperations(
+    Operation entry, long operations, long expiration
+  ) {
+    return updateOperations(entry.targetId(), operations - entry.operations(),
+      expiration - entry.expiration());
   }
 
-  private void updateOperations(Operation operation) {
-    update(DatabaseCell.create(operation.targetId()), DatabaseRow.of(
-      operation.targetId(), operation.operations(), operation.expiration()));
+  private CompletableFuture<Void> updateOperations(
+    UUID targetId, long operationAddition, long expirationAddition
+  ) {
+    var operationQuery = new StringBuilder();
+    operationQuery.append("operations");
+    operationQuery.append(operationAddition >= 0 ? "+" : "-");
+    operationQuery.append(Math.abs(operationAddition));
+    var expirationQuery = new StringBuilder();
+    expirationQuery.append("expiration");
+    expirationQuery.append(expirationAddition >= 0 ? "+" : "-");
+    expirationQuery.append(Math.abs(expirationAddition));
+    return update(DatabaseCell.create(targetId), DatabaseRow.of(targetId,
+      operationQuery, expirationQuery));
   }
 
-  public void deleteOperations(UUID targetId) {
-    delete(DatabaseCell.create(targetId));
+  public CompletableFuture<Void> deleteOperations(UUID targetId) {
+    return delete(DatabaseCell.create(targetId));
   }
 
   public CompletableFuture<Boolean> operationsExists(UUID targetId) {
