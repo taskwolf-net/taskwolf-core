@@ -21,9 +21,9 @@ public final class WorkflowEntry {
       WorkflowState.valueOf(row.findCell(10).stringValue()));
   }
 
+  private final UUID ownerId;
   private final UUID id;
   private final UUID creatorId;
-  private final UUID ownerId;
   private final UUID triggerId;
   private final List<UUID> actionIds;
   private final List<UUID> conditionIds;

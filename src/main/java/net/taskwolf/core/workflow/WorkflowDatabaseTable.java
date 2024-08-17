@@ -6,7 +6,6 @@ import net.taskwolf.core.database.*;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public final class WorkflowDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "workflow";
@@ -15,10 +14,11 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
+    columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID,
+      DatabaseColumn.Type.PARTITION_KEY));
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
-      DatabaseColumn.Type.PRIMARY_KEY));
+      DatabaseColumn.Type.CLUSTERING_KEY));
     columns.add(DatabaseColumn.create("creator", DatabaseDataType.UUID));
-    columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("trigger", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("actions", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("conditions", DatabaseDataType.UUID));
@@ -38,23 +38,23 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   public void insertWorkflow(WorkflowEntry entry) {
-    insertWorkflow(entry.id(), entry.creatorId(), entry.ownerId(), entry.triggerId(),
+    insertWorkflow(entry.ownerId(), entry.id(), entry.creatorId(), entry.triggerId(),
       entry.actionIds(), entry.conditionIds(), entry.modules(), entry.created(),
       entry.name(), entry.description(), entry.state().toString());
   }
 
   public void insertWorkflow(
-    UUID id, UUID creatorId, UUID ownerId, UUID triggerId, List<UUID> actionIds,
+    UUID id, UUID ownerId, UUID creatorId, UUID triggerId, List<UUID> actionIds,
     List<UUID> conditionIds, List<String> modules, long created, String name,
     String description, String state
   ) {
-    insert(DatabaseRow.of(id, creatorId, ownerId, triggerId, actionIds,
+    insert(DatabaseRow.of(ownerId, id, creatorId, triggerId, actionIds,
       conditionIds, modules, created, name, description, state));
   }
 
   public void updateWorkflowState(WorkflowEntry entry, WorkflowState state) {
-    update(DatabaseCell.create(entry.id()), DatabaseRow.of(entry.id(),
-      entry.creatorId(), entry.ownerId(), entry.triggerId(), entry.actionIds(),
+    update(DatabaseCell.create(entry.id()), DatabaseRow.of(entry.ownerId(),
+      entry.id(), entry.creatorId(), entry.triggerId(), entry.actionIds(),
       entry.conditionIds(), entry.modules(), entry.created(), entry.name(),
       entry.description(), state.toString()));
   }
@@ -73,16 +73,30 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> workflowExists(UUID workflowId) {
-    return exists(DatabaseCell.create(workflowId));
+    return exists("id=" + workflowId);
   }
 
   public CompletableFuture<WorkflowEntry> findWorkflow(UUID workflowId) {
-    return selectRow(DatabaseCell.create(workflowId)).thenApply(WorkflowEntry::of);
+    return selectRow("id=" + workflowId).thenApply(WorkflowEntry::of);
   }
 
-  public CompletableFuture<List<WorkflowEntry>> findWorkflowsOfOwner(UUID ownerId) {
-    return selectRows("owner=" + ownerId).thenApply(rows ->
-      rows.stream().map(WorkflowEntry::of).collect(Collectors.toList()));
+  private static final int PAGE_SIZE = 5;
+
+  public CompletableFuture<DatabasePage<WorkflowEntry>> findWorkflowsOfOwner(
+    UUID ownerId, int page
+  ) {
+    return selectPage(PAGE_SIZE, page, "owner=" + ownerId)
+      .thenApply(result -> DatabasePage.create(result.content().stream()
+        .map(WorkflowEntry::of).toList(), result.pageState()));
+  }
+
+  public CompletableFuture<DatabasePage<WorkflowEntry>> findWorkflowsOfOwner(
+    UUID ownerId, String currentPageState, DatabaseDirection direction
+  ) {
+    return shiftPage(DatabaseCell.create(ownerId), "id", DatabaseOrder.ASCENDING,
+      PAGE_SIZE, currentPageState, direction)
+      .thenApply(result -> DatabasePage.create(result.content().stream()
+        .map(WorkflowEntry::of).toList(), result.pageState()));
   }
 
   public CompletableFuture<List<WorkflowEntry>> findWorkflowByModule(

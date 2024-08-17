@@ -20,7 +20,7 @@ public final class WorkflowInjectionModule extends AbstractModule {
     var workflowDatabaseTable = WorkflowDatabaseTable.create(connection,
       keyspace);
     workflowDatabaseTable.createIfNotExists();
-    workflowDatabaseTable.createIndexIfNotExists("owner");
+    workflowDatabaseTable.createIndexIfNotExists("id");
     workflowDatabaseTable.createIndexIfNotExists("trigger");
     workflowDatabaseTable.createIndexIfNotExists("modules");
     return workflowDatabaseTable;
