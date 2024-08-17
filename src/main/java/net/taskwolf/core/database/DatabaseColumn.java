@@ -21,10 +21,20 @@ public class DatabaseColumn {
 
   public enum Type {
     PRIMARY_KEY,
+    PARTITION_KEY,
+    CLUSTERING_KEY,
     REGULAR;
 
     public boolean isPrimaryKey() {
       return this == PRIMARY_KEY;
+    }
+
+    public boolean isPartitionKey() {
+      return this == PARTITION_KEY;
+    }
+
+    public boolean isClusteringKey() {
+      return this == CLUSTERING_KEY;
     }
 
     public boolean isRegular() {

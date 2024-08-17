@@ -84,15 +84,30 @@ public class DatabaseTable {
       compilation.append(", ");
     }
     compilation.append("PRIMARY KEY (");
-    var primaryKeyColumns = columns.stream()
-      .filter(column -> column.type().isPrimaryKey()).toList();
-    for (var i = 0; i < primaryKeyColumns.size(); i++) {
+    compilation.append(columnNameCompilation(columns.stream()
+      .filter(column -> column.type().isPartitionKey()).toList(), "(", "),"));
+    compilation.append(columnNameCompilation(columns.stream()
+      .filter(column -> column.type().isClusteringKey()).toList(), "", ""));
+    compilation.append(columnNameCompilation(columns.stream()
+      .filter(column -> column.type().isPrimaryKey()).toList(), "", ""));
+    compilation.append(")");
+    return compilation.toString();
+  }
+
+  private String columnNameCompilation(
+    List<DatabaseColumn> columns, String prefix, String suffix
+  ) {
+    if (columns.isEmpty()) {
+      return "";
+    }
+    var compilation = new StringBuilder(prefix);
+    for (var i = 0; i < columns.size(); i++) {
       if (i > 0) {
         compilation.append(", ");
       }
-      compilation.append(primaryKeyColumns.get(i).name());
+      compilation.append(columns.get(i).name());
     }
-    compilation.append(")");
+    compilation.append(suffix);
     return compilation.toString();
   }
 
@@ -225,12 +240,12 @@ public class DatabaseTable {
 
   private String buildUpdateKeyValuePairs(DatabaseRow row) {
     var pairs = new StringBuilder();
-    var primaryKeyIndex = columns.indexOf(findPrimaryKeyColumn());
     for (var i = 0; i < columns.size(); i++) {
-      if (i == primaryKeyIndex) {
+      var column = columns.get(i);
+      if (!column.type().isRegular()) {
         continue;
       }
-      pairs.append(columns.get(i).name());
+      pairs.append(column.name());
       pairs.append(" = ");
       pairs.append(row.findCell(i).databaseValue());
       if (i < columns.size() - 1) {
@@ -376,16 +391,18 @@ public class DatabaseTable {
 
   /**
    * Used to shift an existing paging state (next or previous page)
-   * @param primaryKeyCell
-   * @param orderColumn
-   * @param order
-   * @param pageSize
-   * @param pageState
-   * @param isForward
-   * @return
+   * @param partitionKeyCell The partition key value that specifies the
+   *                         basic set of elements to be paged
+   * @param clusteringKeyColumn The clustering key column used for sorting
+   * @param order The direction in which sorting should take place
+   * @param pageSize The page size that is used for the paging process
+   * @param pageState The current page state
+   * @param isForward Is true if the next page is searched for and
+   *                  false if the previous page is searched for
+   * @return A future that contains the page
    */
   protected CompletableFuture<DatabasePage> shiftPage(
-    DatabaseCell primaryKeyCell, String orderColumn, DatabaseOrder order,
+    DatabaseCell partitionKeyCell, String clusteringKeyColumn, DatabaseOrder order,
     int pageSize, String pageState, boolean isForward
   ) {
     var query = new StringBuilder("SELECT ");
@@ -393,9 +410,9 @@ public class DatabaseTable {
     query.append(" FROM ");
     query.append(fullName());
     query.append(" WHERE ");
-    query.append(primaryKeyCondition(primaryKeyCell));
+    query.append(partitionKeyCondition(partitionKeyCell));
     query.append(" ORDER BY ");
-    query.append(orderColumn);
+    query.append(clusteringKeyColumn);
     query.append(" ");
     query.append(isForward ? order.value() : order.reverse().value());
     query.append(";");
@@ -485,19 +502,26 @@ public class DatabaseTable {
   }
 
   private String primaryKeyCondition(DatabaseCell primaryKeyCell) {
-    var condition = new StringBuilder(findPrimaryKeyColumn().name());
-    condition.append(" = ");
-    condition.append(primaryKeyCell.databaseValue());
-    return condition.toString();
+    return columnCondition(columns.stream()
+      .filter(column -> column.type().isPrimaryKey())
+      .findFirst().get(), primaryKeyCell);
   }
 
-  private DatabaseColumn findPrimaryKeyColumn() {
-    for (var column : columns) {
-      if (column.type() == DatabaseColumn.Type.PRIMARY_KEY) {
-        return column;
-      }
-    }
-    return null;
+  private String partitionKeyCondition(DatabaseCell partitionKeyCell) {
+    return columnCondition(columns.stream()
+      .filter(column -> column.type().isPartitionKey())
+      .findFirst().get(), partitionKeyCell);
+  }
+
+  private String columnCondition(DatabaseColumn column, DatabaseCell cell) {
+    return columnCondition(column.name(), cell);
+  }
+
+  private String columnCondition(String columnName, DatabaseCell cell) {
+    var condition = new StringBuilder(columnName);
+    condition.append(" = ");
+    condition.append(cell.databaseValue());
+    return condition.toString();
   }
 
   protected void fillColumns(List<DatabaseColumn> newColumns) {
