@@ -45,9 +45,6 @@ public class DatabaseColumn {
     entry.append(name);
     entry.append(" ");
     entry.append(dataType);
-    if (type.isPrimaryKey()) {
-      entry.append(" PRIMARY KEY");
-    }
     return entry.toString();
   }
 }

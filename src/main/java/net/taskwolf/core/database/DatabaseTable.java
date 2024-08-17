@@ -1,8 +1,10 @@
 package net.taskwolf.core.database;
 
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
+import com.datastax.oss.driver.api.core.cql.PagingState;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.datastax.oss.driver.api.core.paging.OffsetPager;
+import com.google.common.collect.Lists;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -79,10 +81,18 @@ public class DatabaseTable {
     var compilation = new StringBuilder();
     for (var i = 0; i < columns.size(); i++) {
       compilation.append(columns.get(i).databaseEntry());
-      if (i < columns.size() - 1) {
+      compilation.append(", ");
+    }
+    compilation.append("PRIMARY KEY (");
+    var primaryKeyColumns = columns.stream()
+      .filter(column -> column.type().isPrimaryKey()).toList();
+    for (var i = 0; i < primaryKeyColumns.size(); i++) {
+      if (i > 0) {
         compilation.append(", ");
       }
+      compilation.append(primaryKeyColumns.get(i).name());
     }
+    compilation.append(")");
     return compilation.toString();
   }
 
@@ -339,7 +349,7 @@ public class DatabaseTable {
    * @param pageNumber The current page number
    * @return A future that contains the database rows
    */
-  protected CompletableFuture<List<DatabaseRow>> selectPagesRows(
+  protected CompletableFuture<List<DatabaseRow>> selectPage(
     int pageSize, int pageNumber
   ) {
     var query = new StringBuilder("SELECT ");
@@ -362,6 +372,57 @@ public class DatabaseTable {
     var pager = new OffsetPager(pageSize);
     return pager.getPage(resultSet, pageNumber).thenApply(page ->
       DatabaseRow.multiple(page.getElements(), columns.size()));
+  }
+
+  /**
+   * Used to shift an existing paging state (next or previous page)
+   * @param primaryKeyCell
+   * @param orderColumn
+   * @param order
+   * @param pageSize
+   * @param pageState
+   * @param isForward
+   * @return
+   */
+  protected CompletableFuture<DatabasePage> shiftPage(
+    DatabaseCell primaryKeyCell, String orderColumn, DatabaseOrder order,
+    int pageSize, String pageState, boolean isForward
+  ) {
+    var query = new StringBuilder("SELECT ");
+    query.append(columnNameCompilation());
+    query.append(" FROM ");
+    query.append(fullName());
+    query.append(" WHERE ");
+    query.append(primaryKeyCondition(primaryKeyCell));
+    query.append(" ORDER BY ");
+    query.append(orderColumn);
+    query.append(" ");
+    query.append(isForward ? order.value() : order.reverse().value());
+    query.append(";");
+    var rawState = PagingState.fromString(pageState).getRawPagingState();
+    var statement = SimpleStatement.builder(query.toString())
+      .setPageSize(pageSize).setPagingState(rawState).build();
+    var result = connection.session().executeAsync(statement);
+    var futureResponse = new CompletableFuture<DatabasePage>();
+    result.thenCompose(this::finishPageShifting)
+      .thenAccept(futureResponse::complete);
+    return futureResponse;
+  }
+
+  private CompletionStage<DatabasePage> finishPageShifting(
+    AsyncResultSet resultSet
+  ) {
+    if (!resultSet.hasMorePages()) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return resultSet.fetchNextPage().thenApply(this::createDatabasePage);
+  }
+
+  private DatabasePage createDatabasePage(AsyncResultSet resultSet) {
+    return DatabasePage.create(
+      DatabaseRow.multiple(Lists.newArrayList(resultSet.currentPage()),
+        columns.size()),
+      resultSet.getExecutionInfo().getSafePagingState().toString());
   }
 
   private String columnNameCompilation() {
