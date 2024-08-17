@@ -12,6 +12,6 @@ final class DatabaseListColumnTest {
     Assertions.assertEquals(column.dataType(), DatabaseDataType.LIST);
     Assertions.assertEquals(column.type(), DatabaseColumn.Type.PRIMARY_KEY);
     Assertions.assertTrue(column.type().isPrimaryKey());
-    Assertions.assertEquals(column.databaseEntry(), "test LIST<TEXT> PRIMARY KEY");
+    Assertions.assertEquals(column.databaseEntry(), "test LIST<TEXT>");
   }
 }

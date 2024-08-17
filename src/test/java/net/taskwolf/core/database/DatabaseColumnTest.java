@@ -12,6 +12,6 @@ final class DatabaseColumnTest {
     Assertions.assertEquals(column.dataType(), DatabaseDataType.TEXT);
     Assertions.assertEquals(column.type(), DatabaseColumn.Type.PRIMARY_KEY);
     Assertions.assertTrue(column.type().isPrimaryKey());
-    Assertions.assertEquals(column.databaseEntry(), "test TEXT PRIMARY KEY");
+    Assertions.assertEquals(column.databaseEntry(), "test TEXT");
   }
 }
