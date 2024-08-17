@@ -31,9 +31,6 @@ public class DatabaseListColumn extends DatabaseColumn {
     entry.append("<");
     entry.append(listDataType);
     entry.append(">");
-    if (type().isPrimaryKey()) {
-      entry.append(" PRIMARY KEY");
-    }
     return entry.toString();
   }
 }
