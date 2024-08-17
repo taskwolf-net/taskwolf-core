@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
-public final class DatabasePage {
-  private final List<DatabaseRow> rows;
+public final class DatabasePage<T> {
+  private final List<T> content;
   private final String pageState;
 }

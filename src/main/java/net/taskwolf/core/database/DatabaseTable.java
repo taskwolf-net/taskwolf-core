@@ -362,31 +362,42 @@ public class DatabaseTable {
    * Finds multiple database rows paged
    * @param pageSize The size of each individual page
    * @param pageNumber The current page number
-   * @return A future that contains the database rows
+   * @param condition The condition with which the rows can be found
+   * @return A future that contains the page
    */
-  protected CompletableFuture<List<DatabaseRow>> selectPage(
-    int pageSize, int pageNumber
+  protected CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
+    int pageSize, int pageNumber, String condition
+  ) {
+    return selectPageWithAddition(pageSize, pageNumber, " WHERE " + condition);
+  }
+
+  protected CompletableFuture<DatabasePage<DatabaseRow>> selectPageWithAddition(
+    int pageSize, int pageNumber, String addition
   ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
+    query.append(addition);
     query.append(";");
     var statement = SimpleStatement.builder(query.toString())
       .setPageSize(pageSize).build();
     var result = connection.session().executeAsync(statement);
-    var futureResponse = new CompletableFuture<List<DatabaseRow>>();
+    var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
     result.thenAccept(resultSet -> findCorrectPage(pageSize, pageNumber,
       resultSet).thenAccept(futureResponse::complete));
     return futureResponse;
   }
 
-  private CompletionStage<List<DatabaseRow>> findCorrectPage(
+  private CompletionStage<DatabasePage<DatabaseRow>> findCorrectPage(
     int pageSize, int pageNumber, AsyncResultSet resultSet
   ) {
-    var pager = new OffsetPager(pageSize);
+    /*var pager = new OffsetPager(pageSize);
     return pager.getPage(resultSet, pageNumber).thenApply(page ->
-      DatabaseRow.multiple(page.getElements(), columns.size()));
+      DatabaseRow.multiple(page.getElements(), columns.size()));*/
+    //TODO: IMPLEMENT OWN OffsetPager TO GET PAGE STATE OF TARGET PAGE FOR THE
+    // DatabasePage (FUNCTION RETURN)
+    return null;
   }
 
   /**
@@ -397,13 +408,12 @@ public class DatabaseTable {
    * @param order The direction in which sorting should take place
    * @param pageSize The page size that is used for the paging process
    * @param pageState The current page state
-   * @param isForward Is true if the next page is searched for and
-   *                  false if the previous page is searched for
+   * @param direction The direction in which you want to shift
    * @return A future that contains the page
    */
-  protected CompletableFuture<DatabasePage> shiftPage(
+  protected CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
     DatabaseCell partitionKeyCell, String clusteringKeyColumn, DatabaseOrder order,
-    int pageSize, String pageState, boolean isForward
+    int pageSize, String pageState, DatabaseDirection direction
   ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
@@ -414,19 +424,19 @@ public class DatabaseTable {
     query.append(" ORDER BY ");
     query.append(clusteringKeyColumn);
     query.append(" ");
-    query.append(isForward ? order.value() : order.reverse().value());
+    query.append(direction.isForward() ? order.value() : order.reverse().value());
     query.append(";");
     var rawState = PagingState.fromString(pageState).getRawPagingState();
     var statement = SimpleStatement.builder(query.toString())
       .setPageSize(pageSize).setPagingState(rawState).build();
     var result = connection.session().executeAsync(statement);
-    var futureResponse = new CompletableFuture<DatabasePage>();
+    var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
     result.thenCompose(this::finishPageShifting)
       .thenAccept(futureResponse::complete);
     return futureResponse;
   }
 
-  private CompletionStage<DatabasePage> finishPageShifting(
+  private CompletionStage<DatabasePage<DatabaseRow>> finishPageShifting(
     AsyncResultSet resultSet
   ) {
     if (!resultSet.hasMorePages()) {
@@ -435,7 +445,7 @@ public class DatabaseTable {
     return resultSet.fetchNextPage().thenApply(this::createDatabasePage);
   }
 
-  private DatabasePage createDatabasePage(AsyncResultSet resultSet) {
+  private DatabasePage<DatabaseRow> createDatabasePage(AsyncResultSet resultSet) {
     return DatabasePage.create(
       DatabaseRow.multiple(Lists.newArrayList(resultSet.currentPage()),
         columns.size()),
