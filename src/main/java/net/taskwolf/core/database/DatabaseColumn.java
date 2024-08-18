@@ -5,7 +5,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
-@Getter
+import java.util.Optional;
+
 @Accessors(fluent = true)
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class DatabaseColumn {
@@ -16,7 +17,13 @@ public class DatabaseColumn {
   public static DatabaseColumn create(
     String name, DatabaseDataType dataType, Type type
   ) {
-    return new DatabaseColumn(name, dataType, type);
+    return new DatabaseColumn(name, dataType, type, Optional.empty());
+  }
+
+  public static DatabaseColumn create(
+    String name, DatabaseDataType dataType, Type type, DatabaseOrder order
+  ) {
+    return new DatabaseColumn(name, dataType, type, Optional.of(order));
   }
 
   public enum Type {
@@ -42,9 +49,13 @@ public class DatabaseColumn {
     }
   }
 
+  @Getter
   private final String name;
+  @Getter
   private final DatabaseDataType dataType;
+  @Getter
   private final Type type;
+  private final Optional<DatabaseOrder> order;
 
   /**
    * Is used by the {@link DatabaseTable} to e.g. initialize the column / table
@@ -56,5 +67,13 @@ public class DatabaseColumn {
     entry.append(" ");
     entry.append(dataType);
     return entry.toString();
+  }
+
+  public boolean hasOrder() {
+    return order.isPresent();
+  }
+
+  public DatabaseOrder order() {
+    return order.get();
   }
 }

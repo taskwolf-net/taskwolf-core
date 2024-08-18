@@ -1,5 +1,6 @@
 package net.taskwolf.core.database;
 
+import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -10,6 +11,10 @@ import java.util.List;
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public final class DatabasePage<T> {
+  public static <T> DatabasePage<T> empty() {
+    return create(Lists.newArrayList(), "");
+  }
+
   private final List<T> content;
   private final String pageState;
 }

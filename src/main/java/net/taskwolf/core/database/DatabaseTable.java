@@ -3,7 +3,6 @@ package net.taskwolf.core.database;
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.cql.PagingState;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
-import com.datastax.oss.driver.api.core.paging.OffsetPager;
 import com.google.common.collect.Lists;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -46,34 +45,9 @@ public class DatabaseTable {
     query.append(fullName());
     query.append(" (");
     query.append(columnCompilation());
-    query.append(");");
-    connection.session().executeAsync(query.toString());
-  }
-
-  /**
-   * Creates an index for a column of the database table even if it already exists
-   * @param column The column for which the index is to be created
-   */
-  public void createIndex(String column) {
-    createIndex(column, "");
-  }
-
-  /**
-   * Creates an index for a column of the database table if it does not already exist
-   * @param column The column for which the index is to be created
-   */
-  public void createIndexIfNotExists(String column) {
-    createIndex(column, "IF NOT EXISTS");
-  }
-
-  private void createIndex(String column, String addition) {
-    var query = new StringBuilder("CREATE INDEX ");
-    query.append(addition);
-    query.append(" ON ");
-    query.append(fullName());
-    query.append(" (");
-    query.append(column);
-    query.append(");");
+    query.append(")");
+    query.append(clusteringOrder());
+    query.append(";");
     connection.session().executeAsync(query.toString());
   }
 
@@ -109,6 +83,53 @@ public class DatabaseTable {
     }
     compilation.append(suffix);
     return compilation.toString();
+  }
+
+  private String clusteringOrder() {
+    var order = columns.stream().filter(DatabaseColumn::hasOrder).toList();
+    if (order.isEmpty()) {
+      return "";
+    }
+    var result = new StringBuilder();
+    result.append(" WITH CLUSTERING ORDER BY (");
+    for (var i = 0; i < order.size(); i++) {
+      if (i > 0) {
+        result.append(", ");
+      }
+      var column = order.get(i);
+      result.append(column.name());
+      result.append(" ");
+      result.append(column.order().value());
+    }
+    result.append(")");
+    return result.toString();
+  }
+
+  /**
+   * Creates an index for a column of the database table even if it already exists
+   * @param column The column for which the index is to be created
+   */
+  public void createIndex(String column) {
+    createIndex(column, "");
+  }
+
+  /**
+   * Creates an index for a column of the database table if it does not already exist
+   * @param column The column for which the index is to be created
+   */
+  public void createIndexIfNotExists(String column) {
+    createIndex(column, "IF NOT EXISTS");
+  }
+
+  private void createIndex(String column, String addition) {
+    var query = new StringBuilder("CREATE INDEX ");
+    query.append(addition);
+    query.append(" ON ");
+    query.append(fullName());
+    query.append(" (");
+    query.append(column);
+    query.append(");");
+    connection.session().executeAsync(query.toString());
   }
 
   /**
@@ -291,10 +312,19 @@ public class DatabaseTable {
    * @return The number of rows
    */
   public CompletableFuture<Long> count() {
-    return count("");
+    return countWithAddition("");
   }
 
-  protected CompletableFuture<Long> count(String addition) {
+  /**
+   * Is used to find the number of rows inside a database table
+   * @param condition The condition that is used for counting
+   * @return The number of rows
+   */
+  protected CompletableFuture<Long> count(String condition) {
+    return countWithAddition(" WHERE " + condition);
+  }
+
+  protected CompletableFuture<Long> countWithAddition(String addition) {
     var query = new StringBuilder("SELECT COUNT(*) FROM ");
     query.append(fullName());
     query.append(" ");
@@ -384,20 +414,22 @@ public class DatabaseTable {
       .setPageSize(pageSize).build();
     var result = connection.session().executeAsync(statement);
     var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
-    result.thenAccept(resultSet -> findCorrectPage(pageSize, pageNumber,
-      resultSet).thenAccept(futureResponse::complete));
+    result.thenAccept(resultSet -> findCorrectPage(pageNumber, 0, resultSet)
+      .thenAccept(futureResponse::complete));
     return futureResponse;
   }
 
   private CompletionStage<DatabasePage<DatabaseRow>> findCorrectPage(
-    int pageSize, int pageNumber, AsyncResultSet resultSet
+    int targetPageNumber, int currentPageNumber, AsyncResultSet resultSet
   ) {
-    /*var pager = new OffsetPager(pageSize);
-    return pager.getPage(resultSet, pageNumber).thenApply(page ->
-      DatabaseRow.multiple(page.getElements(), columns.size()));*/
-    //TODO: IMPLEMENT OWN OffsetPager TO GET PAGE STATE OF TARGET PAGE FOR THE
-    // DatabasePage (FUNCTION RETURN)
-    return null;
+    if (currentPageNumber == targetPageNumber) {
+      return CompletableFuture.completedFuture(createDatabasePage(resultSet));
+    }
+    if (!resultSet.hasMorePages()) {
+      return CompletableFuture.completedFuture(DatabasePage.empty());
+    }
+    return resultSet.fetchNextPage().thenCompose(nextPage ->
+      findCorrectPage(targetPageNumber, currentPageNumber + 1, nextPage));
   }
 
   /**
@@ -415,6 +447,9 @@ public class DatabaseTable {
     DatabaseCell partitionKeyCell, String clusteringKeyColumn, DatabaseOrder order,
     int pageSize, String pageState, DatabaseDirection direction
   ) {
+    if (pageState.isEmpty()) {
+      direction = DatabaseDirection.BACKWARD;
+    }
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
     query.append(" FROM ");
@@ -426,30 +461,24 @@ public class DatabaseTable {
     query.append(" ");
     query.append(direction.isForward() ? order.value() : order.reverse().value());
     query.append(";");
-    var rawState = PagingState.fromString(pageState).getRawPagingState();
     var statement = SimpleStatement.builder(query.toString())
-      .setPageSize(pageSize).setPagingState(rawState).build();
+      .setPageSize(pageSize).build();
+    if (!pageState.isEmpty()) {
+      statement = statement.setPagingState(PagingState.fromString(pageState)
+        .getRawPagingState());
+    }
     var result = connection.session().executeAsync(statement);
     var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
-    result.thenCompose(this::finishPageShifting)
+    result.thenApply(this::createDatabasePage)
       .thenAccept(futureResponse::complete);
     return futureResponse;
   }
 
-  private CompletionStage<DatabasePage<DatabaseRow>> finishPageShifting(
-    AsyncResultSet resultSet
-  ) {
-    if (!resultSet.hasMorePages()) {
-      return CompletableFuture.completedFuture(null);
-    }
-    return resultSet.fetchNextPage().thenApply(this::createDatabasePage);
-  }
-
   private DatabasePage<DatabaseRow> createDatabasePage(AsyncResultSet resultSet) {
-    return DatabasePage.create(
-      DatabaseRow.multiple(Lists.newArrayList(resultSet.currentPage()),
-        columns.size()),
-      resultSet.getExecutionInfo().getSafePagingState().toString());
+    return DatabasePage.create(DatabaseRow.multiple(
+      Lists.newArrayList(resultSet.currentPage()), columns.size()),
+      resultSet.hasMorePages() ?
+        resultSet.getExecutionInfo().getSafePagingState().toString() : "");
   }
 
   private String columnNameCompilation() {
