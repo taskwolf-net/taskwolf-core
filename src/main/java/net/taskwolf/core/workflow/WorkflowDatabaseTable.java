@@ -17,7 +17,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID,
       DatabaseColumn.Type.PARTITION_KEY));
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
-      DatabaseColumn.Type.CLUSTERING_KEY));
+      DatabaseColumn.Type.CLUSTERING_KEY, DatabaseOrder.ASCENDING));
     columns.add(DatabaseColumn.create("creator", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("trigger", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("actions", DatabaseDataType.UUID));
@@ -53,14 +53,16 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   public void updateWorkflowState(WorkflowEntry entry, WorkflowState state) {
-    update(DatabaseCell.create(entry.id()), DatabaseRow.of(entry.ownerId(),
-      entry.id(), entry.creatorId(), entry.triggerId(), entry.actionIds(),
-      entry.conditionIds(), entry.modules(), entry.created(), entry.name(),
-      entry.description(), state.toString()));
+    update("owner=" + entry.ownerId() + " AND id=" + entry.id(),
+      DatabaseRow.of(entry.ownerId(), entry.id(), entry.creatorId(),
+        entry.triggerId(), entry.actionIds(), entry.conditionIds(),
+        entry.modules(), entry.created(), entry.name(), entry.description(),
+        state.toString()));
   }
 
   public void deleteWorkflow(UUID workflowId) {
-    delete(DatabaseCell.create(workflowId));
+    findWorkflow(workflowId).thenAccept(workflow ->
+      delete("owner=" + workflow.ownerId() + " AND id=" + workflow.id()));
   }
 
   public CompletableFuture<UUID> generateAvailableWorkflowId() {
@@ -97,6 +99,22 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
       PAGE_SIZE, currentPageState, direction)
       .thenApply(result -> DatabasePage.create(result.content().stream()
         .map(WorkflowEntry::of).toList(), result.pageState()));
+  }
+
+  public CompletableFuture<Long> findWorkflowPages(UUID ownerId) {
+    return findWorkflowCount(ownerId)
+      .thenApply(count -> (long) Math.ceil(count.doubleValue() / PAGE_SIZE));
+  }
+
+  public CompletableFuture<Long> findWorkflowCount(UUID ownerId) {
+    return count("owner=" + ownerId);
+  }
+
+  public CompletableFuture<List<WorkflowEntry>> findAllWorkflowsOfOwner(
+    UUID ownerId
+  ) {
+    return selectRows("owner=" + ownerId)
+      .thenApply(rows -> rows.stream().map(WorkflowEntry::of).toList());
   }
 
   public CompletableFuture<List<WorkflowEntry>> findWorkflowByModule(
