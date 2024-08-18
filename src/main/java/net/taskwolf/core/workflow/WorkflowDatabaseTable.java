@@ -85,18 +85,19 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   private static final int PAGE_SIZE = 5;
 
   public CompletableFuture<DatabasePage<WorkflowEntry>> findWorkflowsOfOwner(
-    UUID ownerId, int page
+    UUID ownerId, String pageState, int currentPage, int targetPage
   ) {
-    return selectPage(PAGE_SIZE, page, "owner=" + ownerId)
+    return selectPage(DatabaseCell.create(ownerId), "id", DatabaseOrder.ASCENDING,
+      PAGE_SIZE, pageState, currentPage, targetPage)
       .thenApply(result -> DatabasePage.create(result.content().stream()
         .map(WorkflowEntry::of).toList(), result.pageState()));
   }
 
   public CompletableFuture<DatabasePage<WorkflowEntry>> findWorkflowsOfOwner(
-    UUID ownerId, String currentPageState, DatabaseDirection direction
+    UUID ownerId, String pageState, DatabaseDirection direction
   ) {
     return shiftPage(DatabaseCell.create(ownerId), "id", DatabaseOrder.ASCENDING,
-      PAGE_SIZE, currentPageState, direction)
+      PAGE_SIZE, pageState, direction)
       .thenApply(result -> DatabasePage.create(result.content().stream()
         .map(WorkflowEntry::of).toList(), result.pageState()));
   }

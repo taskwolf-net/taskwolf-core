@@ -389,47 +389,75 @@ public class DatabaseTable {
   }
 
   /**
-   * Finds multiple database rows paged
-   * @param pageSize The size of each individual page
-   * @param pageNumber The current page number
-   * @param condition The condition with which the rows can be found
-   * @return A future that contains the page
+   *
+   * @param partitionKeyCell
+   * @param clusteringKeyColumn
+   * @param order
+   * @param pageSize
+   * @param pageState
+   * @param currentPage
+   * @param targetPage
+   * @return
    */
   protected CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
-    int pageSize, int pageNumber, String condition
+    DatabaseCell partitionKeyCell, String clusteringKeyColumn, DatabaseOrder order,
+    int pageSize, String pageState, int currentPage, int targetPage
   ) {
-    return selectPageWithAddition(pageSize, pageNumber, " WHERE " + condition);
+    return count(partitionKeyCondition(partitionKeyCell))
+      .thenCompose(count -> selectPage(partitionKeyCell, clusteringKeyColumn,
+        order, pageSize, (int) Math.ceil(count.doubleValue() / pageSize),
+        pageState, currentPage, targetPage));
   }
 
-  protected CompletableFuture<DatabasePage<DatabaseRow>> selectPageWithAddition(
-    int pageSize, int pageNumber, String addition
+  private static final int MAX_PAGE_STEPS = 5;
+
+  private CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
+    DatabaseCell partitionKeyCell, String clusteringKeyColumn, DatabaseOrder order,
+    int pageSize, int pageNumber, String pageState, int currentPage, int targetPage
   ) {
-    var query = new StringBuilder("SELECT ");
-    query.append(columnNameCompilation());
-    query.append(" FROM ");
-    query.append(fullName());
-    query.append(addition);
-    query.append(";");
-    var statement = SimpleStatement.builder(query.toString())
-      .setPageSize(pageSize).build();
+    if (targetPage != 0 && targetPage != pageNumber - 1 &&
+      Math.abs(targetPage - currentPage) > MAX_PAGE_STEPS
+    ) {
+      return CompletableFuture.completedFuture(DatabasePage.empty());
+    }
+    var direction = findSelectPageDirection(currentPage, targetPage, pageNumber);
+    var statement = createPagingStatement(partitionKeyCell, clusteringKeyColumn,
+      direction.isForward() ? order : order.reverse(), pageSize,
+      (targetPage == 0 || targetPage == pageNumber - 1) ? "" : pageState);
     var result = connection.session().executeAsync(statement);
     var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
-    result.thenAccept(resultSet -> findCorrectPage(pageNumber, 0, resultSet)
-      .thenAccept(futureResponse::complete));
+    result.thenAccept(resultSet -> findCorrectPage(
+      (targetPage == 0 || targetPage == pageNumber - 1) ? targetPage : currentPage,
+      targetPage, direction, resultSet).thenAccept(futureResponse::complete));
     return futureResponse;
   }
 
-  private CompletionStage<DatabasePage<DatabaseRow>> findCorrectPage(
-    int targetPageNumber, int currentPageNumber, AsyncResultSet resultSet
+  private DatabaseDirection findSelectPageDirection(
+    int currentPage, int targetPage, int pageNumber
   ) {
-    if (currentPageNumber == targetPageNumber) {
+    if (targetPage == 0) {
+      return DatabaseDirection.FORWARD;
+    }
+    if (targetPage == pageNumber - 1) {
+      return DatabaseDirection.BACKWARD;
+    }
+    return (targetPage - currentPage) > 0 ? DatabaseDirection.FORWARD :
+      DatabaseDirection.BACKWARD;
+  }
+
+  private CompletionStage<DatabasePage<DatabaseRow>> findCorrectPage(
+    int currentPage, int targetPage, DatabaseDirection direction,
+    AsyncResultSet resultSet
+  ) {
+    if (currentPage == targetPage) {
       return CompletableFuture.completedFuture(createDatabasePage(resultSet));
     }
     if (!resultSet.hasMorePages()) {
       return CompletableFuture.completedFuture(DatabasePage.empty());
     }
     return resultSet.fetchNextPage().thenCompose(nextPage ->
-      findCorrectPage(targetPageNumber, currentPageNumber + 1, nextPage));
+      findCorrectPage(currentPage + (direction.isForward() ? 1 : -1), targetPage,
+        direction, nextPage));
   }
 
   /**
@@ -450,23 +478,8 @@ public class DatabaseTable {
     if (pageState.isEmpty()) {
       direction = DatabaseDirection.BACKWARD;
     }
-    var query = new StringBuilder("SELECT ");
-    query.append(columnNameCompilation());
-    query.append(" FROM ");
-    query.append(fullName());
-    query.append(" WHERE ");
-    query.append(partitionKeyCondition(partitionKeyCell));
-    query.append(" ORDER BY ");
-    query.append(clusteringKeyColumn);
-    query.append(" ");
-    query.append(direction.isForward() ? order.value() : order.reverse().value());
-    query.append(";");
-    var statement = SimpleStatement.builder(query.toString())
-      .setPageSize(pageSize).build();
-    if (!pageState.isEmpty()) {
-      statement = statement.setPagingState(PagingState.fromString(pageState)
-        .getRawPagingState());
-    }
+    var statement = createPagingStatement(partitionKeyCell, clusteringKeyColumn,
+      direction.isForward() ? order : order.reverse(), pageSize, pageState);
     var result = connection.session().executeAsync(statement);
     var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
     result.thenApply(this::createDatabasePage)
@@ -481,15 +494,28 @@ public class DatabaseTable {
         resultSet.getExecutionInfo().getSafePagingState().toString() : "");
   }
 
-  private String columnNameCompilation() {
-    var compilation = new StringBuilder();
-    for (var i = 0; i < columns.size(); i++) {
-      compilation.append(columns.get(i).name());
-      if (i < columns.size() - 1) {
-        compilation.append(", ");
-      }
+  private SimpleStatement createPagingStatement(
+    DatabaseCell partitionKeyCell, String clusteringKeyColumn,
+    DatabaseOrder order, int pageSize, String pageState
+  ) {
+    var query = new StringBuilder("SELECT ");
+    query.append(columnNameCompilation());
+    query.append(" FROM ");
+    query.append(fullName());
+    query.append(" WHERE ");
+    query.append(partitionKeyCondition(partitionKeyCell));
+    query.append(" ORDER BY ");
+    query.append(clusteringKeyColumn);
+    query.append(" ");
+    query.append(order.value());
+    query.append(";");
+    var statement = SimpleStatement.builder(query.toString())
+      .setPageSize(pageSize).build();
+    if (!pageState.isEmpty()) {
+      statement = statement.setPagingState(PagingState.fromString(pageState)
+        .getRawPagingState());
     }
-    return compilation.toString();
+    return statement;
   }
 
   /**
@@ -538,6 +564,17 @@ public class DatabaseTable {
     query.append(fullName());
     query.append(";");
     connection.session().executeAsync(query.toString());
+  }
+
+  private String columnNameCompilation() {
+    var compilation = new StringBuilder();
+    for (var i = 0; i < columns.size(); i++) {
+      compilation.append(columns.get(i).name());
+      if (i < columns.size() - 1) {
+        compilation.append(", ");
+      }
+    }
+    return compilation.toString();
   }
 
   private String primaryKeyCondition(DatabaseCell primaryKeyCell) {
