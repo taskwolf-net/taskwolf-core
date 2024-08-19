@@ -1,8 +1,6 @@
 package net.taskwolf.core.database;
 
-import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
-import com.datastax.oss.driver.api.core.cql.PagingState;
-import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import com.datastax.oss.driver.api.core.cql.*;
 import com.google.common.collect.Lists;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -11,7 +9,6 @@ import lombok.experimental.Accessors;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
@@ -389,75 +386,45 @@ public class DatabaseTable {
   }
 
   /**
-   *
-   * @param partitionKeyCell
-   * @param clusteringKeyColumn
-   * @param order
-   * @param pageSize
-   * @param pageState
-   * @param currentPage
-   * @param targetPage
-   * @return
+   * Used to find a specific page inside the table
+   * @param partitionKeyCell The partition key value that specifies the
+   *                         basic set of elements to be paged
+   * @param clusteringKeyColumn The clustering key column used for sorting
+   * @param order The direction in which sorting should take place
+   * @param pageSize The page size that is used for the paging process
+   * @param pageState The current page state
+   * @param targetPage The page the requester wants to jump to
+   * @return A future that contains the page
    */
   protected CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
     DatabaseCell partitionKeyCell, String clusteringKeyColumn, DatabaseOrder order,
-    int pageSize, String pageState, int currentPage, int targetPage
+    int pageSize, String pageState, int targetPage
   ) {
     return count(partitionKeyCondition(partitionKeyCell))
       .thenCompose(count -> selectPage(partitionKeyCell, clusteringKeyColumn,
-        order, pageSize, (int) Math.ceil(count.doubleValue() / pageSize),
-        pageState, currentPage, targetPage));
+        order, pageSize, count, pageState, targetPage));
   }
-
-  private static final int MAX_PAGE_STEPS = 5;
 
   private CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
     DatabaseCell partitionKeyCell, String clusteringKeyColumn, DatabaseOrder order,
-    int pageSize, int pageNumber, String pageState, int currentPage, int targetPage
+    int pageSize, long rowNumber, String pageState, int targetPage
   ) {
-    if (targetPage != 0 && targetPage != pageNumber - 1 &&
-      Math.abs(targetPage - currentPage) > MAX_PAGE_STEPS
-    ) {
+    var pageNumber = (int) Math.ceil(((double) rowNumber) / pageSize);
+    if (targetPage != 0 && targetPage != pageNumber - 1) {
       return CompletableFuture.completedFuture(DatabasePage.empty());
     }
-    var direction = findSelectPageDirection(currentPage, targetPage, pageNumber);
+    var direction = targetPage == 0 ? DatabaseDirection.FORWARD :
+      DatabaseDirection.BACKWARD;
     var statement = createPagingStatement(partitionKeyCell, clusteringKeyColumn,
       direction.isForward() ? order : order.reverse(), pageSize,
       (targetPage == 0 || targetPage == pageNumber - 1) ? "" : pageState);
+    if (targetPage == pageNumber - 1) {
+      statement = statement.setPageSize((int) (rowNumber % pageSize));
+    }
     var result = connection.session().executeAsync(statement);
     var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
-    result.thenAccept(resultSet -> findCorrectPage(
-      (targetPage == 0 || targetPage == pageNumber - 1) ? targetPage : currentPage,
-      targetPage, direction, resultSet).thenAccept(futureResponse::complete));
+    result.thenApply(this::createDatabasePage).thenAccept(futureResponse::complete);
     return futureResponse;
-  }
-
-  private DatabaseDirection findSelectPageDirection(
-    int currentPage, int targetPage, int pageNumber
-  ) {
-    if (targetPage == 0) {
-      return DatabaseDirection.FORWARD;
-    }
-    if (targetPage == pageNumber - 1) {
-      return DatabaseDirection.BACKWARD;
-    }
-    return (targetPage - currentPage) > 0 ? DatabaseDirection.FORWARD :
-      DatabaseDirection.BACKWARD;
-  }
-
-  private CompletionStage<DatabasePage<DatabaseRow>> findCorrectPage(
-    int currentPage, int targetPage, DatabaseDirection direction,
-    AsyncResultSet resultSet
-  ) {
-    if (currentPage == targetPage) {
-      return CompletableFuture.completedFuture(createDatabasePage(resultSet));
-    }
-    if (!resultSet.hasMorePages()) {
-      return CompletableFuture.completedFuture(DatabasePage.empty());
-    }
-    return resultSet.fetchNextPage().thenCompose(nextPage ->
-      findCorrectPage(currentPage + (direction.isForward() ? 1 : -1), targetPage,
-        direction, nextPage));
   }
 
   /**
@@ -468,28 +435,56 @@ public class DatabaseTable {
    * @param order The direction in which sorting should take place
    * @param pageSize The page size that is used for the paging process
    * @param pageState The current page state
+   * @param startingPoint Whether you come from the back or from the front
    * @param direction The direction in which you want to shift
    * @return A future that contains the page
    */
   protected CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
     DatabaseCell partitionKeyCell, String clusteringKeyColumn, DatabaseOrder order,
-    int pageSize, String pageState, DatabaseDirection direction
+    int pageSize, String pageState, DatabaseDirection startingPoint,
+    DatabaseDirection direction
   ) {
-    if (pageState.isEmpty()) {
-      direction = DatabaseDirection.BACKWARD;
-    }
     var statement = createPagingStatement(partitionKeyCell, clusteringKeyColumn,
       direction.isForward() ? order : order.reverse(), pageSize, pageState);
     var result = connection.session().executeAsync(statement);
     var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
-    result.thenApply(this::createDatabasePage)
+    result.thenCompose(resultSet ->
+        findShiftedPage(pageSize, resultSet, startingPoint, direction))
       .thenAccept(futureResponse::complete);
     return futureResponse;
   }
 
+  private CompletableFuture<DatabasePage<DatabaseRow>> findShiftedPage(
+    int pageSize, AsyncResultSet firstResult, DatabaseDirection startingPoint,
+    DatabaseDirection direction
+  ) {
+    if (startingPoint == direction) {
+      return CompletableFuture.completedFuture(createDatabasePage(firstResult));
+    }
+    return (CompletableFuture<DatabasePage<DatabaseRow>>)
+      firstResult.fetchNextPage().thenApply(secondResult ->
+        createDatabasePage(firstResult, combineShiftResults(pageSize,
+          firstResult, secondResult)));
+  }
+
+  private List<Row> combineShiftResults(
+    int pageSize, AsyncResultSet firstResult, AsyncResultSet secondResult
+  ) {
+    var result = Lists.<Row>newArrayList();
+    result.addAll(Lists.newArrayList(secondResult.currentPage())
+      .stream().limit(pageSize - 1).toList());
+    result.add(Lists.newArrayList(firstResult.currentPage()).get(pageSize - 1));
+    return result;
+  }
+
   private DatabasePage<DatabaseRow> createDatabasePage(AsyncResultSet resultSet) {
-    return DatabasePage.create(DatabaseRow.multiple(
-      Lists.newArrayList(resultSet.currentPage()), columns.size()),
+    return createDatabasePage(resultSet, Lists.newArrayList(resultSet.currentPage()));
+  }
+
+  private DatabasePage<DatabaseRow> createDatabasePage(
+    AsyncResultSet resultSet, List<Row> rows
+  ) {
+    return DatabasePage.create(DatabaseRow.multiple(rows, columns.size()),
       resultSet.hasMorePages() ?
         resultSet.getExecutionInfo().getSafePagingState().toString() : "");
   }
