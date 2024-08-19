@@ -107,7 +107,16 @@ public class DatabaseTable {
    * @param column The column for which the index is to be created
    */
   public void createIndex(String column) {
-    createIndex(column, "");
+    createIndex(column, "", "");
+  }
+
+  /**
+   * Creates an index for a column of the database table even if it already exists
+   * @param column The column for which the index is to be created
+   * @param customType The custom type of the index
+   */
+  public void createIndex(String column, String customType) {
+    createIndex(column, "", customType);
   }
 
   /**
@@ -115,17 +124,36 @@ public class DatabaseTable {
    * @param column The column for which the index is to be created
    */
   public void createIndexIfNotExists(String column) {
-    createIndex(column, "IF NOT EXISTS");
+    createIndex(column, "IF NOT EXISTS", "");
   }
 
-  private void createIndex(String column, String addition) {
-    var query = new StringBuilder("CREATE INDEX ");
+  /**
+   * Creates an index for a column of the database table if it does not already exist
+   * @param column The column for which the index is to be created
+   * @param customType The custom type of the index
+   */
+  public void createIndexIfNotExists(String column, String customType) {
+    createIndex(column, "IF NOT EXISTS", customType);
+  }
+
+  private void createIndex(String column, String addition, String customType) {
+    var query = new StringBuilder("CREATE");
+    if (!customType.isEmpty()) {
+      query.append(" CUSTOM");
+    }
+    query.append(" INDEX ");
     query.append(addition);
     query.append(" ON ");
     query.append(fullName());
     query.append(" (");
     query.append(column);
-    query.append(");");
+    query.append(")");
+    if (!customType.isEmpty()) {
+      query.append(" USING '");
+      query.append(customType);
+      query.append("'");
+    }
+    query.append(";");
     connection.session().executeAsync(query.toString());
   }
 
@@ -392,38 +420,38 @@ public class DatabaseTable {
    * @param clusteringKeyColumn The clustering key column used for sorting
    * @param order The direction in which sorting should take place
    * @param pageSize The page size that is used for the paging process
-   * @param pageState The current page state
    * @param targetPage The page the requester wants to jump to
    * @return A future that contains the page
    */
   protected CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
-    DatabaseCell partitionKeyCell, String clusteringKeyColumn, DatabaseOrder order,
-    int pageSize, String pageState, int targetPage
+    DatabaseCell partitionKeyCell, String clusteringKeyColumn,
+    List<String> conditions, DatabaseOrder order, int pageSize, int targetPage
   ) {
-    return count(partitionKeyCondition(partitionKeyCell))
-      .thenCompose(count -> selectPage(partitionKeyCell, clusteringKeyColumn,
-        order, pageSize, count, pageState, targetPage));
+    return countPagingRows(partitionKeyCell, conditions).thenCompose(count ->
+      selectPage(partitionKeyCell, clusteringKeyColumn, conditions, order,
+        pageSize, count, targetPage));
   }
 
   private CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
-    DatabaseCell partitionKeyCell, String clusteringKeyColumn, DatabaseOrder order,
-    int pageSize, long rowNumber, String pageState, int targetPage
+    DatabaseCell partitionKeyCell, String clusteringKeyColumn,
+    List<String> conditions, DatabaseOrder order, int pageSize, long rowNumber,
+    int targetPage
   ) {
-    var pageNumber = (int) Math.ceil(((double) rowNumber) / pageSize);
+    var pageNumber = calculatePageNumber(pageSize, rowNumber);
     if (targetPage != 0 && targetPage != pageNumber - 1) {
       return CompletableFuture.completedFuture(DatabasePage.empty());
     }
     var direction = targetPage == 0 ? DatabaseDirection.FORWARD :
       DatabaseDirection.BACKWARD;
     var statement = createPagingStatement(partitionKeyCell, clusteringKeyColumn,
-      direction.isForward() ? order : order.reverse(), pageSize,
-      (targetPage == 0 || targetPage == pageNumber - 1) ? "" : pageState);
+      conditions, direction.isForward() ? order : order.reverse(), pageSize, "");
     if (targetPage == pageNumber - 1) {
       statement = statement.setPageSize((int) (rowNumber % pageSize));
     }
     var result = connection.session().executeAsync(statement);
     var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
-    result.thenApply(this::createDatabasePage).thenAccept(futureResponse::complete);
+    result.thenApply(resultSet -> createDatabasePage(pageNumber, resultSet))
+      .thenAccept(futureResponse::complete);
     return futureResponse;
   }
 
@@ -440,31 +468,44 @@ public class DatabaseTable {
    * @return A future that contains the page
    */
   protected CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
-    DatabaseCell partitionKeyCell, String clusteringKeyColumn, DatabaseOrder order,
-    int pageSize, String pageState, DatabaseDirection startingPoint,
-    DatabaseDirection direction
+    DatabaseCell partitionKeyCell, String clusteringKeyColumn,
+    List<String> conditions, DatabaseOrder order, int pageSize, String pageState,
+    DatabaseDirection startingPoint, DatabaseDirection direction
   ) {
+    return countPagingRows(partitionKeyCell, conditions).thenCompose(count ->
+      shiftPage(partitionKeyCell, clusteringKeyColumn, conditions, order,
+        pageSize, count, pageState, startingPoint, direction));
+  }
+
+  private CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
+    DatabaseCell partitionKeyCell, String clusteringKeyColumn,
+    List<String> conditions, DatabaseOrder order, int pageSize, long rowNumber,
+    String pageState, DatabaseDirection startingPoint, DatabaseDirection direction
+  ) {
+    var pageNumber = calculatePageNumber(pageSize, rowNumber);
     var statement = createPagingStatement(partitionKeyCell, clusteringKeyColumn,
-      direction.isForward() ? order : order.reverse(), pageSize, pageState);
+      conditions, direction.isForward() ? order : order.reverse(), pageSize,
+      pageState);
     var result = connection.session().executeAsync(statement);
     var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
     result.thenCompose(resultSet ->
-        findShiftedPage(pageSize, resultSet, startingPoint, direction))
+        findShiftedPage(pageSize, pageNumber, resultSet, startingPoint, direction))
       .thenAccept(futureResponse::complete);
     return futureResponse;
   }
 
   private CompletableFuture<DatabasePage<DatabaseRow>> findShiftedPage(
-    int pageSize, AsyncResultSet firstResult, DatabaseDirection startingPoint,
-    DatabaseDirection direction
+    int pageSize, int pageNumber, AsyncResultSet firstResult,
+    DatabaseDirection startingPoint, DatabaseDirection direction
   ) {
     if (startingPoint == direction) {
-      return CompletableFuture.completedFuture(createDatabasePage(firstResult));
+      return CompletableFuture.completedFuture(createDatabasePage(pageNumber,
+        firstResult));
     }
     return (CompletableFuture<DatabasePage<DatabaseRow>>)
       firstResult.fetchNextPage().thenApply(secondResult ->
-        createDatabasePage(firstResult, combineShiftResults(pageSize,
-          firstResult, secondResult)));
+        createDatabasePage(pageNumber, firstResult,
+          combineShiftResults(pageSize, firstResult, secondResult)));
   }
 
   private List<Row> combineShiftResults(
@@ -477,21 +518,25 @@ public class DatabaseTable {
     return result;
   }
 
-  private DatabasePage<DatabaseRow> createDatabasePage(AsyncResultSet resultSet) {
-    return createDatabasePage(resultSet, Lists.newArrayList(resultSet.currentPage()));
+  private DatabasePage<DatabaseRow> createDatabasePage(
+    int pageNumber, AsyncResultSet resultSet
+  ) {
+    return createDatabasePage(pageNumber, resultSet,
+      Lists.newArrayList(resultSet.currentPage()));
   }
 
   private DatabasePage<DatabaseRow> createDatabasePage(
-    AsyncResultSet resultSet, List<Row> rows
+    int pageNumber, AsyncResultSet resultSet, List<Row> rows
   ) {
     return DatabasePage.create(DatabaseRow.multiple(rows, columns.size()),
       resultSet.hasMorePages() ?
-        resultSet.getExecutionInfo().getSafePagingState().toString() : "");
+        resultSet.getExecutionInfo().getSafePagingState().toString() : "",
+      pageNumber);
   }
 
   private SimpleStatement createPagingStatement(
     DatabaseCell partitionKeyCell, String clusteringKeyColumn,
-    DatabaseOrder order, int pageSize, String pageState
+    List<String> conditions, DatabaseOrder order, int pageSize, String pageState
   ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
@@ -499,6 +544,10 @@ public class DatabaseTable {
     query.append(fullName());
     query.append(" WHERE ");
     query.append(partitionKeyCondition(partitionKeyCell));
+    for (var condition : conditions) {
+      query.append(" AND ");
+      query.append(condition);
+    }
     query.append(" ORDER BY ");
     query.append(clusteringKeyColumn);
     query.append(" ");
@@ -511,6 +560,21 @@ public class DatabaseTable {
         .getRawPagingState());
     }
     return statement;
+  }
+
+  private CompletableFuture<Long> countPagingRows(
+    DatabaseCell partitionKeyCell, List<String> conditions
+  ) {
+    var finalCondition = new StringBuilder(partitionKeyCondition(partitionKeyCell));
+    for (var condition : conditions) {
+      finalCondition.append(" AND ");
+      finalCondition.append(condition);
+    }
+    return count(finalCondition.toString());
+  }
+
+  private int calculatePageNumber(int pageSize, long rowNumber) {
+    return (int) Math.ceil(((double) rowNumber) / pageSize);
   }
 
   /**

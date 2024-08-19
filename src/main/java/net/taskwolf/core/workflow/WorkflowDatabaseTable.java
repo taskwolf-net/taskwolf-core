@@ -1,5 +1,6 @@
 package net.taskwolf.core.workflow;
 
+import com.datastax.oss.driver.api.core.cql.Row;
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
 
@@ -85,27 +86,45 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   private static final int PAGE_SIZE = 5;
 
   public CompletableFuture<DatabasePage<WorkflowEntry>> findWorkflowsOfOwner(
-    UUID ownerId, String pageState, int targetPage
+    UUID ownerId, int targetPage, UUID creatorId, long startTime, long endTime
   ) {
-    return selectPage(DatabaseCell.create(ownerId), "id", DatabaseOrder.ASCENDING,
-      PAGE_SIZE, pageState, targetPage)
-      .thenApply(result -> DatabasePage.create(result.content().stream()
-        .map(WorkflowEntry::of).toList(), result.pageState()));
+    return selectPage(DatabaseCell.create(ownerId), "id",
+      createWorkflowsConditions(creatorId, startTime, endTime),
+      DatabaseOrder.ASCENDING, PAGE_SIZE, targetPage)
+      .thenApply(this::createWorkflowPage);
   }
 
   public CompletableFuture<DatabasePage<WorkflowEntry>> findWorkflowsOfOwner(
     UUID ownerId, String pageState, DatabaseDirection startingPoint,
-    DatabaseDirection direction
+    DatabaseDirection direction, UUID creatorId, long startTime, long endTime
   ) {
-    return shiftPage(DatabaseCell.create(ownerId), "id", DatabaseOrder.ASCENDING,
-      PAGE_SIZE, pageState, startingPoint, direction)
-      .thenApply(result -> DatabasePage.create(result.content().stream()
-        .map(WorkflowEntry::of).toList(), result.pageState()));
+    return shiftPage(DatabaseCell.create(ownerId), "id",
+      createWorkflowsConditions(creatorId, startTime, endTime),
+      DatabaseOrder.ASCENDING, PAGE_SIZE, pageState, startingPoint, direction)
+      .thenApply(this::createWorkflowPage);
   }
 
-  public CompletableFuture<Long> findWorkflowPages(UUID ownerId) {
-    return findWorkflowCount(ownerId)
-      .thenApply(count -> (long) Math.ceil(count.doubleValue() / PAGE_SIZE));
+  private List<String> createWorkflowsConditions(
+    UUID creatorId, long startTime, long endTime
+  ) {
+    var conditions = Lists.<String>newArrayList();
+    if (creatorId != null) {
+      conditions.add("creator = " + creatorId);
+    }
+    if (startTime != -1) {
+      conditions.add("created > " + startTime);
+    }
+    if (endTime != -1) {
+      conditions.add("created < " + endTime);
+    }
+    return conditions;
+  }
+
+  private DatabasePage<WorkflowEntry> createWorkflowPage(
+    DatabasePage<DatabaseRow> page
+  ) {
+    return DatabasePage.create(page.content().stream().map(WorkflowEntry::of).toList(),
+      page.pageState(), page.pageNumber());
   }
 
   public CompletableFuture<Long> findWorkflowCount(UUID ownerId) {

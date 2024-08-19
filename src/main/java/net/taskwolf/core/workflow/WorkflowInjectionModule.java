@@ -23,6 +23,10 @@ public final class WorkflowInjectionModule extends AbstractModule {
     workflowDatabaseTable.createIndexIfNotExists("id");
     workflowDatabaseTable.createIndexIfNotExists("trigger");
     workflowDatabaseTable.createIndexIfNotExists("modules");
+    workflowDatabaseTable.createIndexIfNotExists("name",
+      "org.apache.cassandra.index.sasi.SASIIndex");
+    workflowDatabaseTable.createIndexIfNotExists("creator");
+    workflowDatabaseTable.createIndexIfNotExists("created");
     return workflowDatabaseTable;
   }
 

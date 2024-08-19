@@ -12,9 +12,10 @@ import java.util.List;
 @RequiredArgsConstructor(staticName = "create")
 public final class DatabasePage<T> {
   public static <T> DatabasePage<T> empty() {
-    return create(Lists.newArrayList(), "");
+    return create(Lists.newArrayList(), "", 0);
   }
 
   private final List<T> content;
   private final String pageState;
+  private final int pageNumber;
 }
