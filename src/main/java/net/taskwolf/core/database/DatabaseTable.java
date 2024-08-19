@@ -65,23 +65,6 @@ public class DatabaseTable {
     return compilation.toString();
   }
 
-  private String columnNameCompilation(
-    List<DatabaseColumn> columns, String prefix, String suffix
-  ) {
-    if (columns.isEmpty()) {
-      return "";
-    }
-    var compilation = new StringBuilder(prefix);
-    for (var i = 0; i < columns.size(); i++) {
-      if (i > 0) {
-        compilation.append(", ");
-      }
-      compilation.append(columns.get(i).name());
-    }
-    compilation.append(suffix);
-    return compilation.toString();
-  }
-
   private String clusteringOrder() {
     var order = columns.stream().filter(DatabaseColumn::hasOrder).toList();
     if (order.isEmpty()) {
@@ -155,6 +138,80 @@ public class DatabaseTable {
     }
     query.append(";");
     connection.session().executeAsync(query.toString());
+  }
+
+  /**
+   * Creates a new materialized view from the table
+   * @param name The name of the materialized view
+   * @param columns The column settings (primary, partition & clustering columns)
+   * @return The materialized view table
+   */
+  public DatabaseTable createMaterializedView(
+    String name, List<DatabaseColumn> columns
+  ) {
+    return createMaterializedView(name, columns, "");
+  }
+
+  /**
+   * Creates a new materialized view from the table
+   * @param name The name of the materialized view
+   * @param columns The column settings (primary, partition & clustering columns)
+   * @return The materialized view table
+   */
+  public DatabaseTable createMaterializedViewIfNotExists(
+    String name, List<DatabaseColumn> columns
+  ) {
+    return createMaterializedView(name, columns, "IF NOT EXISTS ");
+  }
+
+  private DatabaseTable createMaterializedView(
+    String name, List<DatabaseColumn> columns, String addition
+  ) {
+    var query = new StringBuilder("CREATE MATERIALIZED VIEW ");
+    query.append(addition);
+    query.append(fullName() + "_" + name);
+    query.append(" AS SELECT * FROM ");
+    query.append(fullName());
+    query.append(" WHERE ");
+    for (var i = 0; i < columns.size(); i++) {
+      if (i > 0) {
+        query.append(" AND ");
+      }
+      query.append(columns.get(i).name());
+      query.append(" IS NOT NULL");
+    }
+    query.append(" PRIMARY KEY (");
+    query.append(columnNameCompilation(columns.stream()
+      .filter(column -> column.type().isPartitionKey()).toList(), "(", "),"));
+    query.append(columnNameCompilation(columns.stream()
+      .filter(column -> column.type().isClusteringKey()).toList(), "", ""));
+    query.append(columnNameCompilation(columns.stream()
+      .filter(column -> column.type().isPrimaryKey()).toList(), "", ""));
+    query.append(")");
+    connection.session().executeAsync(query.toString());
+    var viewTableColumns = columns;
+    viewTableColumns.addAll(this.columns.stream().filter(tableColumn ->
+      columns.stream().noneMatch(viewColumn ->
+        viewColumn.name().equalsIgnoreCase(tableColumn.name()))).toList());
+    return new DatabaseTable(connection, keyspace, this.name + "_" + name,
+      viewTableColumns);
+  }
+
+  private String columnNameCompilation(
+    List<DatabaseColumn> columns, String prefix, String suffix
+  ) {
+    if (columns.isEmpty()) {
+      return "";
+    }
+    var compilation = new StringBuilder(prefix);
+    for (var i = 0; i < columns.size(); i++) {
+      if (i > 0) {
+        compilation.append(", ");
+      }
+      compilation.append(columns.get(i).name());
+    }
+    compilation.append(suffix);
+    return compilation.toString();
   }
 
   /**
@@ -423,7 +480,7 @@ public class DatabaseTable {
    * @param targetPage The page the requester wants to jump to
    * @return A future that contains the page
    */
-  protected CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
+  public CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
     DatabaseCell partitionKeyCell, String clusteringKeyColumn,
     List<String> conditions, DatabaseOrder order, int pageSize, int targetPage
   ) {
@@ -467,7 +524,7 @@ public class DatabaseTable {
    * @param direction The direction in which you want to shift
    * @return A future that contains the page
    */
-  protected CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
+  public CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
     DatabaseCell partitionKeyCell, String clusteringKeyColumn,
     List<String> conditions, DatabaseOrder order, int pageSize, String pageState,
     DatabaseDirection startingPoint, DatabaseDirection direction
@@ -619,6 +676,28 @@ public class DatabaseTable {
 
   private void drop(String addition) {
     var query = new StringBuilder("DROP TABLE ");
+    query.append(addition);
+    query.append(fullName());
+    query.append(";");
+    connection.session().executeAsync(query.toString());
+  }
+
+  /**
+   * Deletes the materialized view and all its content
+   */
+  public void dropMaterializedView() {
+    dropMaterializedView("");
+  }
+
+  /**
+   * Deletes the materialized view and all its content only if it exists
+   */
+  public void dropMaterializedViewIfExists() {
+    dropMaterializedView("IF EXISTS ");
+  }
+
+  private void dropMaterializedView(String addition) {
+    var query = new StringBuilder("DROP MATERIALIZED VIEW ");
     query.append(addition);
     query.append(fullName());
     query.append(";");

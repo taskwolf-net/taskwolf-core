@@ -17,17 +17,7 @@ public final class WorkflowInjectionModule extends AbstractModule {
   WorkflowDatabaseTable provideWorkflowDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
-    var workflowDatabaseTable = WorkflowDatabaseTable.create(connection,
-      keyspace);
-    workflowDatabaseTable.createIfNotExists();
-    workflowDatabaseTable.createIndexIfNotExists("id");
-    workflowDatabaseTable.createIndexIfNotExists("trigger");
-    workflowDatabaseTable.createIndexIfNotExists("modules");
-    workflowDatabaseTable.createIndexIfNotExists("name",
-      "org.apache.cassandra.index.sasi.SASIIndex");
-    workflowDatabaseTable.createIndexIfNotExists("creator");
-    workflowDatabaseTable.createIndexIfNotExists("created");
-    return workflowDatabaseTable;
+    return WorkflowDatabaseTable.create(connection, keyspace);
   }
 
   @Provides

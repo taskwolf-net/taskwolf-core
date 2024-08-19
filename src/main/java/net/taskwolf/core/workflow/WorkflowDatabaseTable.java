@@ -1,6 +1,5 @@
 package net.taskwolf.core.workflow;
 
-import com.datastax.oss.driver.api.core.cql.Row;
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
 
@@ -28,14 +27,35 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("description", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("state", DatabaseDataType.TEXT));
-    return new WorkflowDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    var table = new WorkflowDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    table.createIndexIfNotExists("id");
+    table.createIndexIfNotExists("trigger");
+    table.createIndexIfNotExists("modules");
+    table.createIndexIfNotExists("name",
+      "org.apache.cassandra.index.sasi.SASIIndex");
+    table.initializeViews();
+    return table;
   }
+
+  private DatabaseTable creatorView;
 
   private WorkflowDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
     List<DatabaseColumn> columns
   ) {
     super(connection, keyspace, name, columns);
+  }
+
+  private void initializeViews() {
+    var creatorViewColumns = Lists.<DatabaseColumn>newArrayList();
+    creatorViewColumns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID,
+      DatabaseColumn.Type.PARTITION_KEY));
+    creatorViewColumns.add(DatabaseColumn.create("creator", DatabaseDataType.UUID,
+      DatabaseColumn.Type.PARTITION_KEY));
+    creatorViewColumns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
+      DatabaseColumn.Type.CLUSTERING_KEY));
+    creatorView = createMaterializedViewIfNotExists("creator_view",
+      creatorViewColumns);
   }
 
   public void insertWorkflow(WorkflowEntry entry) {
@@ -86,36 +106,35 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   private static final int PAGE_SIZE = 5;
 
   public CompletableFuture<DatabasePage<WorkflowEntry>> findWorkflowsOfOwner(
-    UUID ownerId, int targetPage, UUID creatorId, long startTime, long endTime
+    UUID ownerId, int targetPage, String search, UUID creatorId
   ) {
-    return selectPage(DatabaseCell.create(ownerId), "id",
-      createWorkflowsConditions(creatorId, startTime, endTime),
+    if (!search.isEmpty()) {
+      return selectRows("owner=" + ownerId + " AND name LIKE '" + search +
+        "' LIMIT " + PAGE_SIZE)
+        .thenApply(rows -> createWorkflowPage(DatabasePage.create(rows, "", 1)));
+    }
+    var table = creatorId == null ? this : creatorView;
+    return table.selectPage(DatabaseCell.create(ownerId), "id",
+      createWorkflowsConditions(creatorId),
       DatabaseOrder.ASCENDING, PAGE_SIZE, targetPage)
       .thenApply(this::createWorkflowPage);
   }
 
   public CompletableFuture<DatabasePage<WorkflowEntry>> findWorkflowsOfOwner(
     UUID ownerId, String pageState, DatabaseDirection startingPoint,
-    DatabaseDirection direction, UUID creatorId, long startTime, long endTime
+    DatabaseDirection direction, UUID creatorId
   ) {
-    return shiftPage(DatabaseCell.create(ownerId), "id",
-      createWorkflowsConditions(creatorId, startTime, endTime),
+    var table = creatorId == null ? this : creatorView;
+    return table.shiftPage(DatabaseCell.create(ownerId), "id",
+      createWorkflowsConditions(creatorId),
       DatabaseOrder.ASCENDING, PAGE_SIZE, pageState, startingPoint, direction)
       .thenApply(this::createWorkflowPage);
   }
 
-  private List<String> createWorkflowsConditions(
-    UUID creatorId, long startTime, long endTime
-  ) {
+  private List<String> createWorkflowsConditions(UUID creatorId) {
     var conditions = Lists.<String>newArrayList();
     if (creatorId != null) {
       conditions.add("creator = " + creatorId);
-    }
-    if (startTime != -1) {
-      conditions.add("created > " + startTime);
-    }
-    if (endTime != -1) {
-      conditions.add("created < " + endTime);
     }
     return conditions;
   }
