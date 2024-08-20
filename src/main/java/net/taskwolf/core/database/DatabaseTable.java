@@ -132,9 +132,8 @@ public class DatabaseTable {
     query.append(column);
     query.append(")");
     if (!customType.isEmpty()) {
-      query.append(" USING '");
+      query.append(" USING ");
       query.append(customType);
-      query.append("'");
     }
     query.append(";");
     connection.session().executeAsync(query.toString());

@@ -28,11 +28,15 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("description", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("state", DatabaseDataType.TEXT));
     var table = new WorkflowDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    table.createIfNotExists();
     table.createIndexIfNotExists("id");
     table.createIndexIfNotExists("trigger");
     table.createIndexIfNotExists("modules");
     table.createIndexIfNotExists("name",
-      "org.apache.cassandra.index.sasi.SASIIndex");
+      "'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = " +
+        "{'mode': 'CONTAINS', 'analyzer_class': " +
+        "'org.apache.cassandra.index.sasi.analyzer.StandardAnalyzer', " +
+        "'case_sensitive': 'false'}");
     table.initializeViews();
     return table;
   }
@@ -109,8 +113,8 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     UUID ownerId, int targetPage, String search, UUID creatorId
   ) {
     if (!search.isEmpty()) {
-      return selectRows("owner=" + ownerId + " AND name LIKE '" + search +
-        "' LIMIT " + PAGE_SIZE)
+      return selectRows("owner=" + ownerId + " AND name LIKE '%" + search +
+        "%' LIMIT " + PAGE_SIZE)
         .thenApply(rows -> createWorkflowPage(DatabasePage.create(rows, "", 1)));
     }
     var table = creatorId == null ? this : creatorView;
