@@ -17,7 +17,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID,
       DatabaseColumn.Type.PARTITION_KEY));
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
-      DatabaseColumn.Type.CLUSTERING_KEY, DatabaseOrder.ASCENDING));
+      DatabaseColumn.Type.CLUSTERING_KEY));
     columns.add(DatabaseColumn.create("creator", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("trigger", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("actions", DatabaseDataType.UUID));
@@ -41,7 +41,10 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     return table;
   }
 
+  private DatabaseTable nameView;
   private DatabaseTable creatorView;
+  private DatabaseTable createdView;
+  private DatabaseTable stateView;
 
   private WorkflowDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
@@ -51,15 +54,10 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   private void initializeViews() {
-    var creatorViewColumns = Lists.<DatabaseColumn>newArrayList();
-    creatorViewColumns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID,
-      DatabaseColumn.Type.PARTITION_KEY));
-    creatorViewColumns.add(DatabaseColumn.create("creator", DatabaseDataType.UUID,
-      DatabaseColumn.Type.PARTITION_KEY));
-    creatorViewColumns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
-      DatabaseColumn.Type.CLUSTERING_KEY));
-    creatorView = createMaterializedViewIfNotExists("creator_view",
-      creatorViewColumns);
+    nameView = createMaterializedViewIfNotExists("name_view", "name");
+    creatorView = createMaterializedViewIfNotExists("creator_view", "creator");
+    createdView = createMaterializedViewIfNotExists("created_view", "created");
+    stateView = createMaterializedViewIfNotExists("state_view", "state");
   }
 
   public void insertWorkflow(WorkflowEntry entry) {
@@ -110,35 +108,59 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   private static final int PAGE_SIZE = 5;
 
   public CompletableFuture<DatabasePage<WorkflowEntry>> findWorkflowsOfOwner(
-    UUID ownerId, int targetPage, String search, UUID creatorId
+    UUID ownerId, int targetPage, String sortingColumn, DatabaseOrder sortingOrder,
+    String search, UUID creatorId, long startTime, long endTime, String state
   ) {
     if (!search.isEmpty()) {
       return selectRows("owner=" + ownerId + " AND name LIKE '%" + search +
         "%' LIMIT " + PAGE_SIZE)
         .thenApply(rows -> createWorkflowPage(DatabasePage.create(rows, "", 1)));
     }
-    var table = creatorId == null ? this : creatorView;
-    return table.selectPage(DatabaseCell.create(ownerId), "id",
-      createWorkflowsConditions(creatorId),
-      DatabaseOrder.ASCENDING, PAGE_SIZE, targetPage)
+    return findTargetView(sortingColumn).selectPage(DatabaseCell.create(ownerId),
+        createWorkflowsConditions(creatorId, startTime, endTime, state),
+        sortingOrder, PAGE_SIZE, targetPage)
       .thenApply(this::createWorkflowPage);
   }
 
   public CompletableFuture<DatabasePage<WorkflowEntry>> findWorkflowsOfOwner(
     UUID ownerId, String pageState, DatabaseDirection startingPoint,
-    DatabaseDirection direction, UUID creatorId
+    DatabaseDirection direction, String sortingColumn, DatabaseOrder sortingOrder,
+    UUID creatorId, long startTime, long endTime, String state
   ) {
-    var table = creatorId == null ? this : creatorView;
-    return table.shiftPage(DatabaseCell.create(ownerId), "id",
-      createWorkflowsConditions(creatorId),
-      DatabaseOrder.ASCENDING, PAGE_SIZE, pageState, startingPoint, direction)
+    return findTargetView(sortingColumn).shiftPage(DatabaseCell.create(ownerId),
+        createWorkflowsConditions(creatorId, startTime, endTime, state),
+        sortingOrder, PAGE_SIZE, pageState, startingPoint, direction)
       .thenApply(this::createWorkflowPage);
   }
 
-  private List<String> createWorkflowsConditions(UUID creatorId) {
+  private DatabaseTable findTargetView(String sortingColumn) {
+    if (sortingColumn.equals("name")) {
+      return nameView;
+    } else if (sortingColumn.equals("creator")) {
+      return creatorView;
+    } else if (sortingColumn.equals("created")) {
+      return createdView;
+    } else if (sortingColumn.equals("state")) {
+      return stateView;
+    }
+    return null;
+  }
+
+  private List<String> createWorkflowsConditions(
+    UUID creatorId, long startTime, long endTime, String state
+  ) {
     var conditions = Lists.<String>newArrayList();
     if (creatorId != null) {
       conditions.add("creator = " + creatorId);
+    }
+    if (startTime > 0) {
+      conditions.add("created >= " + startTime);
+    }
+    if (endTime > 0) {
+      conditions.add("created <= " + endTime);
+    }
+    if (state != null) {
+      conditions.add("state = " + state);
     }
     return conditions;
   }

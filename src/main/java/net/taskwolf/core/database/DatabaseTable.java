@@ -154,6 +154,26 @@ public class DatabaseTable {
   /**
    * Creates a new materialized view from the table
    * @param name The name of the materialized view
+   * @param clusteringColumnName The name of the column used for clustering
+   * @return The materialized view table
+   */
+  public DatabaseTable createMaterializedViewIfNotExists(
+    String name, String clusteringColumnName
+  ) {
+    var primaryColumns = Lists.newArrayList(columns.stream()
+      .filter(column -> column.type().isPartitionKey()).toList());
+    primaryColumns.add(columns.stream()
+      .filter(column -> column.name().equalsIgnoreCase(clusteringColumnName))
+      .map(column -> DatabaseColumn.create(column.name(), column.dataType(),
+        DatabaseColumn.Type.CLUSTERING_KEY)).findFirst().get());
+    primaryColumns.addAll(columns.stream()
+      .filter(column -> column.type().isClusteringKey()).toList());
+    return createMaterializedViewIfNotExists(name, primaryColumns);
+  }
+
+  /**
+   * Creates a new materialized view from the table
+   * @param name The name of the materialized view
    * @param columns The column settings (primary, partition & clustering columns)
    * @return The materialized view table
    */
@@ -186,7 +206,7 @@ public class DatabaseTable {
       .filter(column -> column.type().isClusteringKey()).toList(), "", ""));
     query.append(columnNameCompilation(columns.stream()
       .filter(column -> column.type().isPrimaryKey()).toList(), "", ""));
-    query.append(")");
+    query.append(");");
     connection.session().executeAsync(query.toString());
     var viewTableColumns = columns;
     viewTableColumns.addAll(this.columns.stream().filter(tableColumn ->
@@ -473,25 +493,22 @@ public class DatabaseTable {
    * Used to find a specific page inside the table
    * @param partitionKeyCell The partition key value that specifies the
    *                         basic set of elements to be paged
-   * @param clusteringKeyColumn The clustering key column used for sorting
    * @param order The direction in which sorting should take place
    * @param pageSize The page size that is used for the paging process
    * @param targetPage The page the requester wants to jump to
    * @return A future that contains the page
    */
   public CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
-    DatabaseCell partitionKeyCell, String clusteringKeyColumn,
-    List<String> conditions, DatabaseOrder order, int pageSize, int targetPage
+    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
+    int pageSize, int targetPage
   ) {
     return countPagingRows(partitionKeyCell, conditions).thenCompose(count ->
-      selectPage(partitionKeyCell, clusteringKeyColumn, conditions, order,
-        pageSize, count, targetPage));
+      selectPage(partitionKeyCell, conditions, order, pageSize, count, targetPage));
   }
 
   private CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
-    DatabaseCell partitionKeyCell, String clusteringKeyColumn,
-    List<String> conditions, DatabaseOrder order, int pageSize, long rowNumber,
-    int targetPage
+    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
+    int pageSize, long rowNumber, int targetPage
   ) {
     var pageNumber = calculatePageNumber(pageSize, rowNumber);
     if (targetPage != 0 && targetPage != pageNumber - 1) {
@@ -499,8 +516,8 @@ public class DatabaseTable {
     }
     var direction = targetPage == 0 ? DatabaseDirection.FORWARD :
       DatabaseDirection.BACKWARD;
-    var statement = createPagingStatement(partitionKeyCell, clusteringKeyColumn,
-      conditions, direction.isForward() ? order : order.reverse(), pageSize, "");
+    var statement = createPagingStatement(partitionKeyCell, conditions,
+      direction.isForward() ? order : order.reverse(), pageSize, "");
     if (targetPage == pageNumber - 1) {
       statement = statement.setPageSize((int) (rowNumber % pageSize));
     }
@@ -515,7 +532,6 @@ public class DatabaseTable {
    * Used to shift an existing paging state (next or previous page)
    * @param partitionKeyCell The partition key value that specifies the
    *                         basic set of elements to be paged
-   * @param clusteringKeyColumn The clustering key column used for sorting
    * @param order The direction in which sorting should take place
    * @param pageSize The page size that is used for the paging process
    * @param pageState The current page state
@@ -524,24 +540,23 @@ public class DatabaseTable {
    * @return A future that contains the page
    */
   public CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
-    DatabaseCell partitionKeyCell, String clusteringKeyColumn,
-    List<String> conditions, DatabaseOrder order, int pageSize, String pageState,
-    DatabaseDirection startingPoint, DatabaseDirection direction
+    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
+    int pageSize, String pageState, DatabaseDirection startingPoint,
+    DatabaseDirection direction
   ) {
     return countPagingRows(partitionKeyCell, conditions).thenCompose(count ->
-      shiftPage(partitionKeyCell, clusteringKeyColumn, conditions, order,
+      shiftPage(partitionKeyCell, conditions, order,
         pageSize, count, pageState, startingPoint, direction));
   }
 
   private CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
-    DatabaseCell partitionKeyCell, String clusteringKeyColumn,
-    List<String> conditions, DatabaseOrder order, int pageSize, long rowNumber,
-    String pageState, DatabaseDirection startingPoint, DatabaseDirection direction
+    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
+    int pageSize, long rowNumber, String pageState, DatabaseDirection startingPoint,
+    DatabaseDirection direction
   ) {
     var pageNumber = calculatePageNumber(pageSize, rowNumber);
-    var statement = createPagingStatement(partitionKeyCell, clusteringKeyColumn,
-      conditions, direction.isForward() ? order : order.reverse(), pageSize,
-      pageState);
+    var statement = createPagingStatement(partitionKeyCell, conditions,
+      direction.isForward() ? order : order.reverse(), pageSize, pageState);
     var result = connection.session().executeAsync(statement);
     var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
     result.thenCompose(resultSet ->
@@ -591,8 +606,8 @@ public class DatabaseTable {
   }
 
   private SimpleStatement createPagingStatement(
-    DatabaseCell partitionKeyCell, String clusteringKeyColumn,
-    List<String> conditions, DatabaseOrder order, int pageSize, String pageState
+    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
+    int pageSize, String pageState
   ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
@@ -605,10 +620,11 @@ public class DatabaseTable {
       query.append(condition);
     }
     query.append(" ORDER BY ");
-    query.append(clusteringKeyColumn);
+    query.append(columns.stream().filter(column -> column.type().isClusteringKey())
+      .map(DatabaseColumn::name).findFirst().get());
     query.append(" ");
     query.append(order.value());
-    query.append(";");
+    query.append(" ALLOW FILTERING;");
     var statement = SimpleStatement.builder(query.toString())
       .setPageSize(pageSize).build();
     if (!pageState.isEmpty()) {
