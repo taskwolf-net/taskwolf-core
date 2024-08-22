@@ -3,7 +3,9 @@ package net.taskwolf.core.workflow;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.taskwolf.core.database.DatabaseColumn;
 import net.taskwolf.core.database.DatabaseRow;
+import net.taskwolf.core.database.DatabaseTable;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,13 +14,22 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public final class WorkflowEntry {
-  public static WorkflowEntry of(DatabaseRow row) {
-    return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
-      row.findCell(2).uuidValue(), row.findCell(3).uuidValue(),
-      row.findCell(4).listValue(), row.findCell(5).listValue(),
-      row.findCell(6).listValue(), row.findCell(7).longValue(),
-      row.findCell(8).stringValue(), row.findCell(9).stringValue(),
-      WorkflowState.valueOf(row.findCell(10).stringValue()));
+  public static WorkflowEntry of(DatabaseRow row, DatabaseTable table) {
+    return of(row, table.columns().stream().map(DatabaseColumn::name).toList());
+  }
+
+  public static WorkflowEntry of(DatabaseRow row, List<String> columns) {
+    return create(row.findCell(columns.indexOf("owner")).uuidValue(),
+      row.findCell(columns.indexOf("id")).uuidValue(),
+      row.findCell(columns.indexOf("creator")).uuidValue(),
+      row.findCell(columns.indexOf("trigger")).uuidValue(),
+      row.findCell(columns.indexOf("actions")).listValue(),
+      row.findCell(columns.indexOf("conditions")).listValue(),
+      row.findCell(columns.indexOf("modules")).listValue(),
+      row.findCell(columns.indexOf("created")).longValue(),
+      row.findCell(columns.indexOf("name")).stringValue(),
+      row.findCell(columns.indexOf("description")).stringValue(),
+      WorkflowState.valueOf(row.findCell(columns.indexOf("state")).stringValue()));
   }
 
   private final UUID ownerId;
