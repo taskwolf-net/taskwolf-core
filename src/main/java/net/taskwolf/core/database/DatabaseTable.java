@@ -208,7 +208,7 @@ public class DatabaseTable {
       .filter(column -> column.type().isPrimaryKey()).toList(), "", ""));
     query.append(");");
     connection.session().executeAsync(query.toString());
-    var viewTableColumns = columns;
+    var viewTableColumns = Lists.newArrayList(columns);
     viewTableColumns.addAll(this.columns.stream().filter(tableColumn ->
       columns.stream().noneMatch(viewColumn ->
         viewColumn.name().equalsIgnoreCase(tableColumn.name()))).toList());
@@ -642,7 +642,7 @@ public class DatabaseTable {
       finalCondition.append(" AND ");
       finalCondition.append(condition);
     }
-    return count(finalCondition.toString());
+    return count(finalCondition.toString() + " ALLOW FILTERING");
   }
 
   private int calculatePageNumber(int pageSize, long rowNumber) {
