@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -519,12 +520,13 @@ public class DatabaseTable {
     var statement = createPagingStatement(partitionKeyCell, conditions,
       direction.isForward() ? order : order.reverse(), pageSize, "");
     if (targetPage == pageNumber - 1) {
-      statement = statement.setPageSize((int) (rowNumber % pageSize));
+      var offset = (int) (rowNumber % pageSize);
+      statement = statement.setPageSize(offset == 0 ? pageSize : offset);
     }
     var result = connection.session().executeAsync(statement);
     var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
-    result.thenApply(resultSet -> createDatabasePage(pageNumber, resultSet))
-      .thenAccept(futureResponse::complete);
+    result.thenApply(resultSet -> createDatabasePage(pageNumber, resultSet,
+      direction)).thenAccept(futureResponse::complete);
     return futureResponse;
   }
 
@@ -571,34 +573,42 @@ public class DatabaseTable {
   ) {
     if (startingPoint == direction) {
       return CompletableFuture.completedFuture(createDatabasePage(pageNumber,
-        firstResult));
+        firstResult, direction));
     }
     return (CompletableFuture<DatabasePage<DatabaseRow>>)
       firstResult.fetchNextPage().thenApply(secondResult ->
         createDatabasePage(pageNumber, firstResult,
-          combineShiftResults(pageSize, firstResult, secondResult)));
+          combineShiftResults(pageSize, firstResult, secondResult), direction));
   }
 
   private List<Row> combineShiftResults(
-    int pageSize, AsyncResultSet firstResult, AsyncResultSet secondResult
+    int pageSize, AsyncResultSet firstResult,
+    AsyncResultSet secondResult
   ) {
+    var firstBlock = Lists.newArrayList(firstResult.currentPage())
+      .stream().sorted((a, b) -> -1).limit(1).sorted((a, b) -> -1).toList();
+    var secondBlock = Lists.newArrayList(secondResult.currentPage()).stream()
+      .limit(pageSize - 1).toList();
     var result = Lists.<Row>newArrayList();
-    result.addAll(Lists.newArrayList(secondResult.currentPage())
-      .stream().limit(pageSize - 1).toList());
-    result.add(Lists.newArrayList(firstResult.currentPage()).get(pageSize - 1));
+    result.addAll(firstBlock);
+    result.addAll(secondBlock);
     return result;
   }
 
   private DatabasePage<DatabaseRow> createDatabasePage(
-    int pageNumber, AsyncResultSet resultSet
+    int pageNumber, AsyncResultSet resultSet, DatabaseDirection direction
   ) {
     return createDatabasePage(pageNumber, resultSet,
-      Lists.newArrayList(resultSet.currentPage()));
+      Lists.newArrayList(resultSet.currentPage()), direction);
   }
 
   private DatabasePage<DatabaseRow> createDatabasePage(
-    int pageNumber, AsyncResultSet resultSet, List<Row> rows
+    int pageNumber, AsyncResultSet resultSet, List<Row> rows,
+    DatabaseDirection direction
   ) {
+    if (direction.isBackward()) {
+      Collections.reverse(rows);
+    }
     return DatabasePage.create(DatabaseRow.multiple(rows, columns.size()),
       resultSet.hasMorePages() ?
         resultSet.getExecutionInfo().getSafePagingState().toString() : "",
