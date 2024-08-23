@@ -35,7 +35,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     table.createIndexIfNotExists("name",
       "'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = " +
         "{'mode': 'CONTAINS', 'analyzer_class': " +
-        "'org.apache.cassandra.index.sasi.analyzer.StandardAnalyzer', " +
+        "'org.apache.cassandra.index.sasi.analyzer.NonTokenizingAnalyzer', " +
         "'case_sensitive': 'false'}");
     table.initializeViews();
     return table;
