@@ -143,7 +143,7 @@ public class DatabaseTable {
   /**
    * Creates a new materialized view from the table
    * @param name The name of the materialized view
-   * @param columns The column settings (primary, partition & clustering columns)
+   * @param columns The column settings (primary, partition and clustering columns)
    * @return The materialized view table
    */
   public DatabaseTable createMaterializedView(
@@ -175,7 +175,7 @@ public class DatabaseTable {
   /**
    * Creates a new materialized view from the table
    * @param name The name of the materialized view
-   * @param columns The column settings (primary, partition & clustering columns)
+   * @param columns The column settings (primary, partition and clustering columns)
    * @return The materialized view table
    */
   public DatabaseTable createMaterializedViewIfNotExists(
