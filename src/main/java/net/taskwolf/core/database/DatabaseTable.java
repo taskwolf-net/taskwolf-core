@@ -504,25 +504,12 @@ public class DatabaseTable {
     int pageSize, int targetPage
   ) {
     return countPagingRows(partitionKeyCell, conditions).thenCompose(count ->
-      selectPage(createPagingCondition(partitionKeyCell, conditions, order),
-        pageSize, count, targetPage));
-  }
-
-  /**
-   * Used to find a specific page inside the table
-   * @param pageSize The page size that is used for the paging process
-   * @param targetPage The page the requester wants to jump to
-   * @return A future that contains the page
-   */
-  public CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
-    int pageSize, int targetPage
-  ) {
-    return count().thenCompose(count ->
-      selectPage("", pageSize, count, targetPage));
+      selectPage(partitionKeyCell, conditions, order, pageSize, count, targetPage));
   }
 
   private CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
-    String addition, int pageSize, long rowNumber, int targetPage
+    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
+    int pageSize, long rowNumber, int targetPage
   ) {
     var pageNumber = calculatePageNumber(pageSize, rowNumber);
     if (targetPage != 0 && targetPage != pageNumber - 1) {
@@ -530,7 +517,8 @@ public class DatabaseTable {
     }
     var direction = targetPage == 0 ? DatabaseDirection.FORWARD :
       DatabaseDirection.BACKWARD;
-    var statement = createPagingStatement(addition, pageSize, "");
+    var statement = createPagingStatement(partitionKeyCell, conditions,
+      direction.isForward() ? order : order.reverse(), pageSize, "");
     if (targetPage == pageNumber - 1) {
       var offset = (int) (rowNumber % pageSize);
       statement = statement.setPageSize(offset == 0 ? pageSize : offset);
@@ -559,32 +547,18 @@ public class DatabaseTable {
     DatabaseDirection direction
   ) {
     return countPagingRows(partitionKeyCell, conditions).thenCompose(count ->
-      shiftPage(createPagingCondition(partitionKeyCell, conditions, order),
+      shiftPage(partitionKeyCell, conditions, order,
         pageSize, count, pageState, startingPoint, direction));
   }
 
-  /**
-   * Used to shift an existing paging state (next or previous page)
-   * @param pageSize The page size that is used for the paging process
-   * @param pageState The current page state
-   * @param startingPoint Whether you come from the back or from the front
-   * @param direction The direction in which you want to shift
-   * @return A future that contains the page
-   */
-  public CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
-    int pageSize, String pageState, DatabaseDirection startingPoint,
+  private CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
+    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
+    int pageSize, long rowNumber, String pageState, DatabaseDirection startingPoint,
     DatabaseDirection direction
   ) {
-    return count().thenCompose(count ->
-      shiftPage("", pageSize, count, pageState, startingPoint, direction));
-  }
-
-  private CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
-    String addition, int pageSize, long rowNumber, String pageState,
-    DatabaseDirection startingPoint, DatabaseDirection direction
-  ) {
     var pageNumber = calculatePageNumber(pageSize, rowNumber);
-    var statement = createPagingStatement(addition, pageSize, pageState);
+    var statement = createPagingStatement(partitionKeyCell, conditions,
+      direction.isForward() ? order : order.reverse(), pageSize, pageState);
     var result = connection.session().executeAsync(statement);
     var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
     result.thenCompose(resultSet ->
@@ -642,14 +616,25 @@ public class DatabaseTable {
   }
 
   private SimpleStatement createPagingStatement(
-    String addition, int pageSize, String pageState
+    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
+    int pageSize, String pageState
   ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
-    query.append(addition);
-    query.append(";");
+    query.append(" WHERE ");
+    query.append(partitionKeyCondition(partitionKeyCell));
+    for (var condition : conditions) {
+      query.append(" AND ");
+      query.append(condition);
+    }
+    query.append(" ORDER BY ");
+    query.append(columns.stream().filter(column -> column.type().isClusteringKey())
+      .map(DatabaseColumn::name).findFirst().get());
+    query.append(" ");
+    query.append(order.value());
+    query.append(" ALLOW FILTERING;");
     var statement = SimpleStatement.builder(query.toString())
       .setPageSize(pageSize).build();
     if (!pageState.isEmpty()) {
@@ -657,26 +642,6 @@ public class DatabaseTable {
         .getRawPagingState());
     }
     return statement;
-  }
-
-  private String createPagingCondition(
-    DatabaseCell partitionKeyCell, List<String> conditions,
-    DatabaseOrder order
-  ) {
-    var result = new StringBuilder();
-    result.append(" WHERE ");
-    result.append(partitionKeyCondition(partitionKeyCell));
-    for (var condition : conditions) {
-      result.append(" AND ");
-      result.append(condition);
-    }
-    result.append(" ORDER BY ");
-    result.append(columns.stream().filter(column -> column.type().isClusteringKey())
-      .map(DatabaseColumn::name).findFirst().get());
-    result.append(" ");
-    result.append(order.value());
-    result.append(" ALLOW FILTERING");
-    return result.toString();
   }
 
   private CompletableFuture<Long> countPagingRows(
