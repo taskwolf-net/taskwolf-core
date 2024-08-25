@@ -104,7 +104,7 @@ public final class TemplateDatabaseTable extends DatabaseTable {
     return selectRow("placeholder='.' AND id=" + templateId).thenApply(Template::of);
   }
 
-  private static final int PAGE_SIZE = 3 * 1;//5;
+  private static final int PAGE_SIZE = 3 * 5;
 
   public CompletableFuture<DatabasePage<Template>> loadNextTemplatePage(
     String pageState, String module, String search, String language
