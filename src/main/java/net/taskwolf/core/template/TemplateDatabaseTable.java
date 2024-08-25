@@ -107,7 +107,7 @@ public final class TemplateDatabaseTable extends DatabaseTable {
   private static final int PAGE_SIZE = 3 * 5;
 
   public CompletableFuture<DatabasePage<Template>> loadNextTemplatePage(
-    String pageState, String module, String search, String language
+    String pageState, String search, String language
   ) {
     if (!search.isEmpty()) {
       var name = switch(language) {
@@ -119,9 +119,7 @@ public final class TemplateDatabaseTable extends DatabaseTable {
         "%' LIMIT " + PAGE_SIZE).thenApply(rows ->
         createTemplatePage(DatabasePage.create(rows, "", 1)));
     }
-    var conditions = module.isEmpty() ? Lists.<String>newArrayList() :
-      Lists.newArrayList("modules CONTAINS '" + module + "'");
-    return shiftPage(DatabaseCell.create("."), conditions,
+    return shiftPage(DatabaseCell.create("."), Lists.<String>newArrayList(),
       DatabaseOrder.ASCENDING, PAGE_SIZE, pageState, DatabaseDirection.FORWARD,
       DatabaseDirection.FORWARD).thenApply(this::createTemplatePage);
   }
