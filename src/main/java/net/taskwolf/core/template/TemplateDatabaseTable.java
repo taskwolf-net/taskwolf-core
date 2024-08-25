@@ -2,6 +2,7 @@ package net.taskwolf.core.template;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,15 +16,31 @@ public final class TemplateDatabaseTable extends DatabaseTable {
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
+    columns.add(DatabaseColumn.create("placeholder", DatabaseDataType.TEXT,
+      DatabaseColumn.Type.PARTITION_KEY));
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
-      DatabaseColumn.Type.PRIMARY_KEY));
+      DatabaseColumn.Type.CLUSTERING_KEY));
     columns.add(DatabaseColumn.create("trigger", DatabaseDataType.TEXT));
     columns.add(DatabaseListColumn.create("actions", DatabaseDataType.TEXT));
     columns.add(DatabaseListColumn.create("modules", DatabaseDataType.TEXT));
-    columns.add(DatabaseListColumn.create("name", DatabaseDataType.TEXT));
-    columns.add(DatabaseListColumn.create("description", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("englishName", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("englishDescription", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("germanName", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("germanDescription", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("accessType", DatabaseDataType.TEXT));
-    return new TemplateDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    var table = new TemplateDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    table.createIfNotExists();
+    table.createIndexIfNotExists("englishName",
+      "'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = " +
+        "{'mode': 'CONTAINS', 'analyzer_class': " +
+        "'org.apache.cassandra.index.sasi.analyzer.NonTokenizingAnalyzer', " +
+        "'case_sensitive': 'false'}");
+    table.createIndexIfNotExists("germanName",
+      "'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = " +
+        "{'mode': 'CONTAINS', 'analyzer_class': " +
+        "'org.apache.cassandra.index.sasi.analyzer.NonTokenizingAnalyzer', " +
+        "'case_sensitive': 'false'}");
+    return table;
   }
 
   private TemplateDatabaseTable(
@@ -36,35 +53,38 @@ public final class TemplateDatabaseTable extends DatabaseTable {
   public void insertTemplate(Template template) {
     insertTemplate(template.id(), template.trigger().encode(),
       template.actions().stream().map(TemplateAction::encode).toList(),
-      template.modules(), template.name(), template.description(),
-      template.accessType());
+      template.modules(), template.englishName(), template.englishDescription(),
+      template.germanName(), template.germanDescription(), template.accessType());
   }
 
   public void insertTemplate(
     UUID id, String trigger, List<String> actions, List<String> modules,
-    List<String> name, List<String> description, TemplateAccessType accessType
+    String englishName, String englishDescription, String germanName,
+    String germanDescription, TemplateAccessType accessType
   ) {
-    insert(DatabaseRow.of(id, trigger, actions, modules, name, description,
-      accessType.toString()));
+    insert(DatabaseRow.of(".", id, trigger, actions, modules, englishName,
+      englishDescription, germanName, germanDescription, accessType.toString()));
   }
 
   public void updateTemplate(Template template) {
     updateTemplate(template.id(), template.trigger().encode(),
       template.actions().stream().map(TemplateAction::encode).toList(),
-      template.modules(), template.name(), template.description(),
-      template.accessType());
+      template.modules(), template.englishName(), template.englishDescription(),
+      template.germanName(), template.germanDescription(), template.accessType());
   }
 
   public void updateTemplate(
     UUID id, String trigger, List<String> actions, List<String> modules,
-    List<String> name, List<String> description, TemplateAccessType accessType
+    String englishName, String englishDescription, String germanName,
+    String germanDescription, TemplateAccessType accessType
   ) {
-    update(DatabaseCell.create(id), DatabaseRow.of(id, trigger, actions,
-      modules, name, description, accessType.toString()));
+    update("placeholder='.' AND id=" + id, DatabaseRow.of(".", id, trigger, actions,
+      modules, englishName, englishDescription, germanName, germanDescription,
+      accessType.toString()));
   }
 
   public void deleteTemplate(UUID templateId) {
-    delete(DatabaseCell.create(templateId));
+    delete("placeholder='.' AND id=" + templateId);
   }
 
   public CompletableFuture<UUID> generateAvailableTemplateId() {
@@ -77,21 +97,37 @@ public final class TemplateDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> templateExists(UUID templateId) {
-    return exists(DatabaseCell.create(templateId));
+    return exists("placeholder='.' AND id=" + templateId);
   }
 
   public CompletableFuture<Template> findTemplate(UUID templateId) {
-    return selectRow(DatabaseCell.create(templateId)).thenApply(Template::of);
+    return selectRow("placeholder='.' AND id=" + templateId).thenApply(Template::of);
   }
 
-  public CompletableFuture<List<Template>> findTemplatesByModule(String module) {
-    return selectRows("modules CONTAINS '" + module + "'")
-      .thenApply(rows -> rows.stream().map(Template::of)
-        .collect(Collectors.toList()));
+  private static final int PAGE_SIZE = 3 * 1;//5;
+
+  public CompletableFuture<DatabasePage<Template>> loadNextTemplatePage(
+    String pageState, String module, String search, String language
+  ) {
+    if (!search.isEmpty()) {
+      var name = switch(language) {
+        case "en" -> "englishName";
+        case "de" -> "germanName";
+        default -> "englishName";
+      };
+      return selectRows("placeholder='.' AND " + name + " LIKE '%" + search +
+        "%' LIMIT " + PAGE_SIZE).thenApply(rows ->
+        createTemplatePage(DatabasePage.create(rows, "", 1)));
+    }
+    var conditions = module.isEmpty() ? Lists.<String>newArrayList() :
+      Lists.newArrayList("modules CONTAINS '" + module + "'");
+    return shiftPage(DatabaseCell.create("."), conditions,
+      DatabaseOrder.ASCENDING, PAGE_SIZE, pageState, DatabaseDirection.FORWARD,
+      DatabaseDirection.FORWARD).thenApply(this::createTemplatePage);
   }
 
-  public CompletableFuture<List<Template>> findAllTemplates() {
-    return selectAllRows().thenApply(rows -> rows.stream().map(Template::of)
-      .collect(Collectors.toList()));
+  private DatabasePage<Template> createTemplatePage(DatabasePage<DatabaseRow> page) {
+    return DatabasePage.create(page.content().stream().map(Template::of).toList(),
+      page.pageState(), page.pageNumber());
   }
 }

@@ -14,10 +14,6 @@ public final class TemplateInjectionModule extends AbstractModule {
   TemplateDatabaseTable provideTemplateDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
-    var templateDatabaseTable = TemplateDatabaseTable.create(connection,
-      keyspace);
-    templateDatabaseTable.createIfNotExists();
-    templateDatabaseTable.createIndexIfNotExists("modules");
-    return templateDatabaseTable;
+    return TemplateDatabaseTable.create(connection, keyspace);
   }
 }
