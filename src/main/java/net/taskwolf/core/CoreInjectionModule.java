@@ -22,6 +22,7 @@ import net.taskwolf.core.organization.OrganizationInjectionModule;
 import net.taskwolf.core.question.QuestionInjectionModule;
 import net.taskwolf.core.recaptcha.RecaptchaInjectionModule;
 import net.taskwolf.core.sale.SaleInjectionModule;
+import net.taskwolf.core.session.SessionInjectionModule;
 import net.taskwolf.core.stripe.StripeInjectionModule;
 import net.taskwolf.core.template.TemplateInjectionModule;
 import net.taskwolf.core.ticket.TicketInjectionModule;
@@ -47,6 +48,7 @@ public class CoreInjectionModule extends AbstractModule {
     install(DatabaseInjectionModule.create());
     install(UserInjectionModule.create());
     install(OrganizationInjectionModule.create());
+    install(SessionInjectionModule.create());
     install(BundleInjectionModule.create());
     install(TriggerInjectionModule.create());
     install(ActionInjectionModule.create());
