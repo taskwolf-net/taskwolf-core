@@ -82,8 +82,10 @@ public final class SessionDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> updateSession(Session session) {
     return update(DatabaseCell.create(session.id()),
-      DatabaseRow.of(session.id(), session.userId(), session.openTime(),
-        session.lastRefreshToken(), session.status().toString()));
+      DatabaseRow.of(session.id(), session.userId(), session.deviceName(),
+        session.devicePlatform(), session.ipAddress(), session.country(),
+        session.city(), session.openTime(), session.lastRefreshToken(),
+        session.status().toString()));
   }
 
   public CompletableFuture<Void> deleteSession(UUID id) {
