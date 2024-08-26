@@ -15,14 +15,12 @@ public final class Session {
     return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
       row.findCell(2).stringValue(), row.findCell(3).stringValue(),
       row.findCell(4).stringValue(), row.findCell(5).stringValue(),
-      row.findCell(6).stringValue(), row.findCell(7).longValue(),
-      row.findCell(8).stringValue(),
-      SessionStatus.valueOf(row.findCell(9).stringValue()));
+      row.findCell(6).longValue(), row.findCell(7).stringValue(),
+      SessionStatus.valueOf(row.findCell(8).stringValue()));
   }
 
   private final UUID id;
   private final UUID userId;
-  private final String deviceName;
   private final String devicePlatform;
   private final String ipAddress;
   private final String country;

@@ -17,7 +17,6 @@ public final class SessionDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID));
-    columns.add(DatabaseColumn.create("deviceName", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("devicePlatform", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("ipAddress", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("country", DatabaseDataType.TEXT));
@@ -36,19 +35,17 @@ public final class SessionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> insertSession(Session session) {
-    return insertSession(session.id(), session.userId(), session.deviceName(),
-      session.devicePlatform(), session.ipAddress(), session.country(),
-      session.city(), session.openTime(), session.lastRefreshToken(),
-      session.status());
+    return insertSession(session.id(), session.userId(), session.devicePlatform(),
+      session.ipAddress(), session.country(), session.city(), session.openTime(),
+      session.lastRefreshToken(), session.status());
   }
 
   public CompletableFuture<Void> insertSession(
-    UUID id, UUID userId, String deviceName, String devicePlatform,
-    String ipAddress, String country, String city, long openTime,
-    String refreshToken, SessionStatus status
+    UUID id, UUID userId, String devicePlatform, String ipAddress, String country,
+    String city, long openTime, String refreshToken, SessionStatus status
   ) {
-    return insert(DatabaseRow.of(id, userId, deviceName, devicePlatform,
-      ipAddress, country, city, openTime, refreshToken, status.toString()));
+    return insert(DatabaseRow.of(id, userId, devicePlatform, ipAddress, country,
+      city, openTime, refreshToken, status.toString()));
   }
 
   public CompletableFuture<Void> updateSessionRefreshToken(
@@ -82,14 +79,22 @@ public final class SessionDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> updateSession(Session session) {
     return update(DatabaseCell.create(session.id()),
-      DatabaseRow.of(session.id(), session.userId(), session.deviceName(),
-        session.devicePlatform(), session.ipAddress(), session.country(),
-        session.city(), session.openTime(), session.lastRefreshToken(),
-        session.status().toString()));
+      DatabaseRow.of(session.id(), session.userId(), session.devicePlatform(),
+        session.ipAddress(), session.country(), session.city(), session.openTime(),
+        session.lastRefreshToken(), session.status().toString()));
   }
 
   public CompletableFuture<Void> deleteSession(UUID id) {
     return delete(DatabaseCell.create(id));
+  }
+
+  public CompletableFuture<UUID> generateAvailableSessionId() {
+    var futureResponse = new CompletableFuture<UUID>();
+    var id = UUID.randomUUID();
+    sessionExists(id).thenApply(exists -> exists ?
+      generateAvailableSessionId().thenApply(futureResponse::complete) :
+      CompletableFuture.completedFuture(futureResponse.complete(id)));
+    return futureResponse;
   }
 
   public CompletableFuture<Boolean> sessionExists(UUID id) {
