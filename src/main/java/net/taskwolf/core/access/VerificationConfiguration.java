@@ -5,6 +5,7 @@ import lombok.experimental.Accessors;
 import net.taskwolf.core.configuration.Configuration;
 import org.json.JSONObject;
 
+@Getter
 @Accessors(fluent = true)
 public final class VerificationConfiguration extends Configuration {
   private static final String CONFIGURATION_PATH = "/configurations/verification/verification.json";
@@ -15,10 +16,9 @@ public final class VerificationConfiguration extends Configuration {
     return configuration;
   }
 
-  @Getter
   private String homeSecret;
-  @Getter
   private String productSecret;
+  private String refreshSecret;
 
   private VerificationConfiguration(String path) {
     super(path);
@@ -28,5 +28,6 @@ public final class VerificationConfiguration extends Configuration {
   protected void deserialize(JSONObject json) {
     homeSecret = json.getString("homeSecret");
     productSecret = json.getString("productSecret");
+    refreshSecret = json.getString("refreshSecret");
   }
 }
