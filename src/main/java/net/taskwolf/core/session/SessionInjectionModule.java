@@ -17,12 +17,7 @@ public final class SessionInjectionModule extends AbstractModule {
   SessionDatabaseTable provideSessionDatabaseTable(
     DatabaseConnection databaseConnection, DatabaseKeyspace databaseKeyspace
   ) {
-    var sessionDatabaseTable = SessionDatabaseTable.create(
-      databaseConnection, databaseKeyspace);
-    sessionDatabaseTable.createIfNotExists();
-    sessionDatabaseTable.createIndexIfNotExists("user");
-    sessionDatabaseTable.createIndexIfNotExists("status");
-    return sessionDatabaseTable;
+    return SessionDatabaseTable.create(databaseConnection, databaseKeyspace);
   }
 
   @Provides

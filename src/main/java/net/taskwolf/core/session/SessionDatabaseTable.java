@@ -15,7 +15,7 @@ public final class SessionDatabaseTable extends DatabaseTable {
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
-      DatabaseColumn.Type.PRIMARY_KEY));
+      DatabaseColumn.Type.PARTITION_KEY));
     columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID,
       DatabaseColumn.Type.CLUSTERING_KEY));
     columns.add(DatabaseColumn.create("devicePlatform", DatabaseDataType.TEXT));
@@ -27,6 +27,8 @@ public final class SessionDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT));
     var table = new SessionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
+    table.createIndexIfNotExists("id");
+    table.createIndexIfNotExists("user");
     table.createIndexIfNotExists("status");
     table.initializeViews();
     return table;
@@ -126,12 +128,12 @@ public final class SessionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Session> findSession(UUID id) {
-    return selectRow(DatabaseCell.create(id)).thenApply(Session::of);
+    return selectRow(DatabaseCell.create(id)).thenApply(row -> Session.of(row, this));
   }
 
   public CompletableFuture<List<Session>> findSessionsOfUser(UUID userId) {
     return selectRows("user=" + userId)
-      .thenApply(rows -> rows.stream().map(Session::of).toList());
+      .thenApply(rows -> rows.stream().map(row -> Session.of(row, this)).toList());
   }
 
   public CompletableFuture<List<Session>> findSessionsOfUserByStatus(
@@ -139,7 +141,7 @@ public final class SessionDatabaseTable extends DatabaseTable {
   ) {
     return selectRows("user=" + userId + " AND status='" + status.toString() +
       "' ALLOW FILTERING")
-      .thenApply(rows -> rows.stream().map(Session::of).toList());
+      .thenApply(rows -> rows.stream().map(row -> Session.of(row, this)).toList());
   }
 
   private static final int MAX_LAST_SESSIONS = 5;
@@ -147,6 +149,7 @@ public final class SessionDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<Session>> findLastSessionsOfUser(UUID userId) {
     return openTimeView.selectRows("user=" + userId + " ORDER BY openTime" +
       " LIMIT " + MAX_LAST_SESSIONS)
-      .thenApply(rows -> rows.stream().map(Session::of).toList());
+      .thenApply(rows -> rows.stream().map(row -> Session.of(row, openTimeView))
+        .toList());
   }
 }
