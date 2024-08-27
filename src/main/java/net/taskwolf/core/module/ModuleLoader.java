@@ -73,6 +73,7 @@ public final class ModuleLoader {
     modules.sort(Comparator.comparingInt(module -> module.priority().value()));
     Collections.reverse(modules);
     for (var module : modules) {
+      log.info("Start loading module " + module.name());
       module.module().enable();
       module.module().triggerRepository().allTriggers().forEach(Trigger::initialize);
       module.module().actionRepository().allActions().forEach(Action::initialize);
