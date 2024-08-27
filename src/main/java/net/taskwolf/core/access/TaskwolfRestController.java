@@ -40,18 +40,18 @@ public class TaskwolfRestController {
   }
 
   /**
-   * Is used to find the id of the user that send the request
+   * Is used to find the id of the session that send the request
    * @param request The request
-   * @return The id of the user
+   * @return The id of the session
    */
   protected UUID findSessionId(HttpServletRequest request) {
     return findSessionId(findApiKey(request));
   }
 
   /**
-   * Is used to find the id of a user inside an api key
+   * Is used to find the id of a session inside an api key
    * @param apiKey The api key
-   * @return The id of the user
+   * @return The id of the session
    */
   protected UUID findSessionId(String apiKey) {
     return UUID.fromString(Jwts.parser().setSigningKey(secretKey).build()
