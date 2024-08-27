@@ -21,30 +21,30 @@ public final class Session {
   public static Session of(DatabaseRow row, List<String> columns) {
     return create(row.findCell(columns.indexOf("id")).uuidValue(),
       row.findCell(columns.indexOf("user")).uuidValue(),
+      SessionStatus.valueOf(row.findCell(columns.indexOf("status")).stringValue()),
       row.findCell(columns.indexOf("devicePlatform")).stringValue(),
       row.findCell(columns.indexOf("ipAddress")).stringValue(),
       row.findCell(columns.indexOf("country")).stringValue(),
       row.findCell(columns.indexOf("city")).stringValue(),
       row.findCell(columns.indexOf("openTime")).longValue(),
-      row.findCell(columns.indexOf("refreshToken")).stringValue(),
-      SessionStatus.valueOf(row.findCell(columns.indexOf("status")).stringValue()));
+      row.findCell(columns.indexOf("refreshToken")).stringValue());
   }
 
   private final UUID id;
   private final UUID userId;
+  private SessionStatus status;
   private final String devicePlatform;
   private final String ipAddress;
   private final String country;
   private final String city;
   private final long openTime;
   private String lastRefreshToken;
-  private SessionStatus status;
-
-  public void updateRefreshToken(String refreshToken) {
-    lastRefreshToken = refreshToken;
-  }
 
   public void close() {
     status = SessionStatus.CLOSED;
+  }
+
+  public void updateRefreshToken(String refreshToken) {
+    lastRefreshToken = refreshToken;
   }
 }
