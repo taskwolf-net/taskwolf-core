@@ -16,7 +16,8 @@ public final class SessionDatabaseTable extends DatabaseTable {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
-    columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID,
+      DatabaseColumn.Type.CLUSTERING_KEY));
     columns.add(DatabaseColumn.create("devicePlatform", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("ipAddress", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("country", DatabaseDataType.TEXT));
@@ -24,14 +25,37 @@ public final class SessionDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("openTime", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("refreshToken", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT));
-    return new SessionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    var table = new SessionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    table.createIfNotExists();
+    table.createIndexIfNotExists("status");
+    table.initializeViews();
+    return table;
   }
+
+  private DatabaseTable openTimeView;
 
   private SessionDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
     List<DatabaseColumn> columns
   ) {
     super(connection, keyspace, name, columns);
+  }
+
+  private void initializeViews() {
+    var columns = Lists.<DatabaseColumn>newArrayList();
+    columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID,
+      DatabaseColumn.Type.PARTITION_KEY));
+    columns.add(DatabaseColumn.create("openTime", DatabaseDataType.BIGINT,
+      DatabaseColumn.Type.CLUSTERING_KEY));
+    columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
+      DatabaseColumn.Type.CLUSTERING_KEY));
+    columns.add(DatabaseColumn.create("devicePlatform", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("ipAddress", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("country", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("city", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("refreshToken", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT));
+    openTimeView = createMaterializedViewIfNotExists("open_time_view", columns);
   }
 
   public CompletableFuture<Void> insertSession(Session session) {
@@ -115,6 +139,14 @@ public final class SessionDatabaseTable extends DatabaseTable {
   ) {
     return selectRows("user=" + userId + " AND status='" + status.toString() +
       "' ALLOW FILTERING")
+      .thenApply(rows -> rows.stream().map(Session::of).toList());
+  }
+
+  private static final int MAX_LAST_SESSIONS = 5;
+
+  public CompletableFuture<List<Session>> findLastSessionsOfUser(UUID userId) {
+    return openTimeView.selectRows("user=" + userId + " ORDER BY openTime" +
+      " LIMIT " + MAX_LAST_SESSIONS)
       .thenApply(rows -> rows.stream().map(Session::of).toList());
   }
 }

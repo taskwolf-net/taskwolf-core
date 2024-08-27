@@ -472,7 +472,7 @@ public class DatabaseTable {
    * @param condition The condition with which the rows can be found
    * @return A future that contains the database rows
    */
-  protected CompletableFuture<List<DatabaseRow>> selectRows(String condition) {
+  public CompletableFuture<List<DatabaseRow>> selectRows(String condition) {
     return selectRowsWithAddition(" WHERE " + condition);
   }
 
