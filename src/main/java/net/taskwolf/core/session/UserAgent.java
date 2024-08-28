@@ -12,6 +12,8 @@ public final class UserAgent {
       return "WINDOWS";
     } else if (processed.contains("x11")) {
       return "LINUX";
+    } else if (processed.contains("iphone") || processed.contains("ipad")) {
+      return "IOS";
     } else if (processed.contains("mac")) {
       return "MAC";
     } else if (processed.contains("android")) {
