@@ -124,6 +124,6 @@ public final class SessionDatabaseTable extends DatabaseTable {
       status.toString() + "' ALLOW FILTERING");
     return selectRows(query.toString()).thenApply(rows ->
       rows.stream().map(row -> Session.of(row, this))
-        .sorted(Comparator.comparingLong(Session::openTime)).toList());
+        .sorted(Comparator.comparingLong(Session::openTime).reversed()).toList());
   }
 }
