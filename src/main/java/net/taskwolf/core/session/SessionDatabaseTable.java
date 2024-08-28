@@ -126,4 +126,11 @@ public final class SessionDatabaseTable extends DatabaseTable {
       rows.stream().map(row -> Session.of(row, this))
         .sorted(Comparator.comparingLong(Session::openTime).reversed()).toList());
   }
+
+  public CompletableFuture<List<Session>> findAllSessionsByStatus(
+    SessionStatus status
+  ) {
+    return selectRows("status='" + status.toString() + "'")
+      .thenApply(rows -> rows.stream().map(row -> Session.of(row, this)).toList());
+  }
 }
