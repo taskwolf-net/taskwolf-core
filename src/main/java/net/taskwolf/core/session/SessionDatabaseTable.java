@@ -27,7 +27,6 @@ public final class SessionDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("refreshToken", DatabaseDataType.TEXT));
     var table = new SessionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
-    table.createIndexIfNotExists("id");
     table.createIndexIfNotExists("user");
     table.createIndexIfNotExists("status");
     return table;
@@ -85,14 +84,14 @@ public final class SessionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> updateSession(Session session) {
-    return update("id=" + session.id(),
+    return update(DatabaseCell.create(session.id()),
       DatabaseRow.of(session.id(), session.userId(), session.status().toString(),
         session.devicePlatform(), session.ipAddress(), session.country(),
         session.city(), session.openTime(), session.lastRefreshToken()));
   }
 
   public CompletableFuture<Void> deleteSession(UUID id) {
-    return delete("id=" + id);
+    return delete(DatabaseCell.create(id));
   }
 
   public CompletableFuture<UUID> generateAvailableSessionId() {
@@ -105,11 +104,12 @@ public final class SessionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> sessionExists(UUID id) {
-    return exists("id=" + id);
+    return exists(DatabaseCell.create(id));
   }
 
   public CompletableFuture<Session> findSession(UUID id) {
-    return selectRow("id=" + id).thenApply(row -> Session.of(row, this));
+    return selectRow(DatabaseCell.create(id))
+      .thenApply(row -> Session.of(row, this));
   }
 
   public CompletableFuture<List<Session>> findSessionsOfUser(UUID userId) {
