@@ -14,6 +14,7 @@ import net.taskwolf.core.database.DatabaseInjectionModule;
 import net.taskwolf.core.intro.IntroInjectionModule;
 import net.taskwolf.core.locale.LocaleInjectionModule;
 import net.taskwolf.core.log.Log;
+import net.taskwolf.core.maintenance.MaintenanceInjectionModule;
 import net.taskwolf.core.module.ModuleInjectionModule;
 import net.taskwolf.core.module.ModuleLoader;
 import net.taskwolf.core.notification.NotificationInjectionModule;
@@ -70,6 +71,7 @@ public class CoreInjectionModule extends AbstractModule {
     install(StripeInjectionModule.create());
     install(TrialInjectionModule.create());
     install(OfferInjectionModule.create());
+    install(MaintenanceInjectionModule.create());
   }
 
   @Provides
