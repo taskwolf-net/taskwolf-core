@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Accessors(fluent = true)
@@ -468,6 +469,31 @@ public class DatabaseTable {
   }
 
   /**
+   * Is used to find a single row secured (optional result)
+   * @param primaryKeyCell The primary key cell of the row
+   * @return A future that contains the database row
+   */
+  protected CompletableFuture<Optional<DatabaseRow>> selectRowSecure(
+    DatabaseCell primaryKeyCell
+  ) {
+    return selectRowSecure(primaryKeyCondition(primaryKeyCell));
+  }
+
+  /**
+   * Is used to find a single row secured (optional result)
+   * @param condition The condition with which the row can be found
+   * @return A future that contains the database row
+   */
+  protected CompletableFuture<Optional<DatabaseRow>> selectRowSecure(
+    String condition
+  ) {
+    var futureResponse = new CompletableFuture<Optional<DatabaseRow>>();
+    selectRows(condition).thenAccept(rows ->
+      futureResponse.complete(rows.stream().findFirst()));
+    return futureResponse;
+  }
+
+  /**
    * Is used to find a multiple rows
    * @param condition The condition with which the rows can be found
    * @return A future that contains the database rows
@@ -699,7 +725,7 @@ public class DatabaseTable {
     drop("IF EXISTS ");
   }
 
-  private void drop(String addition) {
+  protected void drop(String addition) {
     var query = new StringBuilder("DROP TABLE ");
     query.append(addition);
     query.append(fullName());
