@@ -70,6 +70,15 @@ public final class MaintenanceDatabaseTable extends DatabaseTable {
         maintenance.startTime(), maintenance.duration(), maintenance.status()));
   }
 
+  public CompletableFuture<UUID> generateAvailableMaintenanceId() {
+    var futureResponse = new CompletableFuture<UUID>();
+    var id = UUID.randomUUID();
+    maintenanceExists(id).thenApply(exists -> exists ?
+      generateAvailableMaintenanceId().thenApply(futureResponse::complete) :
+      CompletableFuture.completedFuture(futureResponse.complete(id)));
+    return futureResponse;
+  }
+
   public CompletableFuture<Void> deleteMaintenance(UUID id) {
     return delete(DatabaseCell.create(id));
   }
