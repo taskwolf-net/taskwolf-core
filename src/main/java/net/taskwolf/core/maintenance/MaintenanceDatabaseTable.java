@@ -44,7 +44,8 @@ public final class MaintenanceDatabaseTable extends DatabaseTable {
     UUID id, String description, long startTime, long duration,
     MaintenanceStatus status
   ) {
-    return insert(DatabaseRow.of(id, description, startTime, duration, status));
+    return insert(DatabaseRow.of(id, description, startTime, duration,
+      status.toString()));
   }
 
   public CompletableFuture<Void> updateMaintenanceStatus(
@@ -67,7 +68,8 @@ public final class MaintenanceDatabaseTable extends DatabaseTable {
   private CompletableFuture<Void> updateMaintenance(Maintenance maintenance) {
     return update(DatabaseCell.create(maintenance.id()),
       DatabaseRow.of(maintenance.id(), maintenance.description(),
-        maintenance.startTime(), maintenance.duration(), maintenance.status()));
+        maintenance.startTime(), maintenance.duration(),
+        maintenance.status().toString()));
   }
 
   public CompletableFuture<UUID> generateAvailableMaintenanceId() {
