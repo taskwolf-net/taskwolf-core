@@ -25,6 +25,7 @@ public final class OutgoingMailDatabaseTable extends DatabaseTable {
     var outgoingMailDatabaseTable =  new OutgoingMailDatabaseTable(connection,
       keyspace, TABLE_NAME, columns);
     outgoingMailDatabaseTable.createIfNotExists();
+    outgoingMailDatabaseTable.createIndexIfNotExists("receiver");
     return outgoingMailDatabaseTable;
   }
 
