@@ -7,11 +7,11 @@ import org.json.JSONObject;
 
 @Getter
 @Accessors(fluent = true)
-public final class TaskwolfMailConfiguration extends Configuration {
+public final class MailConfiguration extends Configuration {
   private static final String CONFIGURATION_PATH = "/configurations/mail/%s.json";
 
-  public static TaskwolfMailConfiguration createAndLoad(String mail) throws Exception {
-    var configuration = new TaskwolfMailConfiguration(
+  public static MailConfiguration createAndLoad(String mail) throws Exception {
+    var configuration = new MailConfiguration(
       String.format(CONFIGURATION_PATH, mail));
     configuration.load();
     return configuration;
@@ -25,7 +25,7 @@ public final class TaskwolfMailConfiguration extends Configuration {
   private String mailUser;
   private String mailPassword;
 
-  private TaskwolfMailConfiguration(String path) {
+  private MailConfiguration(String path) {
     super(path);
   }
 

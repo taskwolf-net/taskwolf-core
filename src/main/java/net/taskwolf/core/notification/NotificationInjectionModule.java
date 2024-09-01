@@ -7,8 +7,9 @@ import com.google.inject.name.Named;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
-import net.taskwolf.core.mail.TaskwolfMail;
-import net.taskwolf.core.mail.TaskwolfMailConfiguration;
+import net.taskwolf.core.mail.Mail;
+import net.taskwolf.core.mail.MailConfiguration;
+import net.taskwolf.core.mail.MailFactory;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class NotificationInjectionModule extends AbstractModule {
@@ -26,9 +27,9 @@ public final class NotificationInjectionModule extends AbstractModule {
   @Provides
   @Singleton
   @Named("notificationMail")
-  TaskwolfMail provideNotificationMail() throws Exception {
-    var mailConfiguration = TaskwolfMailConfiguration.createAndLoad("notification");
-    return TaskwolfMail.create(mailConfiguration.mail(),
+  Mail provideNotificationMail(MailFactory mailFactory) throws Exception {
+    var mailConfiguration = MailConfiguration.createAndLoad("notification");
+    return mailFactory.create(mailConfiguration.mail(),
       mailConfiguration.smtpMailHost(), mailConfiguration.smtpMailPort(),
       mailConfiguration.imapMailHost(), mailConfiguration.imapMailPort(),
       mailConfiguration.mailUser(), mailConfiguration.mailPassword());

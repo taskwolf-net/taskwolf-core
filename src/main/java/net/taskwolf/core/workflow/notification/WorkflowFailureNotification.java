@@ -1,12 +1,12 @@
 package net.taskwolf.core.workflow.notification;
 
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.mail.TaskwolfMail;
+import net.taskwolf.core.mail.Mail;
 import net.taskwolf.core.notification.Notification;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class WorkflowFailureNotification implements Notification {
-  private final TaskwolfMail notificationMail;
+  private final Mail notificationMail;
   private final String target;
   private final String failureMessage;
 

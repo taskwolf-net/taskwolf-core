@@ -8,7 +8,7 @@ import net.taskwolf.core.action.ActionExecutor;
 import net.taskwolf.core.bundle.BundleDatabaseTable;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.locale.Locale;
-import net.taskwolf.core.mail.TaskwolfMail;
+import net.taskwolf.core.mail.Mail;
 import net.taskwolf.core.notification.NotificationDatabaseTable;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.organization.team.TeamDatabaseTable;
@@ -31,7 +31,7 @@ public final class WorkflowFactory {
   private final TeamDatabaseTable teamDatabaseTable;
   private final NotificationDatabaseTable notificationDatabaseTable;
   private final Locale englishLocale;
-  private final TaskwolfMail notificationMail;
+  private final Mail notificationMail;
 
   @Inject
   private WorkflowFactory(
@@ -44,7 +44,7 @@ public final class WorkflowFactory {
     TeamDatabaseTable teamDatabaseTable,
     NotificationDatabaseTable notificationDatabaseTable,
     @Named("englishLocale") Locale englishLocale,
-    @Named("notificationMail") TaskwolfMail notificationMail
+    @Named("notificationMail") Mail notificationMail
   ) {
     this.workflowDatabaseTable = workflowDatabaseTable;
     this.timelineDatabaseTable = timelineDatabaseTable;

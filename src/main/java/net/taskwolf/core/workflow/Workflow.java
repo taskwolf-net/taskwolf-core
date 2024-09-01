@@ -9,7 +9,7 @@ import net.taskwolf.core.bundle.Bundle;
 import net.taskwolf.core.bundle.BundleDatabaseTable;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.locale.Locale;
-import net.taskwolf.core.mail.TaskwolfMail;
+import net.taskwolf.core.mail.Mail;
 import net.taskwolf.core.notification.NotificationDatabaseTable;
 import net.taskwolf.core.notification.NotificationSetting;
 import net.taskwolf.core.organization.Organization;
@@ -42,7 +42,7 @@ public final class Workflow {
   private final TeamDatabaseTable teamDatabaseTable;
   private final NotificationDatabaseTable notificationDatabaseTable;
   private final Locale englishLocale;
-  private final TaskwolfMail notificationMail;
+  private final Mail notificationMail;
   private final WorkflowEntry workflowEntry;
   private final Map<Integer, ActionExecutor> actions;
   private final Multimap<Integer, Condition> conditions;

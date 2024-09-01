@@ -12,8 +12,8 @@ import java.util.Date;
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
-public final class TaskwolfMailMessage {
-  public static TaskwolfMailMessage of(Message message) {
+public final class MailMessage {
+  public static MailMessage of(Message message) {
     try {
       var content = (MimeMultipart) message.getContent();
       var body = new StringBuilder();

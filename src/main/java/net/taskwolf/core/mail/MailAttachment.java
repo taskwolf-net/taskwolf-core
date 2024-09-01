@@ -9,7 +9,7 @@ import java.io.File;
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
-public class TaskwolfMailAttachment {
+public class MailAttachment {
   private final String name;
   private final File file;
 }

@@ -14,6 +14,7 @@ import net.taskwolf.core.database.DatabaseInjectionModule;
 import net.taskwolf.core.intro.IntroInjectionModule;
 import net.taskwolf.core.locale.LocaleInjectionModule;
 import net.taskwolf.core.log.Log;
+import net.taskwolf.core.mail.MailInjectionModule;
 import net.taskwolf.core.maintenance.MaintenanceInjectionModule;
 import net.taskwolf.core.module.ModuleInjectionModule;
 import net.taskwolf.core.module.ModuleLoader;
@@ -50,6 +51,7 @@ public class CoreInjectionModule extends AbstractModule {
     install(UserInjectionModule.create());
     install(OrganizationInjectionModule.create());
     install(SessionInjectionModule.create());
+    install(MailInjectionModule.create());
     install(BundleInjectionModule.create());
     install(TriggerInjectionModule.create());
     install(ActionInjectionModule.create());
