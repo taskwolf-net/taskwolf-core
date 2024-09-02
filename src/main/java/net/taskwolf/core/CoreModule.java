@@ -320,6 +320,7 @@ public class CoreModule {
    * @param key The key of the locale
    * @return A future that contains the translated locale
    */
+  @Deprecated
   public CompletableFuture<String> translate(UUID userId, String key) {
     return translation.translate(userId, key);
   }
@@ -330,6 +331,7 @@ public class CoreModule {
    * @param key The key of the locale
    * @return A future that contains the translated locale
    */
+  @Deprecated
   public String translate(User user, String key) {
     return translation.translate(user, key);
   }
@@ -340,6 +342,7 @@ public class CoreModule {
    * @param key The key of the locale
    * @return A future that contains the translated locale
    */
+  @Deprecated
   public String translate(String language, String key) {
     return translation.translate(language, key);
   }
