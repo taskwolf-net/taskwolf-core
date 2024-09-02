@@ -8,6 +8,7 @@ import net.taskwolf.core.action.ActionExecutor;
 import net.taskwolf.core.bundle.BundleDatabaseTable;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.locale.Locale;
+import net.taskwolf.core.locale.Translation;
 import net.taskwolf.core.mail.Mail;
 import net.taskwolf.core.notification.NotificationDatabaseTable;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
@@ -30,7 +31,7 @@ public final class WorkflowFactory {
   private final OrganizationDatabaseTable organizationDatabaseTable;
   private final TeamDatabaseTable teamDatabaseTable;
   private final NotificationDatabaseTable notificationDatabaseTable;
-  private final Locale englishLocale;
+  private final Translation translation;
   private final Mail notificationMail;
 
   @Inject
@@ -42,8 +43,7 @@ public final class WorkflowFactory {
     WorkflowThrottleDatabaseTable workflowThrottleDatabaseTable,
     OrganizationDatabaseTable organizationDatabaseTable,
     TeamDatabaseTable teamDatabaseTable,
-    NotificationDatabaseTable notificationDatabaseTable,
-    @Named("englishLocale") Locale englishLocale,
+    NotificationDatabaseTable notificationDatabaseTable, Translation translation,
     @Named("notificationMail") Mail notificationMail
   ) {
     this.workflowDatabaseTable = workflowDatabaseTable;
@@ -55,7 +55,7 @@ public final class WorkflowFactory {
     this.organizationDatabaseTable = organizationDatabaseTable;
     this.teamDatabaseTable = teamDatabaseTable;
     this.notificationDatabaseTable = notificationDatabaseTable;
-    this.englishLocale = englishLocale;
+    this.translation = translation;
     this.notificationMail = notificationMail;
   }
 
@@ -66,7 +66,7 @@ public final class WorkflowFactory {
     return Workflow.create(workflowDatabaseTable, timelineDatabaseTable,
       userDatabaseTable, bundleDatabaseTable, operationDatabaseTable,
       workflowThrottleDatabaseTable, organizationDatabaseTable, teamDatabaseTable,
-      notificationDatabaseTable, englishLocale, notificationMail, workflowEntry,
+      notificationDatabaseTable, translation, notificationMail, workflowEntry,
       actions, conditions);
   }
 }

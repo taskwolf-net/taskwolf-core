@@ -111,6 +111,9 @@
   "workflow.timeline.entry.condition.remove.title": "Workflow Bedingung entfernt",
   "workflow.timeline.entry.condition.remove.description": "Eine Bedingung wurde von %ACTOR% vom Workflow entfernt.",
 
+  "workflow.failure.notification.title": "Workflow fehlgeschlagen",
+  "workflow.failure.notification.body": "Hallo!\n\nLeider haben wir eine schlechte Nachricht.\n\nEiner deiner Taskwolf-Workflows ist fehlgeschlagen und erfordert deine Aufmerksamkeit.\n\nDer Grund für den Fehler:\n\n%s\nBitte logge dich in dein Taskwolf-Konto ein, um den Fehler zu beheben.\n\nWenn Sie Fragen zu Ihrem Problem haben, können Sie sich jederzeit an support@taskwolf.net wenden oder ein Ticket erstellen.\n\nWir können Ihnen dann helfen, den Fehler zu beheben.",
+
   "workflow.duplicated": "Dupliziert",
 
   "activity.setting.registration.title": "Erstellung des Kontos",

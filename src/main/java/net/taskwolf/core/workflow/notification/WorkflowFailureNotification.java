@@ -1,34 +1,23 @@
 package net.taskwolf.core.workflow.notification;
 
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.locale.Translation;
 import net.taskwolf.core.mail.Mail;
 import net.taskwolf.core.notification.Notification;
+import net.taskwolf.core.user.User;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class WorkflowFailureNotification implements Notification {
+  private final Translation translation;
   private final Mail notificationMail;
-  private final String target;
-  private final String failureMessage;
-
-  private static final String NOTIFICATION_TITLE = "Workflow failed";
-  private static final String NOTIFICATION_BODY = "Hey,\n" +
-    "\n" +
-    "Unfortunately we have some bad news. \n" +
-    "\n" +
-    "One of your Taskwolf workflows has failed and requires your attention.\n" +
-    "\n" +
-    "The reason for the error:\n" +
-    "\n" +
-    "%s" +
-    "\n" +
-    "Please log in to your Taskwolf account to fix the error.\n" +
-    "\n" +
-    "If you have any questions about your problem, you can contact support@taskwolf.net at any time or create a ticket.\n" +
-    "\n" +
-    "We can then help you to rectify the error";
+  private final User user;
+  private final String failureMessageKey;
 
   public void send() {
-    notificationMail.send(target, NOTIFICATION_TITLE,
-      String.format(NOTIFICATION_BODY, failureMessage));
+    var title = translation.translate(user, "workflow.failure.notification.title");
+    var body = String.format(
+      translation.translate(user, "workflow.failure.notification.body"),
+      translation.translate(user, failureMessageKey));
+    notificationMail.send(user.email(), title, body);
   }
 }

@@ -13,6 +13,7 @@ import net.taskwolf.core.condition.ConditionEntry;
 import net.taskwolf.core.condition.ConditionFactory;
 import net.taskwolf.core.iterator.AsyncIterator;
 import net.taskwolf.core.locale.Locale;
+import net.taskwolf.core.locale.Translation;
 import net.taskwolf.core.module.Module;
 import net.taskwolf.core.module.ModuleInformation;
 import net.taskwolf.core.module.ModuleLoader;
@@ -38,7 +39,6 @@ import java.util.concurrent.CompletableFuture;
 @Singleton
 public class CoreModule {
   private final ModuleLoader moduleLoader;
-  private final UserDatabaseTable userDatabaseTable;
   private final TriggerDatabaseTable triggerDatabaseTable;
   private final ActionDatabaseTable actionDatabaseTable;
   private final ConditionDatabaseTable conditionDatabaseTable;
@@ -46,22 +46,18 @@ public class CoreModule {
   private final WorkerDistribution distribution;
   private final ConditionFactory conditionFactory;
   private final WorkflowFactory workflowFactory;
-  private final Locale englishLocale;
-  private final Locale germanLocale;
+  private final Translation translation;
 
   @Inject
   private CoreModule(
-    ModuleLoader moduleLoader, UserDatabaseTable userDatabaseTable,
-    TriggerDatabaseTable triggerDatabaseTable,
+    ModuleLoader moduleLoader, TriggerDatabaseTable triggerDatabaseTable,
     ActionDatabaseTable actionDatabaseTable,
     ConditionDatabaseTable conditionDatabaseTable,
     WorkflowDatabaseTable workflowDatabaseTable,
     WorkerDistribution distribution, ConditionFactory conditionFactory,
-    WorkflowFactory workflowFactory, @Named("englishLocale") Locale englishLocale,
-    @Named("germanLocale") Locale germanLocale
+    WorkflowFactory workflowFactory, Translation translation
   ) {
     this.moduleLoader = moduleLoader;
-    this.userDatabaseTable = userDatabaseTable;
     this.triggerDatabaseTable = triggerDatabaseTable;
     this.actionDatabaseTable = actionDatabaseTable;
     this.conditionDatabaseTable = conditionDatabaseTable;
@@ -69,8 +65,7 @@ public class CoreModule {
     this.distribution = distribution;
     this.conditionFactory = conditionFactory;
     this.workflowFactory = workflowFactory;
-    this.englishLocale = englishLocale;
-    this.germanLocale = germanLocale;
+    this.translation = translation;
   }
 
   /**
@@ -326,7 +321,7 @@ public class CoreModule {
    * @return A future that contains the translated locale
    */
   public CompletableFuture<String> translate(UUID userId, String key) {
-    return userDatabaseTable.findUser(userId).thenApply(user -> translate(user, key));
+    return translation.translate(userId, key);
   }
 
   /**
@@ -336,7 +331,7 @@ public class CoreModule {
    * @return A future that contains the translated locale
    */
   public String translate(User user, String key) {
-    return translate(user.language(), key);
+    return translation.translate(user, key);
   }
 
   /**
@@ -346,10 +341,6 @@ public class CoreModule {
    * @return A future that contains the translated locale
    */
   public String translate(String language, String key) {
-    return switch(language.toLowerCase()) {
-      case "en" -> englishLocale.findText(key);
-      case "de" -> germanLocale.findText(key);
-      default -> "LANGUAGE NOT FOUND";
-    };
+    return translation.translate(language, key);
   }
 }

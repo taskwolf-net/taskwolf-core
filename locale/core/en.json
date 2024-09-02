@@ -111,6 +111,9 @@
   "workflow.timeline.entry.condition.remove.title": "Workflow condition removed",
   "workflow.timeline.entry.condition.remove.description": "A condition was removed from the workflow by %ACTOR%.",
 
+  "workflow.failure.notification.title": "Workflow failed",
+  "workflow.failure.notification.body": "Hey,\n\nUnfortunately we have some bad news.\n\nOne of your Taskwolf workflows has failed and requires your attention.\n\nThe reason for the error:\n\n%s\nPlease log in to your Taskwolf account to fix the error.\n\nIf you have any questions about your problem, you can contact support@taskwolf.net at any time or create a ticket.\n\nWe can then help you to rectify the error.",
+
   "workflow.duplicated": "Duplicated",
 
   "activity.setting.registration.title": "Account creation",

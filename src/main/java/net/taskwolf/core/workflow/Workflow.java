@@ -3,12 +3,14 @@ package net.taskwolf.core.workflow;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.CoreModule;
 import net.taskwolf.core.action.ActionExecutor;
 import net.taskwolf.core.action.ActionResult;
 import net.taskwolf.core.bundle.Bundle;
 import net.taskwolf.core.bundle.BundleDatabaseTable;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.locale.Locale;
+import net.taskwolf.core.locale.Translation;
 import net.taskwolf.core.mail.Mail;
 import net.taskwolf.core.notification.NotificationDatabaseTable;
 import net.taskwolf.core.notification.NotificationSetting;
@@ -41,7 +43,7 @@ public final class Workflow {
   private final OrganizationDatabaseTable organizationDatabaseTable;
   private final TeamDatabaseTable teamDatabaseTable;
   private final NotificationDatabaseTable notificationDatabaseTable;
-  private final Locale englishLocale;
+  private final Translation translation;
   private final Mail notificationMail;
   private final WorkflowEntry workflowEntry;
   private final Map<Integer, ActionExecutor> actions;
@@ -181,8 +183,8 @@ public final class Workflow {
     if (!notificationSetting.general() || !notificationSetting.workflowFail()) {
       return;
     }
-    WorkflowFailureNotification.create(notificationMail, target.email(),
-      englishLocale.findText(failureMessage)).send();
+    WorkflowFailureNotification.create(translation, notificationMail, target,
+      failureMessage).send();
   }
 
   private CompletableFuture<UUID> findWorkflowBundleOwner() {
