@@ -2,12 +2,15 @@ package net.taskwolf.core.template;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
-import net.taskwolf.core.workflow.WorkflowDatabaseTable;
+import net.taskwolf.core.database.condition.DatabaseComparison;
+import net.taskwolf.core.database.condition.DatabaseCondition;
+import net.taskwolf.core.database.paging.DatabaseDirection;
+import net.taskwolf.core.database.paging.DatabaseOrder;
+import net.taskwolf.core.database.paging.DatabasePage;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public final class TemplateDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "template";

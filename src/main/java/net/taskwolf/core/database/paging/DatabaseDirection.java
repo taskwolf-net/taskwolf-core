@@ -1,4 +1,4 @@
-package net.taskwolf.core.database;
+package net.taskwolf.core.database.paging;
 
 public enum DatabaseDirection {
   FORWARD,

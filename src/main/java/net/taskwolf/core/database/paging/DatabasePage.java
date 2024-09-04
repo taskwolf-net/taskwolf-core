@@ -1,4 +1,4 @@
-package net.taskwolf.core.database;
+package net.taskwolf.core.database.paging;
 
 import com.google.common.collect.Lists;
 import lombok.Getter;

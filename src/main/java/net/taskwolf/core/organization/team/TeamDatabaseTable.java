@@ -2,6 +2,7 @@ package net.taskwolf.core.organization.team;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.database.condition.DatabaseCondition;
 import net.taskwolf.core.target.TargetIdentificationPublish;
 
 import java.util.List;

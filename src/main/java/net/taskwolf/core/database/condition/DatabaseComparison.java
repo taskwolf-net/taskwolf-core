@@ -1,4 +1,4 @@
-package net.taskwolf.core.database;
+package net.taskwolf.core.database.condition;
 
 import lombok.RequiredArgsConstructor;
 

@@ -2,6 +2,7 @@ package net.taskwolf.core.condition;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.List;
 import java.util.UUID;

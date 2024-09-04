@@ -2,6 +2,7 @@ package net.taskwolf.core.session;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.Comparator;
 import java.util.List;

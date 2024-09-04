@@ -2,6 +2,11 @@ package net.taskwolf.core.workflow;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.database.condition.DatabaseComparison;
+import net.taskwolf.core.database.condition.DatabaseCondition;
+import net.taskwolf.core.database.paging.DatabaseDirection;
+import net.taskwolf.core.database.paging.DatabaseOrder;
+import net.taskwolf.core.database.paging.DatabasePage;
 
 import java.util.List;
 import java.util.UUID;

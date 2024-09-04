@@ -1,4 +1,4 @@
-package net.taskwolf.core.database;
+package net.taskwolf.core.database.condition;
 
 import com.beust.jcommander.internal.Lists;
 import lombok.RequiredArgsConstructor;

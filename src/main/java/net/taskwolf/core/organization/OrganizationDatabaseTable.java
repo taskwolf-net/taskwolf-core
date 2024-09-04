@@ -2,12 +2,12 @@ package net.taskwolf.core.organization;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.database.condition.DatabaseCondition;
 import net.taskwolf.core.target.TargetIdentificationPublish;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public final class OrganizationDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "organization";

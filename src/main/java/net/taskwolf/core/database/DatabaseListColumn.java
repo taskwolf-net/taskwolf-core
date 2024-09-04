@@ -1,5 +1,7 @@
 package net.taskwolf.core.database;
 
+import net.taskwolf.core.database.paging.DatabaseOrder;
+
 import java.util.Optional;
 
 public class DatabaseListColumn extends DatabaseColumn {
