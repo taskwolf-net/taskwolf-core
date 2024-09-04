@@ -39,15 +39,15 @@ public final class TeamTargetDatabaseTable extends DatabaseTable {
   }
 
   public void changeTarget(UUID userId, UUID target) {
-    update(DatabaseCell.create(userId), DatabaseRow.of(userId, target));
+    update(userId, DatabaseRow.of(userId, target));
   }
 
   public CompletableFuture<Boolean> targetExists(UUID userId) {
-    return exists(DatabaseCell.create(userId));
+    return exists(userId);
   }
 
   public void deleteTarget(UUID userId) {
-    delete(DatabaseCell.create(userId));
+    delete(userId);
   }
 
   public CompletableFuture<Optional<UUID>> findTargetSecured(UUID userId) {
@@ -88,7 +88,7 @@ public final class TeamTargetDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<UUID> findTarget(UUID userId) {
-    return selectRow(DatabaseCell.create(userId)).thenApply(row ->
+    return selectRow(userId).thenApply(row ->
       row.findCell(1).uuidValue());
   }
 }

@@ -84,10 +84,10 @@ public final class SessionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> updateSession(Session session) {
-    return update(DatabaseCell.create(session.id()),
-      DatabaseRow.of(session.id(), session.userId(), session.status().toString(),
-        session.devicePlatform(), session.ipAddress(), session.country(),
-        session.city(), session.openTime(), session.lastRefreshToken()));
+    return update(session.id(), DatabaseRow.of(session.id(), session.userId(),
+      session.status().toString(), session.devicePlatform(), session.ipAddress(),
+      session.country(), session.city(), session.openTime(),
+      session.lastRefreshToken()));
   }
 
   public CompletableFuture<Void> deleteSession(UUID id) {
@@ -104,25 +104,23 @@ public final class SessionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> sessionExists(UUID id) {
-    return exists(DatabaseCell.create(id));
+    return exists(id);
   }
 
   public CompletableFuture<Session> findSession(UUID id) {
-    return selectRow(DatabaseCell.create(id))
-      .thenApply(row -> Session.of(row, this));
+    return selectRow(id).thenApply(row -> Session.of(row, this));
   }
 
   public CompletableFuture<List<Session>> findSessionsOfUser(UUID userId) {
-    return selectRows("user=" + userId)
+    return selectRows(DatabaseCondition.of("user", userId))
       .thenApply(rows -> rows.stream().map(row -> Session.of(row, this)).toList());
   }
 
   public CompletableFuture<List<Session>> findSessionsOfUserByStatus(
     UUID userId, SessionStatus status
   ) {
-    var query = new StringBuilder("user=" + userId + " AND status='" +
-      status.toString() + "' ALLOW FILTERING");
-    return selectRows(query.toString()).thenApply(rows ->
+    var condition = DatabaseCondition.of("user", userId, "status", status.toString());
+    return selectRows(condition, true).thenApply(rows ->
       rows.stream().map(row -> Session.of(row, this))
         .sorted(Comparator.comparingLong(Session::openTime).reversed()).toList());
   }
@@ -130,7 +128,7 @@ public final class SessionDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<Session>> findAllSessionsByStatus(
     SessionStatus status
   ) {
-    return selectRows("status='" + status.toString() + "'")
+    return selectRows(DatabaseCondition.of("status", status.toString()))
       .thenApply(rows -> rows.stream().map(row -> Session.of(row, this)).toList());
   }
 }

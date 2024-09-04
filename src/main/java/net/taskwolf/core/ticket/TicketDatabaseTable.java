@@ -77,7 +77,7 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   public void updateTicket(Ticket ticket) {
-    update(DatabaseCell.create(ticket.id()), DatabaseRow.of(ticket.id(),
+    update(ticket.id(), DatabaseRow.of(ticket.id(),
       ticket.creator(), ticket.title(), ticket.type().toString(),
       ticket.status().toString(), ticket.expirationTime(), ticket.messages()));
   }
@@ -92,19 +92,19 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> ticketExists(UUID ticketId) {
-    return exists(DatabaseCell.create(ticketId));
+    return exists(ticketId);
   }
 
   public void deleteTicket(UUID ticketId) {
-    delete(DatabaseCell.create(ticketId));
+    delete(ticketId);
   }
 
   public CompletableFuture<Ticket> findTicket(UUID ticketId) {
-    return selectRow(DatabaseCell.create(ticketId)).thenApply(Ticket::of);
+    return selectRow(ticketId).thenApply(Ticket::of);
   }
 
   public CompletableFuture<List<Ticket>> findTicketsByCreator(UUID creatorId) {
-    return selectRows("creator=" + creatorId).thenApply(rows ->
+    return selectRows(DatabaseCondition.of("creator", creatorId)).thenApply(rows ->
       rows.stream().map(Ticket::of).toList());
   }
 

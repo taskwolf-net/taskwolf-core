@@ -19,10 +19,13 @@ public final class DatabaseRow {
 
   public static DatabaseRow of(Row row, int columnsLength) {
     var cells = new DatabaseCell[columnsLength];
+    var values = new Object[columnsLength];
     for (var i = 0; i < columnsLength; i++) {
-      cells[i] = DatabaseCell.create(row.getObject(i));
+      var value = row.getObject(i);
+      cells[i] = DatabaseCell.create(value);
+      values[i] = value;
     }
-    return create(cells);
+    return create(cells, values);
   }
 
   public static DatabaseRow of(Object... values) {
@@ -30,22 +33,24 @@ public final class DatabaseRow {
     for (var i = 0; i < values.length; i++) {
       cells[i] = DatabaseCell.create(values[i]);
     }
-    return create(cells);
+    return create(cells, values);
   }
 
   private final DatabaseCell[] cells;
+  private final Object[] values;
 
   /**
-   * Creates a string that contains all cells and that can be used by cassandra
-   * @return The value compilation
+   * Creates a string that contains the number of placeholder question marks
+   * that are required for the query
+   * @return The placeholder compilation
    */
-  public String valuesCompilation() {
+  public String placeholderCompilation() {
     var compilation = new StringBuilder();
-    for (var i = 0; i < cells.length; i++) {
-      compilation.append(cells[i].databaseValue());
-      if (i < cells.length - 1) {
+    for (var i = 0; i < cellNumber(); i++) {
+      if (i > 0) {
         compilation.append(", ");
       }
+      compilation.append("?");
     }
     return compilation.toString();
   }
@@ -56,9 +61,15 @@ public final class DatabaseRow {
    * @return The common row
    */
   public DatabaseRow concat(DatabaseRow other) {
-    var result = Arrays.copyOf(cells, this.cellNumber() + other.cellNumber());
-    System.arraycopy(other.raw(), 0, result, this.cellNumber(), other.cellNumber());
-    return DatabaseRow.create(result);
+    var combinedCells = Arrays.copyOf(cells,
+      this.cellNumber() + other.cellNumber());
+    System.arraycopy(other.cells(), 0, combinedCells, this.cellNumber(),
+      other.cellNumber());
+    var combinedValues = Arrays.copyOf(values,
+      this.cellNumber() + other.cellNumber());
+    System.arraycopy(other.values(), 0, combinedValues, this.cellNumber(),
+      other.cellNumber());
+    return DatabaseRow.create(combinedCells, combinedValues);
   }
 
   /**
@@ -82,7 +93,15 @@ public final class DatabaseRow {
    * Is used to get the raw cell array of the database row
    * @return The raw cell array
    */
-  public DatabaseCell[] raw() {
+  public DatabaseCell[] cells() {
     return Arrays.copyOf(cells, cells.length);
+  }
+
+  /**
+   * Is used to get the raw object array of the database row
+   * @return The raw object array
+   */
+  public Object[] values() {
+    return Arrays.copyOf(values, values.length);
   }
 }

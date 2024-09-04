@@ -47,7 +47,7 @@ public class DatabaseTable {
     query.append(")");
     query.append(clusteringOrder());
     query.append(";");
-    connection.session().executeAsync(query.toString());
+    connection.execute(query);
   }
 
   private String columnCompilation() {
@@ -138,7 +138,7 @@ public class DatabaseTable {
       query.append(customType);
     }
     query.append(";");
-    connection.session().executeAsync(query.toString());
+    connection.execute(query);
   }
 
   /**
@@ -209,7 +209,7 @@ public class DatabaseTable {
     query.append(columnNameCompilation(columns.stream()
       .filter(column -> column.type().isPrimaryKey()).toList(), "", ""));
     query.append(");");
-    connection.session().executeAsync(query.toString());
+    connection.execute(query);
     var viewTableColumns = Lists.newArrayList(columns);
     viewTableColumns.addAll(this.columns.stream().filter(tableColumn ->
       columns.stream().noneMatch(viewColumn ->
@@ -249,10 +249,7 @@ public class DatabaseTable {
     query.append(" ");
     query.append(column.dataType());
     query.append(";");
-    var result = connection.session().executeAsync(query.toString());
-    var futureResponse = new CompletableFuture<Void>();
-    result.thenAccept(resultSet -> futureResponse.complete(null));
-    return futureResponse;
+    return connection.execute(query).thenApply(value -> null);
   }
 
   /**
@@ -269,11 +266,7 @@ public class DatabaseTable {
     query.append(" TO ");
     query.append(newColumnName);
     query.append(";");
-    connection.session().executeAsync(query.toString());
-    var result = connection.session().executeAsync(query.toString());
-    var futureResponse = new CompletableFuture<Void>();
-    result.thenAccept(resultSet -> futureResponse.complete(null));
-    return futureResponse;
+    return connection.execute(query).thenApply(value -> null);
   }
 
   /**
@@ -292,11 +285,7 @@ public class DatabaseTable {
     query.append(" DROP ");
     query.append(columnName);
     query.append(";");
-    connection.session().executeAsync(query.toString());
-    var result = connection.session().executeAsync(query.toString());
-    var futureResponse = new CompletableFuture<Void>();
-    result.thenAccept(resultSet -> futureResponse.complete(null));
-    return futureResponse;
+    return connection.execute(query).thenApply(value -> null);
   }
 
   /**
@@ -320,26 +309,21 @@ public class DatabaseTable {
     query.append(" (");
     query.append(columnNameCompilation());
     query.append(") VALUES (");
-    query.append(row.valuesCompilation());
+    query.append(row.placeholderCompilation());
     query.append(") ");
     query.append(addition);
     query.append(";");
-    var result = connection.session().executeAsync(query.toString());
-    var futureResponse = new CompletableFuture<Void>();
-    result.thenAccept(resultSet -> futureResponse.complete(null));
-    return futureResponse;
+    return connection.execute(query, row.values()).thenApply(value -> null);
   }
 
   /**
    * Updates a row inside the database table
-   * @param primaryKeyCell The primary key cell of the row
+   * @param value The primary key value
    * @param row The updated row (with all the columns)
    * @return A future that is completed when the update is completed
    */
-  protected CompletableFuture<Void> update(
-    DatabaseCell primaryKeyCell, DatabaseRow row
-  ) {
-    return update(primaryKeyCondition(primaryKeyCell), row);
+  protected CompletableFuture<Void> update(Object value, DatabaseRow row) {
+    return update(DatabaseCondition.of(findPrimaryKeyColumn().name(), value), row);
   }
 
   /**
@@ -348,21 +332,37 @@ public class DatabaseTable {
    * @param row The updated row (with all the columns)
    * @return A future that is completed when the update is completed
    */
-  protected CompletableFuture<Void> update(String condition, DatabaseRow row) {
+  protected CompletableFuture<Void> update(
+    DatabaseCondition condition, DatabaseRow row
+  ) {
+    return update(condition, row, false);
+  }
+
+  /**
+   * Updates a row inside the database table
+   * @param condition The condition with which the row can be found
+   * @param row The updated row (with all the columns)
+   * @param allowFiltering Whether filtering is allowed
+   * @return A future that is completed when the update is completed
+   */
+  protected CompletableFuture<Void> update(
+    DatabaseCondition condition, DatabaseRow row, boolean allowFiltering
+  ) {
     var query = new StringBuilder("UPDATE ");
     query.append(fullName());
     query.append(" SET ");
-    query.append(buildUpdateKeyValuePairs(row));
+    query.append(buildUpdateKeyValuePairs());
     query.append(" WHERE ");
-    query.append(condition);
+    query.append(condition.build());
+    if (allowFiltering) {
+      query.append(" ALLOW FILTERING");
+    }
     query.append(";");
-    var result = connection.session().executeAsync(query.toString());
-    var futureResponse = new CompletableFuture<Void>();
-    result.thenAccept(resultSet -> futureResponse.complete(null));
-    return futureResponse;
+    return connection.execute(query, row.values(), condition.values())
+      .thenApply(value -> null);
   }
 
-  private String buildUpdateKeyValuePairs(DatabaseRow row) {
+  private String buildUpdateKeyValuePairs() {
     var pairs = new StringBuilder();
     for (var i = 0; i < columns.size(); i++) {
       var column = columns.get(i);
@@ -370,8 +370,7 @@ public class DatabaseTable {
         continue;
       }
       pairs.append(column.name());
-      pairs.append(" = ");
-      pairs.append(row.findCell(i).databaseValue());
+      pairs.append(" = ?");
       if (i < columns.size() - 1) {
         pairs.append(", ");
       }
@@ -381,14 +380,14 @@ public class DatabaseTable {
 
   /**
    * Is used to check whether a row inside the database table exists
-   * @param primaryKeyCell The primary key cell of the row
+   * @param value The primary key value
    * @return A future that contains the existence boolean
    */
-  protected CompletableFuture<Boolean> exists(DatabaseCell primaryKeyCell) {
-    if (primaryKeyCell.rawValue() == null) {
+  protected CompletableFuture<Boolean> exists(Object value) {
+    if (value == null) {
       return CompletableFuture.completedFuture(false);
     }
-    return exists(primaryKeyCondition(primaryKeyCell));
+    return exists(DatabaseCondition.of(findPrimaryKeyColumn().name(), value));
   }
 
   /**
@@ -396,18 +395,31 @@ public class DatabaseTable {
    * @param condition The condition with which the row can be found
    * @return A future that contains the existence boolean
    */
-  protected CompletableFuture<Boolean> exists(String condition) {
+  protected CompletableFuture<Boolean> exists(DatabaseCondition condition) {
+    return exists(condition, false);
+  }
+
+  /**
+   * Is used to check whether a row inside the database table exists
+   * @param condition The condition with which the row can be found
+   * @param allowFiltering Whether filtering is allowed
+   * @return A future that contains the existence boolean
+   */
+  protected CompletableFuture<Boolean> exists(
+    DatabaseCondition condition, boolean allowFiltering
+  ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
     query.append(" WHERE ");
-    query.append(condition);
+    query.append(condition.build());
+    if (allowFiltering) {
+      query.append(" ALLOW FILTERING");
+    }
     query.append(";");
-    var result = connection.session().executeAsync(query.toString());
-    var futureResponse = new CompletableFuture<Boolean>();
-    result.thenAccept(resultSet -> futureResponse.complete(resultSet.remaining() > 0));
-    return futureResponse;
+    return connection.execute(query, condition.values())
+      .thenApply(result -> result.remaining() > 0);
   }
 
   /**
@@ -415,29 +427,41 @@ public class DatabaseTable {
    * @return The number of rows
    */
   public CompletableFuture<Long> count() {
-    return countWithAddition("");
+    var query = new StringBuilder("SELECT COUNT(*) FROM ");
+    query.append(fullName());
+    query.append(";");
+    return connection.execute(query)
+      .thenApply(result -> result.one().get(0, Long.class));
   }
 
   /**
    * Is used to find the number of rows inside a database table
-   * @param condition The condition that is used for counting
+   * @param condition The condition for counting
    * @return The number of rows
    */
-  protected CompletableFuture<Long> count(String condition) {
-    return countWithAddition(" WHERE " + condition);
+  protected CompletableFuture<Long> count(DatabaseCondition condition) {
+    return count(condition, false);
   }
 
-  protected CompletableFuture<Long> countWithAddition(String addition) {
+  /**
+   * Is used to find the number of rows inside a database table
+   * @param condition The condition for counting
+   * @param allowFiltering Whether filtering is allowed
+   * @return The number of rows
+   */
+  protected CompletableFuture<Long> count(
+    DatabaseCondition condition, boolean allowFiltering
+  ) {
     var query = new StringBuilder("SELECT COUNT(*) FROM ");
     query.append(fullName());
-    query.append(" ");
-    query.append(addition);
+    query.append(" WHERE ");
+    query.append(condition.build());
+    if (allowFiltering) {
+      query.append(" ALLOW FILTERING");
+    }
     query.append(";");
-    var result = connection.session().executeAsync(query.toString());
-    var futureResponse = new CompletableFuture<Long>();
-    result.thenAccept(resultSet -> futureResponse.complete(
-      resultSet.one().get(0, Long.class)));
-    return futureResponse;
+    return connection.execute(query, condition.values())
+      .thenApply(result -> result.one().get(0, Long.class));
   }
 
   /**
@@ -445,16 +469,22 @@ public class DatabaseTable {
    * @return List of all possible rows
    */
   protected CompletableFuture<List<DatabaseRow>> selectAllRows() {
-    return selectRowsWithAddition("");
+    var query = new StringBuilder("SELECT ");
+    query.append(columnNameCompilation());
+    query.append(" FROM ");
+    query.append(fullName());
+    query.append(";");
+    return connection.execute(query).thenApply(result ->
+      DatabaseRow.multiple(result.currentPage(), columns.size()));
   }
 
   /**
    * Is used to find a single row
-   * @param primaryKeyCell The primary key cell of the row
+   * @param value The primary key value
    * @return A future that contains the database row
    */
-  protected CompletableFuture<DatabaseRow> selectRow(DatabaseCell primaryKeyCell) {
-    return selectRow(primaryKeyCondition(primaryKeyCell));
+  protected CompletableFuture<DatabaseRow> selectRow(Object value) {
+    return selectRow(DatabaseCondition.of(findPrimaryKeyColumn().name(), value));
   }
 
   /**
@@ -462,21 +492,32 @@ public class DatabaseTable {
    * @param condition The condition with which the row can be found
    * @return A future that contains the database row
    */
-  protected CompletableFuture<DatabaseRow> selectRow(String condition) {
+  protected CompletableFuture<DatabaseRow> selectRow(DatabaseCondition condition) {
+    return selectRow(condition, false);
+  }
+
+  /**
+   * Is used to find a single row
+   * @param condition The condition with which the row can be found
+   * @param allowFiltering Whether filtering is allowed
+   * @return A future that contains the database row
+   */
+  protected CompletableFuture<DatabaseRow> selectRow(
+    DatabaseCondition condition, boolean allowFiltering
+  ) {
     var futureResponse = new CompletableFuture<DatabaseRow>();
-    selectRows(condition).thenAccept(rows -> futureResponse.complete(rows.get(0)));
+    selectRows(condition, allowFiltering)
+      .thenAccept(rows -> futureResponse.complete(rows.get(0)));
     return futureResponse;
   }
 
   /**
    * Is used to find a single row secured (optional result)
-   * @param primaryKeyCell The primary key cell of the row
+   * @param value The primary key value
    * @return A future that contains the database row
    */
-  protected CompletableFuture<Optional<DatabaseRow>> selectRowSecure(
-    DatabaseCell primaryKeyCell
-  ) {
-    return selectRowSecure(primaryKeyCondition(primaryKeyCell));
+  protected CompletableFuture<Optional<DatabaseRow>> selectRowSecure(Object value) {
+    return selectRowSecure(DatabaseCondition.of(findPrimaryKeyColumn().name(), value));
   }
 
   /**
@@ -485,10 +526,22 @@ public class DatabaseTable {
    * @return A future that contains the database row
    */
   protected CompletableFuture<Optional<DatabaseRow>> selectRowSecure(
-    String condition
+    DatabaseCondition condition
+  ) {
+    return selectRowSecure(condition, false);
+  }
+
+  /**
+   * Is used to find a single row secured (optional result)
+   * @param condition The condition with which the row can be found
+   * @param allowFiltering Whether filtering is allowed
+   * @return A future that contains the database row
+   */
+  protected CompletableFuture<Optional<DatabaseRow>> selectRowSecure(
+    DatabaseCondition condition, boolean allowFiltering
   ) {
     var futureResponse = new CompletableFuture<Optional<DatabaseRow>>();
-    selectRows(condition).thenAccept(rows ->
+    selectRows(condition, allowFiltering).thenAccept(rows ->
       futureResponse.complete(rows.stream().findFirst()));
     return futureResponse;
   }
@@ -498,43 +551,84 @@ public class DatabaseTable {
    * @param condition The condition with which the rows can be found
    * @return A future that contains the database rows
    */
-  public CompletableFuture<List<DatabaseRow>> selectRows(String condition) {
-    return selectRowsWithAddition(" WHERE " + condition);
+  protected CompletableFuture<List<DatabaseRow>> selectRows(
+    DatabaseCondition condition
+  ) {
+    return selectRows(condition, -1, false);
   }
 
-  protected CompletableFuture<List<DatabaseRow>> selectRowsWithAddition(String addition) {
+  /**
+   * Is used to find a multiple rows
+   * @param condition The condition with which the rows can be found
+   * @param limit The limit of entries that should be returned
+   * @return A future that contains the database rows
+   */
+  protected CompletableFuture<List<DatabaseRow>> selectRows(
+    DatabaseCondition condition, long limit
+  ) {
+    return selectRows(condition, limit, false);
+  }
+
+  /**
+   * Is used to find a multiple rows
+   * @param condition The condition with which the rows can be found
+   * @param allowFiltering Whether filtering is allowed
+   * @return A future that contains the database rows
+   */
+  protected CompletableFuture<List<DatabaseRow>> selectRows(
+    DatabaseCondition condition, boolean allowFiltering
+  ) {
+    return selectRows(condition, -1, allowFiltering);
+  }
+
+  /**
+   * Is used to find a multiple rows
+   * @param condition The condition with which the rows can be found
+   * @param limit The limit of entries that should be returned
+   * @param allowFiltering Whether filtering is allowed
+   * @return A future that contains the database rows
+   */
+  protected CompletableFuture<List<DatabaseRow>> selectRows(
+    DatabaseCondition condition, long limit, boolean allowFiltering
+  ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
-    query.append(addition);
+    query.append(" WHERE ");
+    query.append(condition.build());
+    if (limit > 0) {
+      query.append(" LIMIT ");
+      query.append(limit);
+    }
+    if (allowFiltering) {
+      query.append(" ALLOW FILTERING");
+    }
     query.append(";");
-    var result = connection.session().executeAsync(query.toString());
-    var futureResponse = new CompletableFuture<List<DatabaseRow>>();
-    result.thenAccept(resultSet -> futureResponse.complete(
-      DatabaseRow.multiple(resultSet.currentPage(), columns.size())));
-    return futureResponse;
+    return connection.execute(query, condition.values()).thenApply(result ->
+      DatabaseRow.multiple(result.currentPage(), columns.size()));
   }
 
   /**
    * Used to find a specific page inside the table
-   * @param partitionKeyCell The partition key value that specifies the
-   *                         basic set of elements to be paged
+   * @param partitionValue The partition key value that specifies the
+   *                       basic set of elements to be paged
+   * @param condition The condition that is used for filtering
    * @param order The direction in which sorting should take place
    * @param pageSize The page size that is used for the paging process
    * @param targetPage The page the requester wants to jump to
    * @return A future that contains the page
    */
   public CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
-    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
+    Object partitionValue, DatabaseCondition condition, DatabaseOrder order,
     int pageSize, int targetPage
   ) {
-    return countPagingRows(partitionKeyCell, conditions).thenCompose(count ->
-      selectPage(partitionKeyCell, conditions, order, pageSize, count, targetPage));
+    return countPagingRows(partitionValue, condition).thenCompose(count ->
+      selectPage(partitionValue, condition, order, pageSize, count, targetPage));
   }
 
   private CompletableFuture<DatabasePage<DatabaseRow>> selectPage(
-    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
+    Object partitionValue, DatabaseCondition condition, DatabaseOrder order,
     int pageSize, long rowNumber, int targetPage
   ) {
     var pageNumber = calculatePageNumber(pageSize, rowNumber);
@@ -543,23 +637,22 @@ public class DatabaseTable {
     }
     var direction = targetPage == 0 ? DatabaseDirection.FORWARD :
       DatabaseDirection.BACKWARD;
-    var statement = createPagingStatement(partitionKeyCell, conditions,
+    var pagingCondition = createPagingCondition(partitionValue, condition);
+    var statement = createPagingStatement(pagingCondition,
       direction.isForward() ? order : order.reverse(), pageSize, "");
     if (targetPage == pageNumber - 1) {
       var offset = (int) (rowNumber % pageSize);
       statement = statement.setPageSize(offset == 0 ? pageSize : offset);
     }
-    var result = connection.session().executeAsync(statement);
-    var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
-    result.thenApply(resultSet -> createDatabasePage(pageNumber, resultSet,
-      direction)).thenAccept(futureResponse::complete);
-    return futureResponse;
+    return connection.execute(statement).thenApply(result ->
+      createDatabasePage(pageNumber, result, direction));
   }
 
   /**
    * Used to shift an existing paging state (next or previous page)
-   * @param partitionKeyCell The partition key value that specifies the
-   *                         basic set of elements to be paged
+   * @param partitionValue The partition key value that specifies the
+   *                       basic set of elements to be paged
+   * @param condition The condition that is used for filtering
    * @param order The direction in which sorting should take place
    * @param pageSize The page size that is used for the paging process
    * @param pageState The current page state
@@ -568,29 +661,26 @@ public class DatabaseTable {
    * @return A future that contains the page
    */
   public CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
-    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
+    Object partitionValue, DatabaseCondition condition, DatabaseOrder order,
     int pageSize, String pageState, DatabaseDirection startingPoint,
     DatabaseDirection direction
   ) {
-    return countPagingRows(partitionKeyCell, conditions).thenCompose(count ->
-      shiftPage(partitionKeyCell, conditions, order,
+    return countPagingRows(partitionValue, condition).thenCompose(count ->
+      shiftPage(partitionValue, condition, order,
         pageSize, count, pageState, startingPoint, direction));
   }
 
   private CompletableFuture<DatabasePage<DatabaseRow>> shiftPage(
-    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
+    Object partitionValue, DatabaseCondition condition, DatabaseOrder order,
     int pageSize, long rowNumber, String pageState, DatabaseDirection startingPoint,
     DatabaseDirection direction
   ) {
     var pageNumber = calculatePageNumber(pageSize, rowNumber);
-    var statement = createPagingStatement(partitionKeyCell, conditions,
+    var pagingCondition = createPagingCondition(partitionValue, condition);
+    var statement = createPagingStatement(pagingCondition,
       direction.isForward() ? order : order.reverse(), pageSize, pageState);
-    var result = connection.session().executeAsync(statement);
-    var futureResponse = new CompletableFuture<DatabasePage<DatabaseRow>>();
-    result.thenCompose(resultSet ->
-        findShiftedPage(pageSize, pageNumber, resultSet, startingPoint, direction))
-      .thenAccept(futureResponse::complete);
-    return futureResponse;
+    return connection.execute(statement, pagingCondition.values()).thenCompose(result ->
+      findShiftedPage(pageSize, pageNumber, result, startingPoint, direction));
   }
 
   private CompletableFuture<DatabasePage<DatabaseRow>> findShiftedPage(
@@ -642,22 +732,18 @@ public class DatabaseTable {
   }
 
   private SimpleStatement createPagingStatement(
-    DatabaseCell partitionKeyCell, List<String> conditions, DatabaseOrder order,
-    int pageSize, String pageState
+    DatabaseCondition condition, DatabaseOrder order, int pageSize,
+    String pageState
   ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
     query.append(" WHERE ");
-    query.append(partitionKeyCondition(partitionKeyCell));
-    for (var condition : conditions) {
-      query.append(" AND ");
-      query.append(condition);
-    }
+    query.append(condition.build());
     query.append(" ORDER BY ");
     query.append(columns.stream().filter(column -> column.type().isClusteringKey())
-      .map(DatabaseColumn::name).findFirst().get());
+      .findFirst().get().name());
     query.append(" ");
     query.append(order.value());
     query.append(" ALLOW FILTERING;");
@@ -671,14 +757,18 @@ public class DatabaseTable {
   }
 
   private CompletableFuture<Long> countPagingRows(
-    DatabaseCell partitionKeyCell, List<String> conditions
+    Object partitionValue, DatabaseCondition condition
   ) {
-    var finalCondition = new StringBuilder(partitionKeyCondition(partitionKeyCell));
-    for (var condition : conditions) {
-      finalCondition.append(" AND ");
-      finalCondition.append(condition);
-    }
-    return count(finalCondition.toString() + " ALLOW FILTERING");
+    return count(createPagingCondition(partitionValue, condition), true);
+  }
+
+  private DatabaseCondition createPagingCondition(
+    Object partitionValue, DatabaseCondition condition
+  ) {
+    var finalCondition = DatabaseCondition.of(findPartitionKeyColumn().name(),
+      partitionValue);
+    finalCondition.concat(condition);
+    return finalCondition;
   }
 
   private int calculatePageNumber(int pageSize, long rowNumber) {
@@ -687,11 +777,11 @@ public class DatabaseTable {
 
   /**
    * Deletes a database row from the database table
-   * @param primaryKeyCell The primary key cell of the row
+   * @param value The primary key value
    * @return A future that is completed when the deletion is completed
    */
-  protected CompletableFuture<Void> delete(DatabaseCell primaryKeyCell) {
-    return delete(primaryKeyCondition(primaryKeyCell));
+  protected CompletableFuture<Void> delete(Object value) {
+    return delete(DatabaseCondition.of(findPrimaryKeyColumn().name(), value));
   }
 
   /**
@@ -699,16 +789,13 @@ public class DatabaseTable {
    * @param condition The condition with which the rows can be found
    * @return A future that is completed when the deletion is completed
    */
-  protected CompletableFuture<Void> delete(String condition) {
+  protected CompletableFuture<Void> delete(DatabaseCondition condition) {
     var query = new StringBuilder("DELETE FROM ");
     query.append(fullName());
     query.append(" WHERE ");
-    query.append(condition);
+    query.append(condition.build());
     query.append(";");
-    var result = connection.session().executeAsync(query.toString());
-    var futureResponse = new CompletableFuture<Void>();
-    result.thenAccept(resultSet -> futureResponse.complete(null));
-    return futureResponse;
+    return connection.execute(query, condition.values()).thenApply(value -> null);
   }
 
   /**
@@ -730,7 +817,7 @@ public class DatabaseTable {
     query.append(addition);
     query.append(fullName());
     query.append(";");
-    connection.session().executeAsync(query.toString());
+    connection.execute(query);
   }
 
   /**
@@ -752,7 +839,7 @@ public class DatabaseTable {
     query.append(addition);
     query.append(fullName());
     query.append(";");
-    connection.session().executeAsync(query.toString());
+    connection.execute(query);
   }
 
   private String columnNameCompilation() {
@@ -766,29 +853,30 @@ public class DatabaseTable {
     return compilation.toString();
   }
 
-  private String primaryKeyCondition(DatabaseCell primaryKeyCell) {
-    return columnCondition(columns.stream()
-      .filter(column -> column.type().isPrimaryKey())
-      .findFirst().get(), primaryKeyCell);
+  private DatabaseColumn findPrimaryKeyColumn() {
+    return columns.stream().filter(column -> column.type().isPrimaryKey())
+      .findFirst().get();
   }
 
-  private String partitionKeyCondition(DatabaseCell partitionKeyCell) {
-    return columnCondition(columns.stream()
-      .filter(column -> column.type().isPartitionKey())
-      .findFirst().get(), partitionKeyCell);
+  private List<DatabaseColumn> findPrimaryKeyColumns() {
+    return columns.stream().filter(column -> column.type().isPrimaryKey())
+      .toList();
   }
 
-  private String columnCondition(DatabaseColumn column, DatabaseCell cell) {
-    return columnCondition(column.name(), cell);
+  private DatabaseColumn findPartitionKeyColumn() {
+    return columns.stream().filter(column -> column.type().isPartitionKey())
+      .findFirst().get();
   }
 
-  private String columnCondition(String columnName, DatabaseCell cell) {
-    var condition = new StringBuilder(columnName);
-    condition.append(" = ");
-    condition.append(cell.databaseValue());
-    return condition.toString();
+  private List<DatabaseColumn> findPartitionKeyColumns() {
+    return columns.stream().filter(column -> column.type().isPartitionKey())
+      .toList();
   }
 
+  /**
+   * Is used by table system (databases) to configure table asynchronous
+   * @param newColumns The columns of the table
+   */
   protected void fillColumns(List<DatabaseColumn> newColumns) {
     columns.clear();
     columns.addAll(newColumns);

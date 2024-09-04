@@ -78,13 +78,13 @@ public final class TemplateDatabaseTable extends DatabaseTable {
     String englishName, String englishDescription, String germanName,
     String germanDescription, TemplateAccessType accessType
   ) {
-    update("placeholder='.' AND id=" + id, DatabaseRow.of(".", id, trigger, actions,
-      modules, englishName, englishDescription, germanName, germanDescription,
-      accessType.toString()));
+    update(DatabaseCondition.of("placeholder", ".", "id", id),
+      DatabaseRow.of(".", id, trigger, actions, modules, englishName,
+        englishDescription, germanName, germanDescription, accessType.toString()));
   }
 
   public void deleteTemplate(UUID templateId) {
-    delete("placeholder='.' AND id=" + templateId);
+    delete(DatabaseCondition.of("placeholder", ".", "id", templateId));
   }
 
   public CompletableFuture<UUID> generateAvailableTemplateId() {
@@ -97,11 +97,12 @@ public final class TemplateDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> templateExists(UUID templateId) {
-    return exists("placeholder='.' AND id=" + templateId);
+    return exists(DatabaseCondition.of("placeholder", ".", "id", templateId));
   }
 
   public CompletableFuture<Template> findTemplate(UUID templateId) {
-    return selectRow("placeholder='.' AND id=" + templateId).thenApply(Template::of);
+    return selectRow(DatabaseCondition.of("placeholder", ".", "id", templateId))
+      .thenApply(Template::of);
   }
 
   private static final int PAGE_SIZE = 3 * 5;
@@ -115,11 +116,14 @@ public final class TemplateDatabaseTable extends DatabaseTable {
         case "de" -> "germanName";
         default -> "englishName";
       };
-      return selectRows("placeholder='.' AND " + name + " LIKE '%" + search +
-        "%' LIMIT " + PAGE_SIZE).thenApply(rows ->
+      var condition = DatabaseCondition.of(
+        DatabaseComparison.create("placeholder", "."),
+        DatabaseComparison.create(name, "%" + search + "%",
+          DatabaseComparison.Type.LIKE));
+      return selectRows(condition, PAGE_SIZE).thenApply(rows ->
         createTemplatePage(DatabasePage.create(rows, "", 1)));
     }
-    return shiftPage(DatabaseCell.create("."), Lists.<String>newArrayList(),
+    return shiftPage(DatabaseCell.create("."), DatabaseCondition.empty(),
       DatabaseOrder.ASCENDING, PAGE_SIZE, pageState, DatabaseDirection.FORWARD,
       DatabaseDirection.FORWARD).thenApply(this::createTemplatePage);
   }

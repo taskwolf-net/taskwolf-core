@@ -60,19 +60,19 @@ public final class UserActivityDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> activityExists(UUID id) {
-    return exists(DatabaseCell.create(id));
+    return exists(id);
   }
 
   public void deleteActivity(UUID id) {
-    delete(DatabaseCell.create(id));
+    delete(id);
   }
 
   public CompletableFuture<Activity> findActivity(UUID id) {
-    return selectRow(DatabaseCell.create(id)).thenApply(Activity::of);
+    return selectRow(id).thenApply(Activity::of);
   }
 
   public CompletableFuture<List<Activity>> findActivitiesOfUser(UUID userId) {
-    return selectRows("user=" + userId).thenApply(rows ->
+    return selectRows(DatabaseCondition.of("user", userId)).thenApply(rows ->
       rows.stream().map(Activity::of).toList());
   }
 }

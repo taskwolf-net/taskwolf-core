@@ -40,10 +40,7 @@ public final class DatabaseKeyspace {
     query.append("', 'replication_factor' : ");
     query.append(replicationFactor);
     query.append("};");
-    var result = connection.session().executeAsync(query.toString());
-    var futureResponse = new CompletableFuture<Void>();
-    result.thenAccept(resultSet -> futureResponse.complete(null));
-    return futureResponse;
+    return connection.execute(query).thenApply(value -> null);
   }
 
   /**
@@ -65,7 +62,7 @@ public final class DatabaseKeyspace {
     query.append(addition);
     query.append(name);
     query.append(";");
-    connection.session().executeAsync(query.toString());
+    connection.execute(query);
   }
 
   /**
@@ -75,6 +72,6 @@ public final class DatabaseKeyspace {
     var query = new StringBuilder("USE ");
     query.append(name);
     query.append(";");
-    connection.session().executeAsync(query.toString());
+    connection.execute(query);
   }
 }

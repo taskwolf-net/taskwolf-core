@@ -66,7 +66,7 @@ public final class MaintenanceDatabaseTable extends DatabaseTable {
   }
 
   private CompletableFuture<Void> updateMaintenance(Maintenance maintenance) {
-    return update(DatabaseCell.create(maintenance.id()),
+    return update(maintenance.id(),
       DatabaseRow.of(maintenance.id(), maintenance.description(),
         maintenance.startTime(), maintenance.duration(),
         maintenance.status().toString()));
@@ -82,21 +82,21 @@ public final class MaintenanceDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteMaintenance(UUID id) {
-    return delete(DatabaseCell.create(id));
+    return delete(id);
   }
 
   public CompletableFuture<Boolean> maintenanceExists(UUID id) {
-    return exists(DatabaseCell.create(id));
+    return exists(id);
   }
 
   public CompletableFuture<Maintenance> findMaintenance(UUID id) {
-    return selectRow(DatabaseCell.create(id)).thenApply(Maintenance::of);
+    return selectRow(id).thenApply(Maintenance::of);
   }
 
   public CompletableFuture<List<Maintenance>> findMaintenanceByStatus(
     MaintenanceStatus status
   ) {
-    return selectRows("status='" + status.toString() + "'")
+    return selectRows(DatabaseCondition.of("status", status.toString()))
       .thenApply(rows -> rows.stream().map(Maintenance::of).toList());
   }
 

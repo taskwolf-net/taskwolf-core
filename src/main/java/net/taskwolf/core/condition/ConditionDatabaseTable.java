@@ -47,7 +47,7 @@ public final class ConditionDatabaseTable extends DatabaseTable {
   }
 
   public void deleteCondition(UUID conditionId) {
-    delete(DatabaseCell.create(conditionId));
+    delete(conditionId);
   }
 
   public CompletableFuture<UUID> generateAvailableConditionId() {
@@ -60,17 +60,17 @@ public final class ConditionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> conditionExists(UUID conditionId) {
-    return exists(DatabaseCell.create(conditionId));
+    return exists(conditionId);
   }
 
   public CompletableFuture<ConditionEntry> findCondition(UUID conditionId) {
-    return selectRow(DatabaseCell.create(conditionId)).thenApply(ConditionEntry::of);
+    return selectRow(conditionId).thenApply(ConditionEntry::of);
   }
 
   public CompletableFuture<List<ConditionEntry>> findConditionsByWorkflow(
     UUID workflowId
   ) {
-    return selectRows("workflow=" + workflowId)
+    return selectRows(DatabaseCondition.of("workflow", workflowId))
       .thenApply(rows -> rows.stream().map(ConditionEntry::of)
         .collect(Collectors.toList()));
   }

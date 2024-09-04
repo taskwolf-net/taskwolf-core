@@ -13,26 +13,6 @@ public final class DatabaseCell {
   @Getter
   private final Object value;
 
-  /**
-   * Creates a database value that is accepted by Cassandra
-   * @return The usable database vale
-   */
-  public String databaseValue() {
-    if (value instanceof String) {
-      return "'" + value + "'";
-    }
-    if (value instanceof List<?> && !((List<?>) value).isEmpty() &&
-      ((List<?>) value).get(0) instanceof String
-    ) {
-      return ((List<String>) value).stream()
-        .map(value -> "'" + value + "'").toList().toString();
-    }
-    if (value == null) {
-      return null;
-    }
-    return value.toString();
-  }
-
   public int integerValue() {
     if (!(value instanceof Integer)) {
       return -1;

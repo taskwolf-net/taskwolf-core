@@ -85,7 +85,7 @@ public final class TeamDatabaseTable extends DatabaseTable {
   }
 
   private void updateTeam(Team team) {
-    update(DatabaseCell.create(team.id()), DatabaseRow.of(team.id(),
+    update(team.id(), DatabaseRow.of(team.id(),
       team.organizationId(), team.name(), team.sequence(), team.members()));
   }
 
@@ -94,25 +94,25 @@ public final class TeamDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> teamExists(UUID teamId) {
-    return exists(DatabaseCell.create(teamId));
+    return exists(teamId);
   }
 
   public CompletableFuture<Boolean> teamExistsByOrganization(UUID organizationId) {
-    return exists("organization=" + organizationId);
+    return exists(DatabaseCondition.of("organization", organizationId));
   }
 
   public void deleteTeam(UUID teamId) {
-    delete(DatabaseCell.create(teamId));
+    delete(teamId);
   }
 
   public CompletableFuture<Team> findTeam(UUID teamId) {
-    return selectRow(DatabaseCell.create(teamId)).thenApply(Team::of);
+    return selectRow(teamId).thenApply(Team::of);
   }
 
   public CompletableFuture<List<Team>> findTeamsByOrganization(
     UUID organizationId
   ) {
-    return selectRows("organization=" + organizationId)
+    return selectRows(DatabaseCondition.of("organization", organizationId))
       .thenApply(rows -> rows.stream().map(Team::of).toList());
   }
 }

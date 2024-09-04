@@ -60,8 +60,7 @@ public final class SaleDatabaseTable extends DatabaseTable {
     UUID id, UUID conversationMessage
   ) {
     var futureResponse = new CompletableFuture<Void>();
-    findSale(id)
-      .thenAccept(sale -> addSaleMessage(sale, conversationMessage)
+    findSale(id).thenAccept(sale -> addSaleMessage(sale, conversationMessage)
       .thenAccept(futureResponse::complete));
     return futureResponse;
   }
@@ -77,8 +76,7 @@ public final class SaleDatabaseTable extends DatabaseTable {
     UUID id, UUID conversationMessage
   ) {
     var futureResponse = new CompletableFuture<Void>();
-    findSale(id)
-      .thenAccept(sale -> removeSaleMessage(sale, conversationMessage)
+    findSale(id).thenAccept(sale -> removeSaleMessage(sale, conversationMessage)
       .thenAccept(futureResponse::complete));
     return futureResponse;
   }
@@ -115,7 +113,7 @@ public final class SaleDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> updateSale(Sale sale) {
-    return update(DatabaseCell.create(sale.requestMessage()),
+    return update(sale.requestMessage(),
       DatabaseRow.of(sale.requestMessage(), sale.sender(), sale.firstName(),
         sale.lastName(), sale.phoneNumber(), sale.country(), sale.companyName(),
         sale.companySize(), sale.companyRole(), sale.title(),
@@ -123,19 +121,19 @@ public final class SaleDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteSale(UUID id) {
-    return delete(DatabaseCell.create(id));
+    return delete(id);
   }
 
   public CompletableFuture<Boolean> saleExists(UUID id) {
-    return exists(DatabaseCell.create(id));
+    return exists(id);
   }
 
   public CompletableFuture<Sale> findSale(UUID id) {
-    return selectRow(DatabaseCell.create(id)).thenApply(Sale::of);
+    return selectRow(id).thenApply(Sale::of);
   }
 
   public CompletableFuture<List<Sale>> findSalesBySender(String sender) {
-    return selectRows("sender='" + sender + "'")
+    return selectRows(DatabaseCondition.of("sender", sender))
       .thenApply(rows -> rows.stream().map(Sale::of).toList());
   }
 

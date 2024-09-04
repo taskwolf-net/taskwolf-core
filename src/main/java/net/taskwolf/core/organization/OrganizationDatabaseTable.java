@@ -80,7 +80,7 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
   }
 
   private void updateOrganization(Organization organization) {
-    update(DatabaseCell.create(organization.id()), DatabaseRow.of(organization.id(),
+    update(organization.id(), DatabaseRow.of(organization.id(),
       organization.name(), organization.owner(), organization.members(),
       organization.invitationToken()));
   }
@@ -90,27 +90,23 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> organizationExists(UUID organizationId) {
-    return exists(DatabaseCell.create(organizationId));
+    return exists(organizationId);
   }
 
   public CompletableFuture<Boolean> organizationExistsByOwner(UUID ownerId) {
-    return exists("owner=" + ownerId);
+    return exists(DatabaseCondition.of("owner", ownerId));
   }
 
   public void deleteOrganization(UUID organizationId) {
-    delete(DatabaseCell.create(organizationId));
+    delete(organizationId);
   }
 
   public CompletableFuture<Organization> findOrganization(UUID organizationId) {
-    return selectRow(DatabaseCell.create(organizationId)).thenApply(Organization::of);
+    return selectRow(organizationId).thenApply(Organization::of);
   }
 
   public CompletableFuture<Organization> findOrganizationByOwner(UUID ownerId) {
-    return selectRow("owner=" + ownerId).thenApply(Organization::of);
-  }
-
-  public CompletableFuture<List<Organization>> findAllOrganization() {
-    return selectAllRows().thenApply(rows ->
-      rows.stream().map(Organization::of).collect(Collectors.toList()));
+    return selectRow(DatabaseCondition.of("owner", ownerId))
+      .thenApply(Organization::of);
   }
 }

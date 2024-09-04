@@ -43,7 +43,7 @@ public final class TimelineDatabaseTable extends DatabaseTable {
   }
 
   public void deleteEntry(UUID entryId) {
-    delete(DatabaseCell.create(entryId));
+    delete(entryId);
   }
 
   public CompletableFuture<UUID> generateAvailableEntryId() {
@@ -56,17 +56,17 @@ public final class TimelineDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> entryExists(UUID entryId) {
-    return exists(DatabaseCell.create(entryId));
+    return exists(entryId);
   }
 
   public CompletableFuture<TimelineDatabaseEntry> findEntry(UUID entryId) {
-    return selectRow(DatabaseCell.create(entryId)).thenApply(TimelineDatabaseEntry::of);
+    return selectRow(entryId).thenApply(TimelineDatabaseEntry::of);
   }
 
   public CompletableFuture<List<TimelineDatabaseEntry>> findEntriesByWorkflow(
     UUID workflowId
   ) {
-    return selectRows("workflow=" + workflowId)
+    return selectRows(DatabaseCondition.of("workflow", workflowId))
       .thenApply(rows -> rows.stream().map(TimelineDatabaseEntry::of)
         .collect(Collectors.toList()));
   }

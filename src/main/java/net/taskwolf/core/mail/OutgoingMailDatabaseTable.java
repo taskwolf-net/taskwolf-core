@@ -60,21 +60,21 @@ public final class OutgoingMailDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteOutgoingMail(UUID id) {
-    return delete(DatabaseCell.create(id));
+    return delete(id);
   }
 
   public CompletableFuture<Boolean> outgoingMailExists(UUID id) {
-    return exists(DatabaseCell.create(id));
+    return exists(id);
   }
 
   public CompletableFuture<OutgoingMail> findOutgoingMail(UUID id) {
-    return selectRow(DatabaseCell.create(id)).thenApply(OutgoingMail::of);
+    return selectRow(id).thenApply(OutgoingMail::of);
   }
 
   public CompletableFuture<List<OutgoingMail>> findOutgoingMailsByReceiver(
     String receiver
   ) {
-    return selectRows("receiver='" + receiver + "'")
+    return selectRows(DatabaseCondition.of("receiver", receiver))
       .thenApply(rows -> rows.stream().map(OutgoingMail::of).toList());
   }
 }

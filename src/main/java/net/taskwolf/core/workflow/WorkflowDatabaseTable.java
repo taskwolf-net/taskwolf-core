@@ -74,7 +74,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   public void updateWorkflowState(WorkflowEntry entry, WorkflowState state) {
-    update("owner=" + entry.ownerId() + " AND id=" + entry.id(),
+    update(DatabaseCondition.of("owner", entry.ownerId(), "id", entry.id()),
       DatabaseRow.of(entry.ownerId(), entry.id(), entry.creatorId(),
         entry.triggerId(), entry.actionIds(), entry.conditionIds(),
         entry.modules(), entry.created(), entry.name(), entry.description(),
@@ -83,7 +83,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
 
   public void deleteWorkflow(UUID workflowId) {
     findWorkflow(workflowId).thenAccept(workflow ->
-      delete("owner=" + workflow.ownerId() + " AND id=" + workflow.id()));
+      delete(DatabaseCondition.of("owner", workflow.ownerId(), "id", workflow.id())));
   }
 
   public CompletableFuture<UUID> generateAvailableWorkflowId() {
@@ -96,11 +96,11 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> workflowExists(UUID workflowId) {
-    return exists("id=" + workflowId);
+    return exists(DatabaseCondition.of("id", workflowId));
   }
 
   public CompletableFuture<WorkflowEntry> findWorkflow(UUID workflowId) {
-    return selectRow("id=" + workflowId).thenApply(row ->
+    return selectRow(DatabaseCondition.of("id", workflowId)).thenApply(row ->
       WorkflowEntry.of(row, this));
   }
 
@@ -112,12 +112,13 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     String state
   ) {
     if (!search.isEmpty()) {
-      return selectRows("owner=" + ownerId + " AND name LIKE '%" + search +
-        "%' LIMIT " + PAGE_SIZE)
-        .thenApply(rows -> createWorkflowPage(DatabasePage.create(rows, "", 1), this));
+      var condition = DatabaseCondition.of(DatabaseComparison.create("owner", ownerId),
+        DatabaseComparison.create("name", "%" + search + "%", DatabaseComparison.Type.LIKE));
+      return selectRows(condition, PAGE_SIZE).thenApply(rows ->
+        createWorkflowPage(DatabasePage.create(rows, "", 1), this));
     }
     var view = findTargetView(sortingColumn);
-    return view.selectPage(DatabaseCell.create(ownerId),
+    return view.selectPage(ownerId,
         createWorkflowsConditions(module, creatorId, startTime, endTime, state),
         sortingOrder, PAGE_SIZE, targetPage)
       .thenApply(page -> createWorkflowPage(page, view));
@@ -129,7 +130,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     String module, UUID creatorId, long startTime, long endTime, String state
   ) {
     var view = findTargetView(sortingColumn);
-    return view.shiftPage(DatabaseCell.create(ownerId),
+    return view.shiftPage(ownerId,
         createWorkflowsConditions(module, creatorId, startTime, endTime, state),
         sortingOrder, PAGE_SIZE, pageState, startingPoint, direction)
       .thenApply(page -> createWorkflowPage(page, view));
@@ -146,26 +147,29 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     return null;
   }
 
-  private List<String> createWorkflowsConditions(
+  private DatabaseCondition createWorkflowsConditions(
     String module, UUID creatorId, long startTime, long endTime, String state
   ) {
-    var conditions = Lists.<String>newArrayList();
+    var comparisons = Lists.<DatabaseComparison>newArrayList();
     if (module != null) {
-      conditions.add("modules CONTAINS '" + module + "'");
+      comparisons.add(DatabaseComparison.create("modules", module,
+        DatabaseComparison.Type.CONTAINS));
     }
     if (creatorId != null) {
-      conditions.add("creator = " + creatorId);
+      comparisons.add(DatabaseComparison.create("creator", creatorId));
     }
     if (startTime > 0) {
-      conditions.add("created >= " + startTime);
+      comparisons.add(DatabaseComparison.create("created", startTime,
+        DatabaseComparison.Type.GREATER_EQUALS));
     }
     if (endTime > 0) {
-      conditions.add("created <= " + endTime);
+      comparisons.add(DatabaseComparison.create("created", endTime,
+        DatabaseComparison.Type.SMALLER_EQUALS));
     }
     if (state != null) {
-      conditions.add("state = '" + state + "'");
+      comparisons.add(DatabaseComparison.create("state", state));
     }
-    return conditions;
+    return DatabaseCondition.create(comparisons);
   }
 
   private DatabasePage<WorkflowEntry> createWorkflowPage(
@@ -177,27 +181,28 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Long> findWorkflowCount(UUID ownerId) {
-    return count("owner=" + ownerId);
+    return count(DatabaseCondition.of("owner", ownerId));
   }
 
   public CompletableFuture<List<WorkflowEntry>> findAllWorkflowsOfOwner(
     UUID ownerId
   ) {
-    return selectRows("owner=" + ownerId).thenApply(rows ->
+    return selectRows(DatabaseCondition.of("owner", ownerId)).thenApply(rows ->
       rows.stream().map(row -> WorkflowEntry.of(row, this)).toList());
   }
 
   public CompletableFuture<List<WorkflowEntry>> findWorkflowByModule(
     UUID ownerId, String module
   ) {
-    var query = "owner=" + ownerId + " AND modules CONTAINS '" + module + "' " +
-      "ALLOW FILTERING";
-    return selectRows(query.toString()).thenApply(rows ->
-      rows.stream().map(row -> WorkflowEntry.of(row, this)).toList());
+    var condition = DatabaseCondition.of(DatabaseComparison.create("owner", ownerId),
+      DatabaseComparison.create("modules", module, DatabaseComparison.Type.CONTAINS));
+    return selectRows(condition, true)
+      .thenApply(rows -> rows.stream().map(row -> WorkflowEntry.of(row, this))
+        .toList());
   }
 
   public CompletableFuture<WorkflowEntry> findWorkflowByTrigger(UUID triggerId) {
-    return selectRow("trigger=" + triggerId.toString())
+    return selectRow(DatabaseCondition.of("trigger", triggerId))
       .thenApply(row -> WorkflowEntry.of(row, this));
   }
 }

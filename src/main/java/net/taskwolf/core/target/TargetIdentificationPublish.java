@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.database.DatabaseCondition;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
 
@@ -33,24 +34,24 @@ public final class TargetIdentificationPublish {
   }
 
   private CompletableFuture<Boolean> isIdentificationUsed(UUID id) {
-    return exists("user", "id=" + id)
+    return exists("user", DatabaseCondition.of("id", id))
       .thenCompose(userExists -> userExists ?
         CompletableFuture.completedFuture(true) :
-        exists("organization", "id=" + id)
+        exists("organization", DatabaseCondition.of("id", id))
           .thenCompose(organizationExists -> organizationExists ?
             CompletableFuture.completedFuture(true) :
-            exists("organization_team", "id=" + id)));
+            exists("organization_team", DatabaseCondition.of("id", id))));
   }
 
-  private CompletableFuture<Boolean> exists(String tableName, String condition) {
+  private CompletableFuture<Boolean> exists(
+    String tableName, DatabaseCondition condition
+  ) {
     var query = new StringBuilder("SELECT * FROM ");
     query.append(keyspace.name() + "." + tableName);
     query.append(" WHERE ");
-    query.append(condition);
+    query.append(condition.build());
     query.append(";");
-    var result = connection.session().executeAsync(query.toString());
-    var futureResponse = new CompletableFuture<Boolean>();
-    result.thenAccept(resultSet -> futureResponse.complete(resultSet.remaining() > 0));
-    return futureResponse;
+    return connection.execute(query, condition.values())
+      .thenApply(result -> result.remaining() > 0);
   }
 }

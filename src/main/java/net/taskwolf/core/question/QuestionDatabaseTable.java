@@ -103,26 +103,26 @@ public final class QuestionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> updateQuestion(Question question) {
-    return update(DatabaseCell.create(question.requestMessage()),
+    return update(question.requestMessage(),
       DatabaseRow.of(question.requestMessage(), question.sender(),
         question.title(), question.expirationTime(),
         question.conversationMessages()));
   }
 
   public CompletableFuture<Void> deleteQuestion(UUID id) {
-    return delete(DatabaseCell.create(id));
+    return delete(id);
   }
 
   public CompletableFuture<Boolean> questionExists(UUID id) {
-    return exists(DatabaseCell.create(id));
+    return exists(id);
   }
 
   public CompletableFuture<Question> findQuestion(UUID id) {
-    return selectRow(DatabaseCell.create(id)).thenApply(Question::of);
+    return selectRow(id).thenApply(Question::of);
   }
 
   public CompletableFuture<List<Question>> findQuestionsBySender(String sender) {
-    return selectRows("sender='" + sender + "'")
+    return selectRows(DatabaseCondition.of("sender", sender))
       .thenApply(rows -> rows.stream().map(Question::of).toList());
   }
 

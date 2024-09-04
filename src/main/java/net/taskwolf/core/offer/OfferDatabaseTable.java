@@ -69,7 +69,7 @@ public final class OfferDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> updateOffer(Offer offer) {
-    return update(DatabaseCell.create(offer.id()), DatabaseRow.of(offer.id(),
+    return update(offer.id(), DatabaseRow.of(offer.id(),
       offer.targetId(), offer.priceId(), offer.offerStatus().toString(),
       offer.bundleType().toString(), offer.bundleClass().toString(),
       offer.bundleRuntime().toString(), offer.price(), offer.workflowAccess(),
@@ -92,23 +92,23 @@ public final class OfferDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteOffer(UUID offerId) {
-    return delete(DatabaseCell.create(offerId));
+    return delete(offerId);
   }
 
   public CompletableFuture<Boolean> offerExists(UUID offerId) {
-    return exists(DatabaseCell.create(offerId));
+    return exists(offerId);
   }
 
   public CompletableFuture<Offer> findOffer(UUID offerId) {
-    return selectRow(DatabaseCell.create(offerId)).thenApply(Offer::of);
+    return selectRow(offerId).thenApply(Offer::of);
   }
 
   public CompletableFuture<Offer> findOffersByPriceId(String priceId) {
-    return selectRow("priceId='" + priceId + "'").thenApply(Offer::of);
+    return selectRow(DatabaseCondition.of("priceId", priceId)).thenApply(Offer::of);
   }
 
   public CompletableFuture<List<Offer>> findOffersByTarget(UUID targetId) {
-    return selectRows("target=" + targetId)
+    return selectRows(DatabaseCondition.of("target", targetId))
       .thenApply(rows -> rows.stream().map(Offer::of).toList());
   }
 }

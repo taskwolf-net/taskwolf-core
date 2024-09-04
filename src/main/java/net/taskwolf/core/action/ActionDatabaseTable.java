@@ -45,7 +45,7 @@ public final class ActionDatabaseTable extends DatabaseTable {
   }
 
   public void deleteAction(UUID actionId) {
-    delete(DatabaseCell.create(actionId));
+    delete(actionId);
   }
 
   public CompletableFuture<UUID> generateAvailableActionId() {
@@ -58,17 +58,17 @@ public final class ActionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> actionExists(UUID actionId) {
-    return exists(DatabaseCell.create(actionId));
+    return exists(actionId);
   }
 
   public CompletableFuture<ActionEntry> findAction(UUID actionId) {
-    return selectRow(DatabaseCell.create(actionId)).thenApply(ActionEntry::of);
+    return selectRow(actionId).thenApply(ActionEntry::of);
   }
 
   public CompletableFuture<List<ActionEntry>> findActionsByWorkflow(
     UUID workflowId
   ) {
-    return selectRows("workflow=" + workflowId)
+    return selectRows(DatabaseCondition.of("workflow", workflowId))
       .thenApply(rows -> rows.stream().map(ActionEntry::of)
         .collect(Collectors.toList()));
   }
