@@ -51,15 +51,15 @@ public final class TicketMessageDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> ticketMessageExists(UUID messageId) {
-    return exists(DatabaseCell.create(messageId));
+    return exists(messageId);
   }
 
   public void deleteTicketMessage(UUID messageId) {
-    delete(DatabaseCell.create(messageId));
+    delete(messageId);
   }
 
   public CompletableFuture<TicketMessage> findTicketMessage(UUID messageId) {
-    return selectRow(DatabaseCell.create(messageId)).thenApply(TicketMessage::of);
+    return selectRow(messageId).thenApply(TicketMessage::of);
   }
 }
 

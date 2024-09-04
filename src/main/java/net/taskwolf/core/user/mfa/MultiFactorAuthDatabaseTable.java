@@ -43,15 +43,14 @@ public final class MultiFactorAuthDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> authExists(UUID userId) {
-    return exists(DatabaseCell.create(userId));
+    return exists(userId);
   }
 
   public CompletableFuture<Void> deleteAuth(UUID userId) {
-    return delete(DatabaseCell.create(userId));
+    return delete(userId);
   }
 
   public CompletableFuture<MultiFactorAuthUser> findAuth(UUID userId) {
-    return selectRow(DatabaseCell.create(userId))
-      .thenApply(MultiFactorAuthUser::of);
+    return selectRow(userId).thenApply(MultiFactorAuthUser::of);
   }
 }

@@ -63,7 +63,7 @@ public final class BundleDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> updateBundle(Bundle bundle) {
-    return update(DatabaseCell.create(bundle.ownerId()),
+    return update(bundle.ownerId(),
       DatabaseRow.of(bundle.ownerId(), bundle.bundleType().toString(),
         bundle.bundleClass().toString(), bundle.bundleRuntime().toString(),
         bundle.price(), bundle.expiration(), bundle.workflowAccess(),
@@ -78,15 +78,15 @@ public final class BundleDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteBundle(UUID ownerId) {
-    return delete(DatabaseCell.create(ownerId));
+    return delete(ownerId);
   }
 
   public CompletableFuture<Boolean> bundleExists(UUID ownerId) {
-    return exists(DatabaseCell.create(ownerId));
+    return exists(ownerId);
   }
 
   public CompletableFuture<Bundle> findBundle(UUID ownerId) {
-    return selectRow(DatabaseCell.create(ownerId)).thenApply(Bundle::of);
+    return selectRow(ownerId).thenApply(Bundle::of);
   }
 
   public CompletableFuture<List<Bundle>> findAllBundles() {

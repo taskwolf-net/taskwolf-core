@@ -2,6 +2,7 @@ package net.taskwolf.core.stripe;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.List;
 import java.util.UUID;
@@ -38,32 +39,33 @@ public final class StripeDatabaseTable extends DatabaseTable {
   public CompletableFuture<Void> updateStripeAccount(
     String accountId, UUID targetId, UUID userId, String subscriptionId
   ) {
-    return update(DatabaseCell.create(accountId),
-      DatabaseRow.of(accountId, targetId, userId, subscriptionId));
+    return update(accountId, DatabaseRow.of(accountId, targetId, userId,
+      subscriptionId));
   }
 
   public CompletableFuture<Void> deleteStripeAccount(String accountId) {
-    return delete(DatabaseCell.create(accountId));
+    return delete(accountId);
   }
 
   public CompletableFuture<Void> deleteStripeAccountByTarget(UUID targetId) {
-    return delete("target=" + targetId);
+    return delete(DatabaseCondition.of("target", targetId));
   }
 
   public CompletableFuture<Boolean> stripeAccountExists(String accountId) {
-    return exists(DatabaseCell.create(accountId));
+    return exists(accountId);
   }
 
   public CompletableFuture<Boolean> stripeAccountExistsByTarget(UUID targetId) {
-    return exists("target=" + targetId);
+    return exists(DatabaseCondition.of("target", targetId));
   }
 
   public CompletableFuture<StripeAccount> findStripeAccount(String accountId) {
-    return selectRow(DatabaseCell.create(accountId)).thenApply(StripeAccount::of);
+    return selectRow(accountId).thenApply(StripeAccount::of);
   }
 
   public CompletableFuture<StripeAccount> findStripeAccountByTarget(UUID targetId) {
-    return selectRow("target=" + targetId).thenApply(StripeAccount::of);
+    return selectRow(DatabaseCondition.of("target", targetId))
+      .thenApply(StripeAccount::of);
   }
 }
 

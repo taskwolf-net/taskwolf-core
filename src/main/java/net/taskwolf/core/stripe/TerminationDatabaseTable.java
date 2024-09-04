@@ -31,10 +31,10 @@ public final class TerminationDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteTermination(UUID target) {
-    return delete(DatabaseCell.create(target));
+    return delete(target);
   }
 
   public CompletableFuture<Boolean> terminationExists(UUID target) {
-    return exists(DatabaseCell.create(target));
+    return exists(target);
   }
 }

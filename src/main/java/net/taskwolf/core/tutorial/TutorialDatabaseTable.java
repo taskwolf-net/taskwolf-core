@@ -37,19 +37,19 @@ public final class TutorialDatabaseTable extends DatabaseTable {
   }
 
   public void updateTutorial(Tutorial tutorial) {
-    update(DatabaseCell.create(tutorial.user()), DatabaseRow.of(tutorial.user(),
+    update(tutorial.user(), DatabaseRow.of(tutorial.user(),
       tutorial.level(), tutorial.step()));
   }
 
   public CompletableFuture<Boolean> tutorialExists(UUID userId) {
-    return exists(DatabaseCell.create(userId));
+    return exists(userId);
   }
 
   public void deleteTutorial(UUID userId) {
-    delete(DatabaseCell.create(userId));
+    delete(userId);
   }
 
   public CompletableFuture<Tutorial> findTutorial(UUID userId) {
-    return selectRow(DatabaseCell.create(userId)).thenApply(Tutorial::of);
+    return selectRow(userId).thenApply(Tutorial::of);
   }
 }

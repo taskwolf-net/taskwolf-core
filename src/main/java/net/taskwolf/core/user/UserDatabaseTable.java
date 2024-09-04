@@ -2,6 +2,7 @@ package net.taskwolf.core.user;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.database.condition.DatabaseCondition;
 import net.taskwolf.core.target.TargetIdentificationPublish;
 
 import java.util.List;
@@ -107,9 +108,9 @@ public final class UserDatabaseTable extends DatabaseTable {
   }
 
   private void updateUser(User user) {
-    update(DatabaseCell.create(user.id()), DatabaseRow.of(user.id(),
-      user.name(), user.email().toLowerCase(), user.passwordHash(),
-      user.language(), user.organizations()));
+    update(user.id(), DatabaseRow.of(user.id(), user.name(),
+      user.email().toLowerCase(), user.passwordHash(), user.language(),
+      user.organizations()));
   }
 
   public CompletableFuture<UUID> generateAvailableUserId() {
@@ -117,19 +118,19 @@ public final class UserDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> userExists(UUID userId) {
-    return exists(DatabaseCell.create(userId));
+    return exists(userId);
   }
 
   public CompletableFuture<Boolean> userExists(String email) {
-    return exists("email='" + email.toLowerCase() + "'");
+    return exists(DatabaseCondition.of("email", email.toLowerCase()));
   }
 
   public void deleteUser(UUID userId) {
-    delete(DatabaseCell.create(userId));
+    delete(userId);
   }
 
   public CompletableFuture<User> findUser(UUID userId) {
-    return selectRow(DatabaseCell.create(userId)).thenApply(User::of);
+    return selectRow(userId).thenApply(User::of);
   }
 
   public CompletableFuture<User> findUserIfExists(UUID userId) {
@@ -149,12 +150,7 @@ public final class UserDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<User> findUser(String email) {
-    return selectRow("email='" + email.toLowerCase() + "'")
+    return selectRow(DatabaseCondition.of("email", email.toLowerCase()))
       .thenApply(User::of);
-  }
-
-  public CompletableFuture<List<User>> findAllUsers() {
-    return selectAllRows().thenApply(rows ->
-      rows.stream().map(User::of).collect(Collectors.toList()));
   }
 }

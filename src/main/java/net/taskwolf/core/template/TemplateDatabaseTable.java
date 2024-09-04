@@ -126,9 +126,9 @@ public final class TemplateDatabaseTable extends DatabaseTable {
       return selectRows(condition, PAGE_SIZE).thenApply(rows ->
         createTemplatePage(DatabasePage.create(rows, "", 1)));
     }
-    return shiftPage(DatabaseCell.create("."), DatabaseCondition.empty(),
-      DatabaseOrder.ASCENDING, PAGE_SIZE, pageState, DatabaseDirection.FORWARD,
-      DatabaseDirection.FORWARD).thenApply(this::createTemplatePage);
+    return shiftPage(".", DatabaseCondition.empty(), DatabaseOrder.ASCENDING,
+      PAGE_SIZE, pageState, DatabaseDirection.FORWARD, DatabaseDirection.FORWARD)
+      .thenApply(this::createTemplatePage);
   }
 
   private DatabasePage<Template> createTemplatePage(DatabasePage<DatabaseRow> page) {

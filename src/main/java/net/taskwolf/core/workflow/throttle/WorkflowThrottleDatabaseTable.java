@@ -61,20 +61,19 @@ public final class WorkflowThrottleDatabaseTable extends DatabaseTable {
     expirationQuery.append("expiration");
     expirationQuery.append(expirationAddition >= 0 ? "+" : "-");
     expirationQuery.append(Math.abs(expirationAddition));
-    return update(DatabaseCell.create(targetId), DatabaseRow.of(targetId,
-      executionQuery, expirationQuery));
+    return update(targetId, DatabaseRow.of(targetId, executionQuery,
+      expirationQuery));
   }
 
   public CompletableFuture<Void> deleteThrottle(UUID targetId) {
-    return delete(DatabaseCell.create(targetId));
+    return delete(targetId);
   }
 
   public CompletableFuture<Boolean> throttleExists(UUID targetId) {
-    return exists(DatabaseCell.create(targetId));
+    return exists(targetId);
   }
 
   public CompletableFuture<WorkflowThrottleEntry> findThrottle(UUID targetId) {
-    return selectRow(DatabaseCell.create(targetId))
-      .thenApply(WorkflowThrottleEntry::of);
+    return selectRow(targetId).thenApply(WorkflowThrottleEntry::of);
   }
 }

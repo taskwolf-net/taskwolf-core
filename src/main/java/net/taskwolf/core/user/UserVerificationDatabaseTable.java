@@ -32,15 +32,15 @@ public final class UserVerificationDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> verificationExists(UUID userId) {
-    return exists(DatabaseCell.create(userId));
+    return exists(userId);
   }
 
   public void deleteVerification(UUID userId) {
-    delete(DatabaseCell.create(userId));
+    delete(userId);
   }
 
   public CompletableFuture<String> findVerification(UUID userId) {
-    return selectRow(DatabaseCell.create(userId)).thenApply(row ->
+    return selectRow(userId).thenApply(row ->
       row.findCell(1).stringValue());
   }
 }

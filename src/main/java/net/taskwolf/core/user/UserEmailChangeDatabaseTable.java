@@ -35,19 +35,19 @@ public final class UserEmailChangeDatabaseTable extends DatabaseTable {
   }
 
   public void updateChange(UUID id, String newEmail, String token) {
-    update(DatabaseCell.create(id), DatabaseRow.of(id, newEmail, token));
+    update(id, DatabaseRow.of(id, newEmail, token));
   }
 
   public CompletableFuture<Boolean> changeExists(UUID userId) {
-    return exists(DatabaseCell.create(userId));
+    return exists(userId);
   }
 
   public void deleteChange(UUID userId) {
-    delete(DatabaseCell.create(userId));
+    delete(userId);
   }
 
   public CompletableFuture<Map.Entry<String, String>> findChange(UUID userId) {
-    return selectRow(DatabaseCell.create(userId)).thenApply(row ->
+    return selectRow(userId).thenApply(row ->
       new AbstractMap.SimpleEntry<>(row.findCell(1).stringValue(),
         row.findCell(2).stringValue()));
   }

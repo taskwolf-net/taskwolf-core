@@ -33,14 +33,14 @@ public final class ActionContentDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteContent(UUID actionId) {
-    return delete(DatabaseCell.create(actionId));
+    return delete(actionId);
   }
 
   public CompletableFuture<Boolean> contentExists(UUID actionId) {
-    return exists(DatabaseCell.create(actionId));
+    return exists(actionId);
   }
 
   public CompletableFuture<DatabaseRow> findContent(UUID actionId) {
-    return selectRow(DatabaseCell.create(actionId));
+    return selectRow(actionId);
   }
 }

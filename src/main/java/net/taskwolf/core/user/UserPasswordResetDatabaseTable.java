@@ -32,15 +32,14 @@ public final class UserPasswordResetDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> resetTokenExists(UUID userId) {
-    return exists(DatabaseCell.create(userId));
+    return exists(userId);
   }
 
   public void deleteResetToken(UUID userId) {
-    delete(DatabaseCell.create(userId));
+    delete(userId);
   }
 
   public CompletableFuture<String> findResetToken(UUID userId) {
-    return selectRow(DatabaseCell.create(userId)).thenApply(row ->
-      row.findCell(1).stringValue());
+    return selectRow(userId).thenApply(row -> row.findCell(1).stringValue());
   }
 }

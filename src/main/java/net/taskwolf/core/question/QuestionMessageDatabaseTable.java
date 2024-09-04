@@ -52,14 +52,14 @@ public final class QuestionMessageDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteQuestionMessage(UUID id) {
-    return delete(DatabaseCell.create(id));
+    return delete(id);
   }
 
   public CompletableFuture<Boolean> questionMessageExists(UUID id) {
-    return exists(DatabaseCell.create(id));
+    return exists(id);
   }
 
   public CompletableFuture<QuestionMessage> findQuestionMessage(UUID id) {
-    return selectRow(DatabaseCell.create(id)).thenApply(QuestionMessage::of);
+    return selectRow(id).thenApply(QuestionMessage::of);
   }
 }

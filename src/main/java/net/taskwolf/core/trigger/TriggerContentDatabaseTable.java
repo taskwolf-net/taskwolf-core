@@ -34,15 +34,15 @@ public final class TriggerContentDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteContent(UUID triggerId) {
-    return delete(DatabaseCell.create(triggerId));
+    return delete(triggerId);
   }
 
   public CompletableFuture<Boolean> contentExists(UUID triggerId) {
-    return exists(DatabaseCell.create(triggerId));
+    return exists(triggerId);
   }
 
   public CompletableFuture<DatabaseRow> findContent(UUID triggerId) {
-    return selectRow(DatabaseCell.create(triggerId));
+    return selectRow(triggerId);
   }
 
   public CompletableFuture<List<DatabaseRow>> findContentByCondition(

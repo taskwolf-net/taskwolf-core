@@ -2,6 +2,7 @@ package net.taskwolf.core.trigger;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
+import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.List;
 import java.util.UUID;
@@ -53,13 +54,12 @@ public final class TriggerDatabaseTable extends DatabaseTable {
   }
 
   private void updateTrigger(TriggerEntry entry) {
-    update(DatabaseCell.create(entry.id()), DatabaseRow.of(entry.id(),
-      entry.ownerId(), entry.workflowId(), entry.module(), entry.type(),
-      entry.state().toString()));
+    update(entry.id(), DatabaseRow.of(entry.id(), entry.ownerId(),
+      entry.workflowId(), entry.module(), entry.type(), entry.state().toString()));
   }
 
   public void deleteTrigger(UUID triggerId) {
-    delete(DatabaseCell.create(triggerId));
+    delete(triggerId);
   }
 
   public CompletableFuture<UUID> generateAvailableTriggerId() {
@@ -72,14 +72,15 @@ public final class TriggerDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> triggerExists(UUID triggerId) {
-    return exists(DatabaseCell.create(triggerId));
+    return exists(triggerId);
   }
 
   public CompletableFuture<TriggerEntry> findTrigger(UUID triggerId) {
-    return selectRow(DatabaseCell.create(triggerId)).thenApply(TriggerEntry::of);
+    return selectRow(triggerId).thenApply(TriggerEntry::of);
   }
 
   public CompletableFuture<TriggerEntry> findTriggerByWorkflow(UUID workflowId) {
-    return selectRow("workflow=" + workflowId).thenApply(TriggerEntry::of);
+    return selectRow(DatabaseCondition.of("workflow", workflowId))
+      .thenApply(TriggerEntry::of);
   }
 }

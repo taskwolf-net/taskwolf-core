@@ -30,10 +30,10 @@ public final class TrialDatabaseTable extends DatabaseTable {
   }
 
   public void deleteTrial(String email) {
-    delete(DatabaseCell.create(email));
+    delete(email);
   }
 
   public CompletableFuture<Boolean> trialExists(String email) {
-    return exists(DatabaseCell.create(email));
+    return exists(email);
   }
 }

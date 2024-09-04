@@ -42,22 +42,20 @@ public final class NotificationDatabaseTable extends DatabaseTable {
   public void changeNotificationSettings(
     UUID userId, boolean general, boolean workflowFail
   ) {
-    update(DatabaseCell.create(userId), DatabaseRow.of(userId, general,
-      workflowFail));
+    update(userId, DatabaseRow.of(userId, general, workflowFail));
   }
 
   public CompletableFuture<Boolean> notificationSettingsExists(UUID userId) {
-    return exists(DatabaseCell.create(userId));
+    return exists(userId);
   }
 
   public void deleteNotificationSettings(UUID userId) {
-    delete(DatabaseCell.create(userId));
+    delete(userId);
   }
 
   public CompletableFuture<NotificationSetting> findNotificationSettings(
     UUID userId
   ) {
-    return selectRow(DatabaseCell.create(userId))
-      .thenApply(NotificationSetting::of);
+    return selectRow(userId).thenApply(NotificationSetting::of);
   }
 }

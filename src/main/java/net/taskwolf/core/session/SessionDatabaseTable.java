@@ -92,7 +92,7 @@ public final class SessionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteSession(UUID id) {
-    return delete(DatabaseCell.create(id));
+    return delete(id);
   }
 
   public CompletableFuture<UUID> generateAvailableSessionId() {

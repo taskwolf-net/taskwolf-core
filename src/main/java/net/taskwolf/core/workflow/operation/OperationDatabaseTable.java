@@ -76,19 +76,19 @@ public final class OperationDatabaseTable extends DatabaseTable {
     expirationQuery.append("expiration");
     expirationQuery.append(expirationAddition >= 0 ? "+" : "-");
     expirationQuery.append(Math.abs(expirationAddition));
-    return update(DatabaseCell.create(targetId), DatabaseRow.of(targetId,
-      operationQuery, expirationQuery));
+    return update(targetId, DatabaseRow.of(targetId, operationQuery,
+      expirationQuery));
   }
 
   public CompletableFuture<Void> deleteOperations(UUID targetId) {
-    return delete(DatabaseCell.create(targetId));
+    return delete(targetId);
   }
 
   public CompletableFuture<Boolean> operationsExists(UUID targetId) {
-    return exists(DatabaseCell.create(targetId));
+    return exists(targetId);
   }
 
   public CompletableFuture<Operation> findOperations(UUID targetId) {
-    return selectRow(DatabaseCell.create(targetId)).thenApply(Operation::of);
+    return selectRow(targetId).thenApply(Operation::of);
   }
 }
