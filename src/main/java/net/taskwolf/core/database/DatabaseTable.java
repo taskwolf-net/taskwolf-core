@@ -335,28 +335,13 @@ public class DatabaseTable {
   protected CompletableFuture<Void> update(
     DatabaseCondition condition, DatabaseRow row
   ) {
-    return update(condition, row, false);
-  }
-
-  /**
-   * Updates a row inside the database table
-   * @param condition The condition with which the row can be found
-   * @param row The updated row (with all the columns)
-   * @param allowFiltering Whether filtering is allowed
-   * @return A future that is completed when the update is completed
-   */
-  protected CompletableFuture<Void> update(
-    DatabaseCondition condition, DatabaseRow row, boolean allowFiltering
-  ) {
     var query = new StringBuilder("UPDATE ");
     query.append(fullName());
     query.append(" SET ");
     query.append(buildUpdateKeyValuePairs());
     query.append(" WHERE ");
     query.append(condition.build());
-    if (allowFiltering) {
-      query.append(" ALLOW FILTERING");
-    }
+    query.append(condition.filteringAddition());
     query.append(";");
     return connection.execute(query, row.values(), condition.values())
       .thenApply(value -> null);
@@ -395,18 +380,8 @@ public class DatabaseTable {
    * @param condition The condition with which the row can be found
    * @return A future that contains the existence boolean
    */
-  protected CompletableFuture<Boolean> exists(DatabaseCondition condition) {
-    return exists(condition, false);
-  }
-
-  /**
-   * Is used to check whether a row inside the database table exists
-   * @param condition The condition with which the row can be found
-   * @param allowFiltering Whether filtering is allowed
-   * @return A future that contains the existence boolean
-   */
   protected CompletableFuture<Boolean> exists(
-    DatabaseCondition condition, boolean allowFiltering
+    DatabaseCondition condition
   ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
@@ -414,9 +389,7 @@ public class DatabaseTable {
     query.append(fullName());
     query.append(" WHERE ");
     query.append(condition.build());
-    if (allowFiltering) {
-      query.append(" ALLOW FILTERING");
-    }
+    query.append(condition.filteringAddition());
     query.append(";");
     return connection.execute(query, condition.values())
       .thenApply(result -> result.remaining() > 0);
@@ -439,26 +412,14 @@ public class DatabaseTable {
    * @param condition The condition for counting
    * @return The number of rows
    */
-  protected CompletableFuture<Long> count(DatabaseCondition condition) {
-    return count(condition, false);
-  }
-
-  /**
-   * Is used to find the number of rows inside a database table
-   * @param condition The condition for counting
-   * @param allowFiltering Whether filtering is allowed
-   * @return The number of rows
-   */
   protected CompletableFuture<Long> count(
-    DatabaseCondition condition, boolean allowFiltering
+    DatabaseCondition condition
   ) {
     var query = new StringBuilder("SELECT COUNT(*) FROM ");
     query.append(fullName());
     query.append(" WHERE ");
     query.append(condition.build());
-    if (allowFiltering) {
-      query.append(" ALLOW FILTERING");
-    }
+    query.append(condition.filteringAddition());
     query.append(";");
     return connection.execute(query, condition.values())
       .thenApply(result -> result.one().get(0, Long.class));
@@ -492,22 +453,11 @@ public class DatabaseTable {
    * @param condition The condition with which the row can be found
    * @return A future that contains the database row
    */
-  protected CompletableFuture<DatabaseRow> selectRow(DatabaseCondition condition) {
-    return selectRow(condition, false);
-  }
-
-  /**
-   * Is used to find a single row
-   * @param condition The condition with which the row can be found
-   * @param allowFiltering Whether filtering is allowed
-   * @return A future that contains the database row
-   */
   protected CompletableFuture<DatabaseRow> selectRow(
-    DatabaseCondition condition, boolean allowFiltering
+    DatabaseCondition condition
   ) {
     var futureResponse = new CompletableFuture<DatabaseRow>();
-    selectRows(condition, allowFiltering)
-      .thenAccept(rows -> futureResponse.complete(rows.get(0)));
+    selectRows(condition).thenAccept(rows -> futureResponse.complete(rows.get(0)));
     return futureResponse;
   }
 
@@ -528,20 +478,8 @@ public class DatabaseTable {
   protected CompletableFuture<Optional<DatabaseRow>> selectRowSecure(
     DatabaseCondition condition
   ) {
-    return selectRowSecure(condition, false);
-  }
-
-  /**
-   * Is used to find a single row secured (optional result)
-   * @param condition The condition with which the row can be found
-   * @param allowFiltering Whether filtering is allowed
-   * @return A future that contains the database row
-   */
-  protected CompletableFuture<Optional<DatabaseRow>> selectRowSecure(
-    DatabaseCondition condition, boolean allowFiltering
-  ) {
     var futureResponse = new CompletableFuture<Optional<DatabaseRow>>();
-    selectRows(condition, allowFiltering).thenAccept(rows ->
+    selectRows(condition).thenAccept(rows ->
       futureResponse.complete(rows.stream().findFirst()));
     return futureResponse;
   }
@@ -554,7 +492,7 @@ public class DatabaseTable {
   protected CompletableFuture<List<DatabaseRow>> selectRows(
     DatabaseCondition condition
   ) {
-    return selectRows(condition, -1, false);
+    return selectRows(condition, -1);
   }
 
   /**
@@ -566,31 +504,6 @@ public class DatabaseTable {
   protected CompletableFuture<List<DatabaseRow>> selectRows(
     DatabaseCondition condition, long limit
   ) {
-    return selectRows(condition, limit, false);
-  }
-
-  /**
-   * Is used to find a multiple rows
-   * @param condition The condition with which the rows can be found
-   * @param allowFiltering Whether filtering is allowed
-   * @return A future that contains the database rows
-   */
-  protected CompletableFuture<List<DatabaseRow>> selectRows(
-    DatabaseCondition condition, boolean allowFiltering
-  ) {
-    return selectRows(condition, -1, allowFiltering);
-  }
-
-  /**
-   * Is used to find a multiple rows
-   * @param condition The condition with which the rows can be found
-   * @param limit The limit of entries that should be returned
-   * @param allowFiltering Whether filtering is allowed
-   * @return A future that contains the database rows
-   */
-  protected CompletableFuture<List<DatabaseRow>> selectRows(
-    DatabaseCondition condition, long limit, boolean allowFiltering
-  ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
     query.append(" FROM ");
@@ -601,9 +514,7 @@ public class DatabaseTable {
       query.append(" LIMIT ");
       query.append(limit);
     }
-    if (allowFiltering) {
-      query.append(" ALLOW FILTERING");
-    }
+    query.append(condition.filteringAddition());
     query.append(";");
     return connection.execute(query, condition.values()).thenApply(result ->
       DatabaseRow.multiple(result.currentPage(), columns.size()));
@@ -759,14 +670,14 @@ public class DatabaseTable {
   private CompletableFuture<Long> countPagingRows(
     Object partitionValue, DatabaseCondition condition
   ) {
-    return count(createPagingCondition(partitionValue, condition), true);
+    return count(createPagingCondition(partitionValue, condition));
   }
 
   private DatabaseCondition createPagingCondition(
     Object partitionValue, DatabaseCondition condition
   ) {
     var finalCondition = DatabaseCondition.of(findPartitionKeyColumn().name(),
-      partitionValue);
+      partitionValue, DatabaseCondition.Filtering.ALLOWED);
     finalCondition.concat(condition);
     return finalCondition;
   }

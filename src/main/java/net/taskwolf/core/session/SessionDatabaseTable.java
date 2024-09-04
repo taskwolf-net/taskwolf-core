@@ -119,8 +119,9 @@ public final class SessionDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<Session>> findSessionsOfUserByStatus(
     UUID userId, SessionStatus status
   ) {
-    var condition = DatabaseCondition.of("user", userId, "status", status.toString());
-    return selectRows(condition, true).thenApply(rows ->
+    var condition = DatabaseCondition.of("user", userId, "status", status.toString(),
+      DatabaseCondition.Filtering.ALLOWED);
+    return selectRows(condition).thenApply(rows ->
       rows.stream().map(row -> Session.of(row, this))
         .sorted(Comparator.comparingLong(Session::openTime).reversed()).toList());
   }

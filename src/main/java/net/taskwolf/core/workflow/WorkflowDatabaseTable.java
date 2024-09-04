@@ -194,9 +194,10 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<WorkflowEntry>> findWorkflowByModule(
     UUID ownerId, String module
   ) {
-    var condition = DatabaseCondition.of(DatabaseComparison.create("owner", ownerId),
+    var condition = DatabaseCondition.of(DatabaseCondition.Filtering.ALLOWED,
+      DatabaseComparison.create("owner", ownerId),
       DatabaseComparison.create("modules", module, DatabaseComparison.Type.CONTAINS));
-    return selectRows(condition, true)
+    return selectRows(condition)
       .thenApply(rows -> rows.stream().map(row -> WorkflowEntry.of(row, this))
         .toList());
   }
