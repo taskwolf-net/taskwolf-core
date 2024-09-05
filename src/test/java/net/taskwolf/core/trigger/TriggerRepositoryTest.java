@@ -1,5 +1,6 @@
 package net.taskwolf.core.trigger;
 
+import net.taskwolf.core.database.condition.DatabaseCondition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,7 @@ final class TriggerRepositoryTest {
     }
 
     @Override
-    public CompletableFuture<List<UUID>> findEntries(String condition) {
+    public CompletableFuture<List<UUID>> findEntries(DatabaseCondition condition) {
       return null;
     }
 
