@@ -67,16 +67,8 @@ public final class OperationDatabaseTable extends DatabaseTable {
   private CompletableFuture<Void> updateOperations(
     UUID targetId, long operationAddition, long expirationAddition
   ) {
-    var operationQuery = new StringBuilder();
-    operationQuery.append("operations");
-    operationQuery.append(operationAddition >= 0 ? "+" : "-");
-    operationQuery.append(Math.abs(operationAddition));
-    var expirationQuery = new StringBuilder();
-    expirationQuery.append("expiration");
-    expirationQuery.append(expirationAddition >= 0 ? "+" : "-");
-    expirationQuery.append(Math.abs(expirationAddition));
-    return update(targetId, DatabaseRow.of(targetId, operationQuery,
-      expirationQuery));
+    return updateCounter(targetId, DatabaseRow.of(targetId, operationAddition,
+      expirationAddition));
   }
 
   public CompletableFuture<Void> deleteOperations(UUID targetId) {

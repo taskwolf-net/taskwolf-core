@@ -53,16 +53,8 @@ public final class WorkflowThrottleDatabaseTable extends DatabaseTable {
   private CompletableFuture<Void> updateThrottle(
     UUID targetId, long executionAddition, long expirationAddition
   ) {
-    var executionQuery = new StringBuilder();
-    executionQuery.append("executions");
-    executionQuery.append(executionAddition >= 0 ? "+" : "-");
-    executionQuery.append(Math.abs(executionAddition));
-    var expirationQuery = new StringBuilder();
-    expirationQuery.append("expiration");
-    expirationQuery.append(expirationAddition >= 0 ? "+" : "-");
-    expirationQuery.append(Math.abs(expirationAddition));
-    return update(targetId, DatabaseRow.of(targetId, executionQuery,
-      expirationQuery));
+    return updateCounter(targetId, DatabaseRow.of(targetId, executionAddition,
+      expirationAddition));
   }
 
   public CompletableFuture<Void> deleteThrottle(UUID targetId) {
