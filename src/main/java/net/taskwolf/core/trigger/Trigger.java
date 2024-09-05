@@ -1,5 +1,7 @@
 package net.taskwolf.core.trigger;
 
+import net.taskwolf.core.database.condition.DatabaseCondition;
+
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -47,7 +49,7 @@ public interface Trigger {
    * @param condition The condition to select specific triggers
    * @return The ids of the found triggers
    */
-  CompletableFuture<List<UUID>> findEntries(String condition);
+  CompletableFuture<List<UUID>> findEntries(DatabaseCondition condition);
 
   /**
    * Is called when a trigger should be deleted

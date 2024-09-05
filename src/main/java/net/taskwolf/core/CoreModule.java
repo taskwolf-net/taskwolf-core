@@ -11,6 +11,7 @@ import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.condition.ConditionDatabaseTable;
 import net.taskwolf.core.condition.ConditionEntry;
 import net.taskwolf.core.condition.ConditionFactory;
+import net.taskwolf.core.database.condition.DatabaseCondition;
 import net.taskwolf.core.iterator.AsyncIterator;
 import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.locale.Translation;
@@ -153,7 +154,7 @@ public class CoreModule {
    * @param information The trigger information
    */
   public void triggerWorkflows(
-    String moduleName, String triggerType, String condition,
+    String moduleName, String triggerType, DatabaseCondition condition,
     Map<String, Object> information
   ) {
     triggerWorkflows(moduleName, triggerType, condition, information, true);
@@ -169,15 +170,12 @@ public class CoreModule {
    *                          if false there is no distribution check
    */
   public void triggerWorkflows(
-    String moduleName, String triggerType, String condition,
+    String moduleName, String triggerType, DatabaseCondition condition,
     Map<String, Object> information, boolean checkDistribution
   ) {
     var module = moduleLoader.findRegisteredModuleById(moduleName).get();
     var trigger = module.module().triggerRepository()
       .findTrigger(triggerType).get();
-    if (!condition.isEmpty()) {
-      condition = " WHERE " + condition;
-    }
     trigger.findEntries(condition).thenAccept(triggers ->
       buildWorkflowTriggers(triggers, moduleName, information, checkDistribution));
   }
@@ -217,8 +215,9 @@ public class CoreModule {
     String module, String type, boolean checkDistribution
   ) {
     var futureResponse = new CompletableFuture<List<TriggerEntry>>();
-    findTrigger(module, type).get().findEntries("").thenAccept(entries ->
-      AsyncIterator.execute(entries, triggerDatabaseTable::findTrigger)
+    findTrigger(module, type).get().findEntries(DatabaseCondition.empty())
+      .thenAccept(entries -> AsyncIterator.execute(entries,
+          triggerDatabaseTable::findTrigger)
         .thenAccept(triggers -> futureResponse.complete(
           filterTriggerEntries(triggers, module, checkDistribution))));
     return futureResponse;
