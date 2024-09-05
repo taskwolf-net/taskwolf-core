@@ -20,30 +20,50 @@ public class DatabaseTable implements CreatableDatabaseTable,
   private final String name;
   private final List<DatabaseColumn> columns;
 
+  /**
+   * Is used to find the connection of the table
+   * @return The connection of the table
+   */
   public DatabaseConnection connection() {
     return connection;
   }
 
+  /**
+   * Is used to find the keyspace in which the table is located
+   * @return The keyspace
+   */
   public DatabaseKeyspace keyspace() {
     return keyspace;
   }
 
+  /**
+   * Returns the name of the table
+   * @return The name
+   */
   public String name() {
     return name;
   }
 
   /**
-   * Build the full name of the database table
-   * @return The full name of the database table
+   * Is used to construct the full name of the table (keyspace and name combined)
+   * @return The full name of the table
    */
   public String fullName() {
     return keyspace.name() + "." + name;
   }
 
+  /**
+   * Is used to find the columns of the table
+   * @return The columns
+   */
   public List<DatabaseColumn> columns() {
     return List.copyOf(columns);
   }
 
+  /**
+   * Creates a compilation of the names of the columns
+   * @return The name compilation
+   */
   public String columnNameCompilation() {
     var compilation = new StringBuilder();
     for (var i = 0; i < columns.size(); i++) {
@@ -55,6 +75,13 @@ public class DatabaseTable implements CreatableDatabaseTable,
     return compilation.toString();
   }
 
+  /**
+   * Another way to create a column name compilation with more unique parameters
+   * @param columns The columns from which the compilation in created
+   * @param prefix The prefix of the compilation
+   * @param suffix The suffix of the compilation
+   * @return The column name compilation
+   */
   public String columnNameCompilation(
     List<DatabaseColumn> columns, String prefix, String suffix
   ) {
@@ -72,21 +99,37 @@ public class DatabaseTable implements CreatableDatabaseTable,
     return compilation.toString();
   }
 
+  /**
+   * Is used to find a single primary key column
+   * @return The single primary key column
+   */
   public DatabaseColumn findPrimaryKeyColumn() {
     return columns.stream().filter(column -> column.type().isPrimaryKey())
       .findFirst().get();
   }
 
+  /**
+   * Is used to find all column with type primary key
+   * @return The list of columns
+   */
   public List<DatabaseColumn> findPrimaryKeyColumns() {
     return columns.stream().filter(column -> column.type().isPrimaryKey())
       .toList();
   }
 
+  /**
+   * Is used to find a single partition key column
+   * @return The single partition key column
+   */
   public DatabaseColumn findPartitionKeyColumn() {
     return columns.stream().filter(column -> column.type().isPartitionKey())
       .findFirst().get();
   }
 
+  /**
+   * Is used to find all column with type partition key
+   * @return The list of columns
+   */
   public List<DatabaseColumn> findPartitionKeyColumns() {
     return columns.stream().filter(column -> column.type().isPartitionKey())
       .toList();
