@@ -53,30 +53,32 @@ public final class Workflow {
    * Triggers the workflow
    * @param information The information provided by the trigger
    */
-  public void trigger(Map<String, Object> information) {
-    findWorkflowBundleOwner().thenAccept(owner -> bundleOwner = owner)
-      .thenAccept(value -> checkOperationLimit().thenAccept(limitReached ->
+  public CompletableFuture<Boolean> trigger(Map<String, Object> information) {
+    return findWorkflowBundleOwner().thenAccept(owner -> bundleOwner = owner)
+      .thenCompose(value -> checkOperationLimit().thenCompose(limitReached ->
         triggerLimit(information, limitReached)));
   }
 
-  private void triggerLimit(Map<String, Object> information, boolean limitReached) {
+  private CompletableFuture<Boolean> triggerLimit(
+    Map<String, Object> information, boolean limitReached
+  ) {
     if (limitReached) {
       postExecutionFailure("workflow.operations.limit.reached");
-      return;
+      return CompletableFuture.completedFuture(false);
     }
-    WorkflowThrottle.create(workflowThrottleDatabaseTable, bundleOwner)
-      .registerWorkflowExecution().thenAccept(throttleAllowsExecution ->
+    return WorkflowThrottle.create(workflowThrottleDatabaseTable, bundleOwner)
+      .registerWorkflowExecution().thenCompose(throttleAllowsExecution ->
         triggerThrottle(information, throttleAllowsExecution));
   }
 
-  private void triggerThrottle(
+  private CompletableFuture<Boolean> triggerThrottle(
     Map<String, Object> information, boolean throttleAllowsExecution
   ) {
     if (!throttleAllowsExecution) {
       postExecutionFailure("workflow.throttle.intervention");
-      return;
+      return CompletableFuture.completedFuture(false);
     }
-    executeNextAction(Maps.newHashMap(information));
+    return executeNextAction(Maps.newHashMap(information));
   }
 
   private CompletableFuture<Boolean> checkOperationLimit() {
@@ -94,29 +96,31 @@ public final class Workflow {
       bundle.workflowOperationLimit();
   }
 
-  private void executeNextAction(Map<String, Object> information) {
+  private CompletableFuture<Boolean> executeNextAction(
+    Map<String, Object> information
+  ) {
     if (currentActionIndex >= actions.size()) {
       postExecutionSuccess();
-      return;
+      return CompletableFuture.completedFuture(true);
     }
     if (!checkConditions(currentActionIndex, information)) {
-      return;
+      return CompletableFuture.completedFuture(true);
     }
     var action = actions.get(currentActionIndex);
     currentActionIndex++;
-    action.execute(information).thenAccept(result ->
+    return action.execute(information).thenCompose(result ->
       processActionResult(result, information));
   }
 
-  private void processActionResult(
+  private CompletableFuture<Boolean> processActionResult(
     ActionResult result, Map<String, Object> information
   ) {
     if (result.isFailure()) {
       postExecutionFailure(result.failureMessage());
-      return;
+      return CompletableFuture.completedFuture(false);
     }
     information.putAll(result.information());
-    executeNextAction(information);
+    return executeNextAction(information);
   }
 
   private void postExecutionSuccess() {
