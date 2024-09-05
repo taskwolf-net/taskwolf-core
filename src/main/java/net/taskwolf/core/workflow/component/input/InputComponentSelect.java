@@ -16,8 +16,8 @@ public interface InputComponentSelect {
    * @param user The user that sent the request
    * @param target The id of the user / organization (target)
    * @param previousInputs The previous selected select inputs (sequential)
-   * @return The future list of select options (each string must be in json
-   * format and must have a key "identifier" and a key "name")
+   * @return The future list of select options
    */
-  CompletableFuture<List<String>> compile(User user, UUID target, Map<String, String> previousInputs);
+  CompletableFuture<List<InputComponentSelectEntry>> compile(User user,
+    UUID target, Map<String, String> previousInputs);
 }
