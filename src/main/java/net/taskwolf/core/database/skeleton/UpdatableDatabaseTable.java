@@ -3,7 +3,9 @@ package net.taskwolf.core.database.skeleton;
 import net.taskwolf.core.database.DatabaseRow;
 import net.taskwolf.core.database.condition.DatabaseCondition;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 public interface UpdatableDatabaseTable extends AbstractDatabaseTable {
   /**
@@ -33,7 +35,8 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable {
     query.append(condition.build());
     query.append(condition.filteringAddition());
     query.append(";");
-    return connection().execute(query, row.values(), condition.values())
+    return connection().execute(query, Stream.concat(Arrays.stream(row.values()),
+        Arrays.stream(condition.values())).skip(1).toArray(Object[]::new))
       .thenApply(value -> null);
   }
 
