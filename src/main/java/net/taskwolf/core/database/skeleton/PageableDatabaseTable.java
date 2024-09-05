@@ -51,8 +51,8 @@ public interface PageableDatabaseTable extends AbstractDatabaseTable, CountableD
       var offset = (int) (rowNumber % pageSize);
       statement = statement.setPageSize(offset == 0 ? pageSize : offset);
     }
-    return connection().execute(statement).thenApply(result ->
-      createDatabasePage(pageNumber, result, direction));
+    return connection().execute(statement, pagingCondition.values())
+      .thenApply(result -> createDatabasePage(pageNumber, result, direction));
   }
 
   /**
