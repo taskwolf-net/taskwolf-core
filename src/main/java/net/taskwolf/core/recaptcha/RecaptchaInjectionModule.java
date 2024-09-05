@@ -4,7 +4,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import lombok.RequiredArgsConstructor;
-import net.taskwolf.core.whitelist.WhitelistConfiguration;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class RecaptchaInjectionModule extends AbstractModule {

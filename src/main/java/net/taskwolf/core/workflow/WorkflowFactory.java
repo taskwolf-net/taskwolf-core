@@ -7,7 +7,6 @@ import com.google.inject.name.Named;
 import net.taskwolf.core.action.ActionExecutor;
 import net.taskwolf.core.bundle.BundleDatabaseTable;
 import net.taskwolf.core.condition.Condition;
-import net.taskwolf.core.locale.Locale;
 import net.taskwolf.core.locale.Translation;
 import net.taskwolf.core.mail.Mail;
 import net.taskwolf.core.notification.NotificationDatabaseTable;

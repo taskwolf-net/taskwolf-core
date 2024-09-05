@@ -2,7 +2,6 @@ package net.taskwolf.core.bundle;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.database.DatabaseRow;
 

@@ -6,7 +6,6 @@ import com.google.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseKeyspace;
-import net.taskwolf.core.stripe.StripeDatabaseTable;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class TrialInjectionModule extends AbstractModule {

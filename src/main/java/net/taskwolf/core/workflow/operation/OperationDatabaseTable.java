@@ -2,7 +2,6 @@ package net.taskwolf.core.workflow.operation;
 
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
-import net.taskwolf.core.workflow.throttle.WorkflowThrottleEntry;
 
 import java.util.List;
 import java.util.UUID;

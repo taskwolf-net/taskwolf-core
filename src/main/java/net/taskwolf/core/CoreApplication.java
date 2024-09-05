@@ -16,7 +16,7 @@ import net.taskwolf.core.log.Log;
 import net.taskwolf.core.tutorial.level.TutorialLevelRegistry;
 import net.taskwolf.core.tutorial.level.account.AccountsTutorialLevel;
 import net.taskwolf.core.tutorial.level.bundle.BundleTutorialLevel;
-import net.taskwolf.core.tutorial.level.dashboard.*;
+import net.taskwolf.core.tutorial.level.dashboard.DashboardTutorialLevel;
 import net.taskwolf.core.tutorial.level.database.DatabasesTutorialLevel;
 import net.taskwolf.core.tutorial.level.device.DevicesTutorialLevel;
 import net.taskwolf.core.tutorial.level.help.HelpTutorialLevel;

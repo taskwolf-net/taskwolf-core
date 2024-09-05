@@ -5,11 +5,11 @@ import com.datastax.oss.driver.api.core.cql.PagingState;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.google.common.collect.Lists;
+import net.taskwolf.core.database.DatabaseRow;
+import net.taskwolf.core.database.condition.DatabaseCondition;
 import net.taskwolf.core.database.paging.DatabaseDirection;
 import net.taskwolf.core.database.paging.DatabaseOrder;
 import net.taskwolf.core.database.paging.DatabasePage;
-import net.taskwolf.core.database.DatabaseRow;
-import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.Collections;
 import java.util.List;

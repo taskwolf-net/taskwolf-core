@@ -6,7 +6,6 @@ import lombok.experimental.Accessors;
 import net.taskwolf.core.configuration.Configuration;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.Map;
 
 @Getter

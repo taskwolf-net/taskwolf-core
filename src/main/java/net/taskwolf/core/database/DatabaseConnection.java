@@ -5,15 +5,12 @@ import ch.qos.logback.classic.LoggerContext;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 import net.taskwolf.core.log.Log;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class DatabaseConnection {

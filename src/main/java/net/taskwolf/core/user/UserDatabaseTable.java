@@ -8,7 +8,6 @@ import net.taskwolf.core.target.TargetIdentificationPublish;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public final class UserDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "user";
