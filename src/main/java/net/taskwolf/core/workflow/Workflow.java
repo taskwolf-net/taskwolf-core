@@ -10,6 +10,7 @@ import net.taskwolf.core.bundle.BundleDatabaseTable;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.locale.Translation;
 import net.taskwolf.core.mail.Mail;
+import net.taskwolf.core.maintenance.MaintenanceSchedule;
 import net.taskwolf.core.notification.NotificationDatabaseTable;
 import net.taskwolf.core.notification.NotificationSetting;
 import net.taskwolf.core.organization.Organization;
@@ -41,6 +42,7 @@ public final class Workflow {
   private final OrganizationDatabaseTable organizationDatabaseTable;
   private final TeamDatabaseTable teamDatabaseTable;
   private final NotificationDatabaseTable notificationDatabaseTable;
+  private final MaintenanceSchedule maintenanceSchedule;
   private final Translation translation;
   private final Mail notificationMail;
   private final WorkflowEntry workflowEntry;
@@ -54,6 +56,9 @@ public final class Workflow {
    * @param information The information provided by the trigger
    */
   public CompletableFuture<Boolean> trigger(Map<String, Object> information) {
+    if (maintenanceSchedule.isMaintenanceRunning()) {
+      return CompletableFuture.completedFuture(false);
+    }
     return findWorkflowBundleOwner().thenAccept(owner -> bundleOwner = owner)
       .thenCompose(value -> checkOperationLimit().thenCompose(limitReached ->
         triggerLimit(information, limitReached)));
@@ -99,6 +104,9 @@ public final class Workflow {
   private CompletableFuture<Boolean> executeNextAction(
     Map<String, Object> information
   ) {
+    if (maintenanceSchedule.isMaintenanceRunning()) {
+      return CompletableFuture.completedFuture(false);
+    }
     if (currentActionIndex >= actions.size()) {
       postExecutionSuccess();
       return CompletableFuture.completedFuture(true);

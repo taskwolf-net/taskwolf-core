@@ -9,6 +9,7 @@ import net.taskwolf.core.bundle.BundleDatabaseTable;
 import net.taskwolf.core.condition.Condition;
 import net.taskwolf.core.locale.Translation;
 import net.taskwolf.core.mail.Mail;
+import net.taskwolf.core.maintenance.MaintenanceSchedule;
 import net.taskwolf.core.notification.NotificationDatabaseTable;
 import net.taskwolf.core.organization.OrganizationDatabaseTable;
 import net.taskwolf.core.organization.team.TeamDatabaseTable;
@@ -30,6 +31,7 @@ public final class WorkflowFactory {
   private final OrganizationDatabaseTable organizationDatabaseTable;
   private final TeamDatabaseTable teamDatabaseTable;
   private final NotificationDatabaseTable notificationDatabaseTable;
+  private final MaintenanceSchedule maintenanceSchedule;
   private final Translation translation;
   private final Mail notificationMail;
 
@@ -42,7 +44,8 @@ public final class WorkflowFactory {
     WorkflowThrottleDatabaseTable workflowThrottleDatabaseTable,
     OrganizationDatabaseTable organizationDatabaseTable,
     TeamDatabaseTable teamDatabaseTable,
-    NotificationDatabaseTable notificationDatabaseTable, Translation translation,
+    NotificationDatabaseTable notificationDatabaseTable,
+    MaintenanceSchedule maintenanceSchedule, Translation translation,
     @Named("notificationMail") Mail notificationMail
   ) {
     this.workflowDatabaseTable = workflowDatabaseTable;
@@ -54,6 +57,7 @@ public final class WorkflowFactory {
     this.organizationDatabaseTable = organizationDatabaseTable;
     this.teamDatabaseTable = teamDatabaseTable;
     this.notificationDatabaseTable = notificationDatabaseTable;
+    this.maintenanceSchedule = maintenanceSchedule;
     this.translation = translation;
     this.notificationMail = notificationMail;
   }
@@ -65,7 +69,7 @@ public final class WorkflowFactory {
     return Workflow.create(workflowDatabaseTable, timelineDatabaseTable,
       userDatabaseTable, bundleDatabaseTable, operationDatabaseTable,
       workflowThrottleDatabaseTable, organizationDatabaseTable, teamDatabaseTable,
-      notificationDatabaseTable, translation, notificationMail, workflowEntry,
-      actions, conditions);
+      notificationDatabaseTable, maintenanceSchedule, translation,
+      notificationMail, workflowEntry, actions, conditions);
   }
 }
