@@ -13,6 +13,7 @@ import net.taskwolf.core.condition.text.ConditionTextEquals;
 import net.taskwolf.core.condition.text.ConditionTextStartsWith;
 import net.taskwolf.core.intro.Intro;
 import net.taskwolf.core.log.Log;
+import net.taskwolf.core.maintenance.MaintenanceSchedule;
 import net.taskwolf.core.tutorial.level.TutorialLevelRegistry;
 import net.taskwolf.core.tutorial.level.account.AccountsTutorialLevel;
 import net.taskwolf.core.tutorial.level.bundle.BundleTutorialLevel;
@@ -62,6 +63,7 @@ public class CoreApplication {
       distributionConfiguration.restPort()));
     application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
+    injector.getInstance(MaintenanceSchedule.class).start();
     log.info("Successfully booted Taskwolf - Core");
   }
 
