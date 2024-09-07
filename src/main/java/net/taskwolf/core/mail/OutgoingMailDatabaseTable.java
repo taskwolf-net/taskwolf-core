@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
 import net.taskwolf.core.database.condition.DatabaseCondition;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -21,8 +22,7 @@ public final class OutgoingMailDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("sender", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("time", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("title", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("content", DatabaseDataType.BLOB));
     var outgoingMailDatabaseTable =  new OutgoingMailDatabaseTable(connection,
       keyspace, TABLE_NAME, columns);
     outgoingMailDatabaseTable.createIfNotExists();
@@ -40,15 +40,15 @@ public final class OutgoingMailDatabaseTable extends DatabaseTable {
   public CompletableFuture<Void> insertOutgoingMail(OutgoingMail outgoingMail) {
     return insertOutgoingMail(outgoingMail.id(), outgoingMail.receiver(),
       outgoingMail.sender(), outgoingMail.time(), outgoingMail.title(),
-      outgoingMail.content(), outgoingMail.type());
+      outgoingMail.content());
   }
 
   public CompletableFuture<Void> insertOutgoingMail(
     UUID id, String receiver, String sender, long time, String title,
-    String content, String type
+    byte[] content
   ) {
     return insert(DatabaseRow.of(id, receiver, sender, time, title,
-      content, type));
+      ByteBuffer.wrap(content)));
   }
 
   public CompletableFuture<UUID> generateAvailableOutgoingMailId() {

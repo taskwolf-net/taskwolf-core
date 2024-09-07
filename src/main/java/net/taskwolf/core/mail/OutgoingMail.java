@@ -15,7 +15,7 @@ public final class OutgoingMail {
     return create(row.findCell(0).uuidValue(),
       row.findCell(1).stringValue(), row.findCell(2).stringValue(),
       row.findCell(3).longValue(), row.findCell(4).stringValue(),
-      row.findCell(5).stringValue(), row.findCell(6).stringValue());
+      row.findCell(5).blobValue().array());
   }
 
   private final UUID id;
@@ -23,6 +23,5 @@ public final class OutgoingMail {
   private final String sender;
   private final long time;
   private final String title;
-  private final String content;
-  private final String type;
+  private final byte[] content;
 }

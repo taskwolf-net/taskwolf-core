@@ -13,10 +13,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -120,13 +117,10 @@ public class Mail {
       transport.connect(smtpMailHost, mailUser, mailPassword);
       transport.sendMessage(message, message.getAllRecipients());
       transport.close();
-      var content = message.getContent();
-      var contentType = message.getContentType();
       outgoingMailDatabaseTable.generateAvailableOutgoingMailId()
         .thenAccept(id -> outgoingMailDatabaseTable.insertOutgoingMail(id, target,
-          mail, System.currentTimeMillis(), title, serializeContent(content),
-          contentType));
-      futureResponse.complete(null);
+          mail, System.currentTimeMillis(), title, serializeMessage(message))
+          .thenAccept(futureResponse::complete));
     } catch (Exception exception) {
       exception.printStackTrace();
     }
@@ -153,7 +147,7 @@ public class Mail {
     return session;
   }
 
-  private Message createMessage(
+  private MimeMessage createMessage(
     Session session, Address[] addresses, String title, String body,
     String dataType, List<MailAttachment> attachments
   ) throws Exception {
@@ -197,59 +191,39 @@ public class Mail {
     multipart.addBodyPart(attachmentBodyPart);
   }
 
-  private String serializeContent(Object content) {
+  private byte[] serializeMessage(MimeMessage message) {
     try {
       var byteArrayOutputStream = new ByteArrayOutputStream();
-      var objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-      objectOutputStream.writeObject(content);
-      objectOutputStream.flush();
-      return new String(Base64.getEncoder().encode(
-        byteArrayOutputStream.toByteArray()));
+      message.writeTo(byteArrayOutputStream);
+      return byteArrayOutputStream.toByteArray();
     } catch (Exception exception) {
       exception.printStackTrace();
-      return "";
+      return null;
     }
   }
 
   public void resendEmail(OutgoingMail outgoingMail) {
     try {
       var session = createSession("smtp", smtpMailHost, smtpMailPort);
-      var message = createResendMessage(session, outgoingMail);
+      var message = deserializeMessage(session, outgoingMail.content());
+      message.setSentDate(new Date());
       var transport = session.getTransport("smtp");
       transport.connect(smtpMailHost, mailUser, mailPassword);
       transport.sendMessage(message, message.getAllRecipients());
       transport.close();
-      var content = message.getContent();
-      var contentType = message.getContentType();
       outgoingMailDatabaseTable.generateAvailableOutgoingMailId()
         .thenAccept(id -> outgoingMailDatabaseTable.insertOutgoingMail(id,
           outgoingMail.receiver(), mail, System.currentTimeMillis(),
-          outgoingMail.title(), serializeContent(content), contentType));
+          outgoingMail.title(), serializeMessage(message)));
     } catch (Exception exception) {
       exception.printStackTrace();
     }
   }
 
-  private Message createResendMessage(
-    Session session, OutgoingMail outgoingMail
-  ) throws Exception {
-    var message = new MimeMessage(session);
-    message.setFrom(new InternetAddress(mail, "Taskwolf"));
-    message.setRecipients(Message.RecipientType.TO,
-      new Address[] {createAddress(outgoingMail.receiver())});
-    message.setSentDate(new Date());
-    message.setSubject(outgoingMail.title());
-    message.setContent(deserializeContent(outgoingMail.content()),
-      outgoingMail.type());
-    return message;
-  }
-
-  private Object deserializeContent(String content) {
+  private MimeMessage deserializeMessage(Session session, byte[] content) {
     try {
-      var byteArrayInputStream = new ByteArrayInputStream(
-        Base64.getDecoder().decode(content));
-      var objectInputStream = new ObjectInputStream(byteArrayInputStream);
-      return objectInputStream.readObject();
+      var byteArrayInputStream = new ByteArrayInputStream(content);
+      return new MimeMessage(session, byteArrayInputStream);
     } catch (Exception exception) {
       exception.printStackTrace();
       return null;
