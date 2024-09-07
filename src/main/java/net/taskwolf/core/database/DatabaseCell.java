@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.UUID;
 
@@ -60,6 +61,13 @@ public final class DatabaseCell {
       return null;
     }
     return (List<T>) value;
+  }
+
+  public ByteBuffer blobValue() {
+    if (!(value instanceof ByteBuffer)) {
+      return null;
+    }
+    return (ByteBuffer) value;
   }
 
   public Object rawValue() {
