@@ -28,23 +28,37 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable {
   DatabaseTransformationStatus transformationStatus();
 
   /**
-   * The old / original database table that will now be transformed
-   * @return The old database table
+   * Is used to update the current transformation status of the table
+   * @param newStatus The new transformation status
    */
-  DatabaseTable transformationOrigin();
+  void updateTransformationStatus(DatabaseTransformationStatus newStatus);
 
   /**
-   * Is used to set the origin database table
-   * @param origin The origin database table
+   * The temporary database table that will be used in the transformation process
+   * @return The temporary database table
    */
-  void equipTransformationOrigin(DatabaseTable origin);
+  DatabaseTable transformationTemporaryTable();
 
   /**
-   * When this function is called, the transformation from the old table and
-   * the old format to the new table and the new format is started and executed
+   * Is used to set the temporary database table
+   * @param temporaryTable The temporary database table
    */
-  default void transform() {
+  void equipTransformationTemporaryTable(DatabaseTable temporaryTable);
 
+  default CompletableFuture<Void> fillTemporaryTable() {
+    return null;
+  }
+
+  default CompletableFuture<Void> useTemporaryTable() {
+    return null;
+  }
+
+  default CompletableFuture<Void> fillNewTable() {
+    return null;
+  }
+
+  default CompletableFuture<Void> useNewTable() {
+    return null;
   }
 
   /**
@@ -56,9 +70,10 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable {
       if (originColumns.isEmpty()) {
         return;
       }
-      equipTransformationOrigin(new DatabaseTable(connection(), keyspace(), name(),
-        originColumns.get()));
-      //TODO: CHANGE THIS TABLE NAME (INCREMENT BY ONE)
+      var temporaryTable = new DatabaseTable(connection(), keyspace(),
+        name() + "_tmp", originColumns.get());
+      temporaryTable.createIfNotExists(false);
+      equipTransformationTemporaryTable(temporaryTable);
     } catch (Exception exception) {
       exception.printStackTrace();
     }

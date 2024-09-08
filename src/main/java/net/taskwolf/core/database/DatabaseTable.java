@@ -23,8 +23,8 @@ public class DatabaseTable implements CreatableDatabaseTable,
   private final List<DatabaseColumn> columns;
   private DatabaseTransformation transformation;
   private DatabaseTransformationStatus transformationStatus =
-    DatabaseTransformationStatus.IDLE;
-  private DatabaseTable transformationOrigin;
+    DatabaseTransformationStatus.INACTIVE;
+  private DatabaseTable transformationTemporaryTable;
 
   public DatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
@@ -214,23 +214,49 @@ public class DatabaseTable implements CreatableDatabaseTable,
     columns.addAll(newColumns);
   }
 
+  /**
+   * The structure used for swapping between old and new format
+   * @return The transformation
+   */
   @Override
   public DatabaseTransformation transformation() {
-    return null;
+    return transformation;
   }
 
+  /**
+   * The status that is used to determine whether there is a transformation
+   * currently running
+   * @return The transformation status
+   */
   @Override
   public DatabaseTransformationStatus transformationStatus() {
-    return null;
+    return transformationStatus;
   }
 
+  /**
+   * Is used to update the current transformation status of the table
+   * @param newStatus The new transformation status
+   */
   @Override
-  public DatabaseTable transformationOrigin() {
-    return null;
+  public void updateTransformationStatus(DatabaseTransformationStatus newStatus) {
+    transformationStatus = newStatus;
   }
 
+  /**
+   * The temporary database table that will be used in the transformation process
+   * @return The temporary database table
+   */
   @Override
-  public void equipTransformationOrigin(DatabaseTable origin) {
+  public DatabaseTable transformationTemporaryTable() {
+    return transformationTemporaryTable;
+  }
 
+  /**
+   * Is used to set the temporary database table
+   * @param temporaryTable The temporary database table
+   */
+  @Override
+  public void equipTransformationTemporaryTable(DatabaseTable temporaryTable) {
+    transformationTemporaryTable = temporaryTable;
   }
 }
