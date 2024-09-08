@@ -109,4 +109,9 @@ public final class OrganizationDatabaseTable extends DatabaseTable {
     return selectRow(DatabaseCondition.of("owner", ownerId))
       .thenApply(Organization::of);
   }
+
+  public CompletableFuture<List<Organization>> findAllOrganization() {
+    return selectAllRows().thenApply(rows ->
+      rows.stream().map(Organization::of).toList());
+  }
 }

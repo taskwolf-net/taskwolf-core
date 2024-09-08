@@ -31,6 +31,8 @@ import net.taskwolf.core.tutorial.level.workflow.WorkflowTutorialLevel;
 import net.taskwolf.core.tutorial.level.workflow.WorkflowsTutorialLevel;
 import net.taskwolf.core.worker.WorkerConfiguration;
 import net.taskwolf.core.worker.WorkerDistribution;
+import net.taskwolf.core.worker.client.WorkerProxyClient;
+import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingDisconnect;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -65,6 +67,9 @@ public class CoreApplication {
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
     injector.getInstance(MaintenanceSchedule.class).start();
     log.info("Successfully booted Taskwolf - Core");
+    Runtime.getRuntime().addShutdownHook(new Thread(() ->
+      injector.getInstance(WorkerProxyClient.class)
+        .sendPacket(new PacketOutgoingDisconnect())));
   }
 
   private static void registerConditions(ConditionInformationRepository repository) {

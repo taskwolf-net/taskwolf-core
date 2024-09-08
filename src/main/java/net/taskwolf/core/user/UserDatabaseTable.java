@@ -152,4 +152,9 @@ public final class UserDatabaseTable extends DatabaseTable {
     return selectRow(DatabaseCondition.of("email", email.toLowerCase()))
       .thenApply(User::of);
   }
+
+  public CompletableFuture<List<User>> findAllUsers() {
+    return selectAllRows().thenApply(rows ->
+      rows.stream().map(User::of).toList());
+  }
 }
