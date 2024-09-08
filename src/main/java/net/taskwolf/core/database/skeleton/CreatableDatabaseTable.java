@@ -2,22 +2,45 @@ package net.taskwolf.core.database.skeleton;
 
 import net.taskwolf.core.database.DatabaseColumn;
 
-public interface CreatableDatabaseTable extends AbstractDatabaseTable {
+public interface CreatableDatabaseTable extends AbstractDatabaseTable,
+  TransformableDatabaseTable
+{
   /**
    * Creates the database table even if it already exists
    */
   default void create() {
-    create("");
+    create("", false);
+  }
+
+  /**
+   * Creates the database table even if it already exists
+   * @param checkDiscrepancy Whether a possible discrepancy in the
+   *                         table structure should be checked
+   */
+  default void create(boolean checkDiscrepancy) {
+    create("", checkDiscrepancy);
   }
 
   /**
    * Creates the database table only if it does not already exist
    */
   default void createIfNotExists() {
-    create("IF NOT EXISTS ");
+    create("IF NOT EXISTS ", false);
   }
 
-  private void create(String addition) {
+  /**
+   * Creates the database table only if it does not already exist
+   * @param checkDiscrepancy Whether a possible discrepancy in the
+   *                         table structure should be checked
+   */
+  default void createIfNotExists(boolean checkDiscrepancy) {
+    create("IF NOT EXISTS ", checkDiscrepancy);
+  }
+
+  private void create(String addition, boolean checkDiscrepancy) {
+    if (checkDiscrepancy) {
+      checkTableDiscrepancy();
+    }
     var query = new StringBuilder("CREATE TABLE ");
     query.append(addition);
     query.append(fullName());

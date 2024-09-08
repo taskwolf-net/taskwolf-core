@@ -3,6 +3,8 @@ package net.taskwolf.core.database;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.database.skeleton.*;
+import net.taskwolf.core.database.transformation.DatabaseTransformationStatus;
+import net.taskwolf.core.database.transformation.DatabaseTransformation;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -13,12 +15,27 @@ public class DatabaseTable implements CreatableDatabaseTable,
   DroppableDatabaseTable, InsertableDatabaseTable, DeletableDatabaseTable,
   ExistableDatabaseTable, SelectableDatabaseTable, UpdatableDatabaseTable,
   CountableDatabaseTable, IndexableDatabaseTable, PageableDatabaseTable,
-  ViewableDatabaseTable
+  ViewableDatabaseTable, TransformableDatabaseTable
 {
   private final DatabaseConnection connection;
   private final DatabaseKeyspace keyspace;
   private final String name;
   private final List<DatabaseColumn> columns;
+  private DatabaseTransformation transformation;
+  private DatabaseTransformationStatus transformationStatus =
+    DatabaseTransformationStatus.IDLE;
+  private DatabaseTable transformationOrigin;
+
+  public DatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
+    List<DatabaseColumn> columns, DatabaseTransformation transformation
+  ) {
+    this.connection = connection;
+    this.keyspace = keyspace;
+    this.name = name;
+    this.columns = columns;
+    this.transformation = transformation;
+  }
 
   /**
    * Is used to find the connection of the table
@@ -195,5 +212,25 @@ public class DatabaseTable implements CreatableDatabaseTable,
   protected void fillColumns(List<DatabaseColumn> newColumns) {
     columns.clear();
     columns.addAll(newColumns);
+  }
+
+  @Override
+  public DatabaseTransformation transformation() {
+    return null;
+  }
+
+  @Override
+  public DatabaseTransformationStatus transformationStatus() {
+    return null;
+  }
+
+  @Override
+  public DatabaseTable transformationOrigin() {
+    return null;
+  }
+
+  @Override
+  public void equipTransformationOrigin(DatabaseTable origin) {
+
   }
 }

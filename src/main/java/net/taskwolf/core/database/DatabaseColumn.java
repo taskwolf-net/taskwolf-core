@@ -1,6 +1,7 @@
 package net.taskwolf.core.database;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -9,7 +10,7 @@ import net.taskwolf.core.database.paging.DatabaseOrder;
 import java.util.Optional;
 
 @Accessors(fluent = true)
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class DatabaseColumn {
   public static DatabaseColumn create(String name, DatabaseDataType dataType) {
     return create(name, dataType, Type.REGULAR);
@@ -55,7 +56,7 @@ public class DatabaseColumn {
   @Getter
   private final DatabaseDataType dataType;
   @Getter
-  private final Type type;
+  private Type type;
   private final Optional<DatabaseOrder> order;
 
   /**
@@ -76,5 +77,18 @@ public class DatabaseColumn {
 
   public DatabaseOrder order() {
     return order.get();
+  }
+
+  public void updateType(Type newType) {
+    type = newType;
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof DatabaseColumn otherColumn)) {
+      return false;
+    }
+    return name.equals(otherColumn.name()) &&
+      dataType == otherColumn.dataType() && type == otherColumn.type();
   }
 }

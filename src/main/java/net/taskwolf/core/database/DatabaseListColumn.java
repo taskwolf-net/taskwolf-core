@@ -1,9 +1,12 @@
 package net.taskwolf.core.database;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.taskwolf.core.database.paging.DatabaseOrder;
 
 import java.util.Optional;
 
+@Accessors(fluent = true)
 public class DatabaseListColumn extends DatabaseColumn {
   public static DatabaseListColumn create(String name, DatabaseDataType dataType) {
     return create(name, dataType, Type.REGULAR);
@@ -21,6 +24,7 @@ public class DatabaseListColumn extends DatabaseColumn {
     return new DatabaseColumn(name, dataType, type, Optional.of(order));
   }
 
+  @Getter
   private final DatabaseDataType listDataType;
 
   private DatabaseListColumn(
@@ -45,5 +49,15 @@ public class DatabaseListColumn extends DatabaseColumn {
     entry.append(listDataType);
     entry.append(">");
     return entry.toString();
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof DatabaseListColumn otherColumn)) {
+      return false;
+    }
+    return name().equals(otherColumn.name()) &&
+      dataType() == otherColumn.dataType() && type() == otherColumn.type() &&
+      listDataType == otherColumn.listDataType();
   }
 }

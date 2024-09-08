@@ -15,7 +15,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public interface PageableDatabaseTable extends AbstractDatabaseTable, CountableDatabaseTable {
+public interface PageableDatabaseTable extends AbstractDatabaseTable,
+  CountableDatabaseTable
+{
   /**
    * Used to find a specific page inside the table
    * @param partitionValue The partition key value that specifies the
