@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public interface SelectableDatabaseTable extends AbstractDatabaseTable {
+public interface SelectableDatabaseTable extends AbstractDatabaseTable,
+  TransformableDatabaseTable
+{
   /**
    * Finds all available rows inside the database table
    * @return List of all possible rows

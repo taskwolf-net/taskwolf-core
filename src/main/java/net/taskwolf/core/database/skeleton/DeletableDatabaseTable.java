@@ -4,7 +4,9 @@ import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface DeletableDatabaseTable extends AbstractDatabaseTable {
+public interface DeletableDatabaseTable extends AbstractDatabaseTable,
+  TransformableDatabaseTable
+{
   /**
    * Deletes a database row from the database table
    * @param value The primary key value

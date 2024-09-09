@@ -7,7 +7,9 @@ import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-public interface UpdatableDatabaseTable extends AbstractDatabaseTable {
+public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
+  TransformableDatabaseTable
+{
   /**
    * Updates a row inside the database table
    * @param value The primary key value

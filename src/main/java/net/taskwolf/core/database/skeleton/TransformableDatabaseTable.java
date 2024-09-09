@@ -7,13 +7,15 @@ import net.taskwolf.core.database.DatabaseDataType;
 import net.taskwolf.core.database.DatabaseListColumn;
 import net.taskwolf.core.database.DatabaseTable;
 import net.taskwolf.core.database.transformation.DatabaseTransformation;
-import net.taskwolf.core.database.transformation.DatabaseTransformationStatus;
+import net.taskwolf.core.database.transformation.DatabaseTransformationState;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public interface TransformableDatabaseTable extends AbstractDatabaseTable {
+public interface TransformableDatabaseTable extends AbstractDatabaseTable,
+  CreatableDatabaseTable, DroppableDatabaseTable
+{
   /**
    * The structure used for swapping between old and new format
    * @return The transformation
@@ -21,44 +23,62 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable {
   DatabaseTransformation transformation();
 
   /**
-   * The status that is used to determine whether there is a transformation
+   * The state that is used to determine whether there is a transformation
    * currently running
-   * @return The transformation status
+   * @return The transformation state
    */
-  DatabaseTransformationStatus transformationStatus();
-
-  /**
-   * Is used to update the current transformation status of the table
-   * @param newStatus The new transformation status
-   */
-  void updateTransformationStatus(DatabaseTransformationStatus newStatus);
+  DatabaseTransformationState transformationState();
 
   /**
    * The temporary database table that will be used in the transformation process
    * @return The temporary database table
    */
-  DatabaseTable transformationTemporaryTable();
+  DatabaseTable temporaryTable();
 
   /**
    * Is used to set the temporary database table
    * @param temporaryTable The temporary database table
    */
-  void equipTransformationTemporaryTable(DatabaseTable temporaryTable);
+  void equipTemporaryTable(DatabaseTable temporaryTable);
 
-  default CompletableFuture<Void> fillTemporaryTable() {
+  /**
+   * Is used to update the current transformation state of the table
+   * @param newState The new transformation state
+   */
+  void updateTransformationState(DatabaseTransformationState newState);
+
+  /**
+   * Moves the data of the origin table to the temporary table
+   * @return A future that then next transformation state
+   */
+  default CompletableFuture<DatabaseTransformationState> fillTemporaryTable() {
     return null;
   }
 
-  default CompletableFuture<Void> useTemporaryTable() {
+  /**
+   * Uses the temporary table for operation only
+   * @return A future that then next transformation state
+   */
+  default CompletableFuture<DatabaseTransformationState> useTemporaryTable() {
+    return drop().thenCompose(dropValue -> create()
+      .thenApply(createValue -> DatabaseTransformationState.FILL_NEW));
+  }
+
+  /**
+   * Transforms the data of the temporary table to the new table
+   * @return A future that then next transformation state
+   */
+  default CompletableFuture<DatabaseTransformationState> fillNewTable() {
     return null;
   }
 
-  default CompletableFuture<Void> fillNewTable() {
-    return null;
-  }
-
-  default CompletableFuture<Void> useNewTable() {
-    return null;
+  /**
+   * Uses the new table for operation only
+   * @return A future that then next transformation state
+   */
+  default CompletableFuture<DatabaseTransformationState> useNewTable() {
+    return temporaryTable().drop()
+      .thenApply(dropValue -> DatabaseTransformationState.INACTIVE);
   }
 
   /**
@@ -72,8 +92,8 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable {
       }
       var temporaryTable = new DatabaseTable(connection(), keyspace(),
         name() + "_tmp", originColumns.get());
-      temporaryTable.createIfNotExists(false);
-      equipTransformationTemporaryTable(temporaryTable);
+      temporaryTable.createIfNotExists();
+      equipTemporaryTable(temporaryTable);
     } catch (Exception exception) {
       exception.printStackTrace();
     }

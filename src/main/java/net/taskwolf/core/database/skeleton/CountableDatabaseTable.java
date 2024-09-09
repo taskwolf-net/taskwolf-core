@@ -4,7 +4,9 @@ import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface CountableDatabaseTable extends AbstractDatabaseTable {
+public interface CountableDatabaseTable extends AbstractDatabaseTable,
+  TransformableDatabaseTable
+{
   /**
    * Is used to find the number of rows inside a database table
    * @return The number of rows

@@ -2,45 +2,24 @@ package net.taskwolf.core.database.skeleton;
 
 import net.taskwolf.core.database.DatabaseColumn;
 
-public interface CreatableDatabaseTable extends AbstractDatabaseTable,
-  TransformableDatabaseTable
-{
-  /**
-   * Creates the database table even if it already exists
-   */
-  default void create() {
-    create("", false);
-  }
+import java.util.concurrent.CompletableFuture;
 
+public interface CreatableDatabaseTable extends AbstractDatabaseTable {
   /**
    * Creates the database table even if it already exists
-   * @param checkDiscrepancy Whether a possible discrepancy in the
-   *                         table structure should be checked
    */
-  default void create(boolean checkDiscrepancy) {
-    create("", checkDiscrepancy);
+  default CompletableFuture<Void> create() {
+    return create("");
   }
 
   /**
    * Creates the database table only if it does not already exist
    */
-  default void createIfNotExists() {
-    create("IF NOT EXISTS ", false);
+  default CompletableFuture<Void> createIfNotExists() {
+    return create("IF NOT EXISTS ");
   }
 
-  /**
-   * Creates the database table only if it does not already exist
-   * @param checkDiscrepancy Whether a possible discrepancy in the
-   *                         table structure should be checked
-   */
-  default void createIfNotExists(boolean checkDiscrepancy) {
-    create("IF NOT EXISTS ", checkDiscrepancy);
-  }
-
-  private void create(String addition, boolean checkDiscrepancy) {
-    if (checkDiscrepancy) {
-      checkTableDiscrepancy();
-    }
+  private CompletableFuture<Void> create(String addition) {
     var query = new StringBuilder("CREATE TABLE ");
     query.append(addition);
     query.append(fullName());
@@ -49,8 +28,14 @@ public interface CreatableDatabaseTable extends AbstractDatabaseTable,
     query.append(")");
     query.append(clusteringOrder());
     query.append(";");
-    connection().execute(query);
+    registerTable();
+    return connection().execute(query).thenApply(value -> null);
   }
+
+  /**
+   * When this function is called the table will be registered in the keyspace
+   */
+  void registerTable();
 
   private String columnCompilation() {
     var compilation = new StringBuilder();

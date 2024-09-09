@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface PageableDatabaseTable extends AbstractDatabaseTable,
-  CountableDatabaseTable
+  CountableDatabaseTable, TransformableDatabaseTable
 {
   /**
    * Used to find a specific page inside the table

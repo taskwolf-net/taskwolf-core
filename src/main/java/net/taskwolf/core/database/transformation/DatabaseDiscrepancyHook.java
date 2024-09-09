@@ -1,0 +1,32 @@
+package net.taskwolf.core.database.transformation;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import net.taskwolf.core.application.CoreApplicationRunEvent;
+import net.taskwolf.core.database.DatabaseKeyspace;
+import net.taskwolf.core.database.DatabaseTable;
+import net.taskwolf.core.event.EventHook;
+import net.taskwolf.core.event.Hook;
+import net.taskwolf.core.worker.client.WorkerProxyClient;
+
+@Singleton
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
+public final class DatabaseDiscrepancyHook implements Hook {
+  private final DatabaseKeyspace keyspace;
+  private final WorkerProxyClient proxyClient;
+
+  @EventHook
+  private void applicationRun(CoreApplicationRunEvent event) {
+    for (var table : keyspace.tables()) {
+      if (table.transformation() != null) {
+        checkDiscrepancy(table);
+      }
+    }
+  }
+
+  private void checkDiscrepancy(DatabaseTable table) {
+
+  }
+}

@@ -1,6 +1,6 @@
 package net.taskwolf.core.database.transformation;
 
-public enum DatabaseTransformationStatus {
+public enum DatabaseTransformationState {
   INACTIVE,
   FILL_TEMPORARY,
   USE_TEMPORARY,

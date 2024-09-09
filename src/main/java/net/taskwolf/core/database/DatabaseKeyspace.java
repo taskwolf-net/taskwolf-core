@@ -1,9 +1,12 @@
 package net.taskwolf.core.database;
 
+import com.beust.jcommander.internal.Lists;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Getter
@@ -14,6 +17,7 @@ public final class DatabaseKeyspace {
   private final String name;
   private final String replicationClass;
   private final int replicationFactor;
+  private final List<DatabaseTable> tables = Lists.newArrayList();
 
   /**
    * Creates keyspace even if it already exists
@@ -73,5 +77,51 @@ public final class DatabaseKeyspace {
     query.append(name);
     query.append(";");
     connection.execute(query);
+  }
+
+  /**
+   * Is used register a new table to the keyspace
+   * @param table The table that is to be registered
+   */
+  public void registerTable(DatabaseTable table) {
+    tables.add(table);
+  }
+
+  /**
+   * Is used to unregister a table from the table
+   * @param table The table that is to be unregister
+   */
+  public void unregisterTable(DatabaseTable table) {
+    tables.remove(table);
+  }
+
+  /**
+   * The tables that were registered
+   * @return The list of tables
+   */
+  public List<DatabaseTable> tables() {
+    return List.copyOf(tables);
+  }
+
+  /**
+   * Is used to find a table by name
+   * @param tableName The name of the table
+   * @return The table if it could be found
+   */
+  public Optional<DatabaseTable> findTableByName(String tableName) {
+    return tables.stream()
+      .filter(table -> table.name().equals(tableName))
+      .findFirst();
+  }
+
+  /**
+   * Is used to find a table by the table class canonical name
+   * @param tableClassName The canonical name of table
+   * @return The table if it could be found
+   */
+  public Optional<DatabaseTable> findTableByClass(String tableClassName) {
+    return tables.stream()
+      .filter(table -> table.getClass().getCanonicalName().equals(tableClassName))
+      .findFirst();
   }
 }

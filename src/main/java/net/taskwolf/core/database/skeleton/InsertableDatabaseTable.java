@@ -4,7 +4,9 @@ import net.taskwolf.core.database.DatabaseRow;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface InsertableDatabaseTable extends AbstractDatabaseTable {
+public interface InsertableDatabaseTable extends AbstractDatabaseTable,
+  TransformableDatabaseTable
+{
   /**
    * Inserts a new database row into the database table
    * @param row The database row that is to be inserted

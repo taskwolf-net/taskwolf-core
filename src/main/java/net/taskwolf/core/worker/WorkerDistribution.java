@@ -9,12 +9,14 @@ import net.taskwolf.core.event.HookRegistry;
 import net.taskwolf.core.packet.PacketEventRepository;
 import net.taskwolf.core.packet.PacketRegistry;
 import net.taskwolf.core.worker.client.WorkerProxyClient;
-import net.taskwolf.core.worker.event.database.TableSwitchEvent;
+import net.taskwolf.core.worker.event.database.TableStateRequestEvent;
+import net.taskwolf.core.worker.event.database.TableStateResponseEvent;
 import net.taskwolf.core.worker.event.database.TableTransformEvent;
 import net.taskwolf.core.worker.event.node.NodeHandshakeResponseEvent;
 import net.taskwolf.core.worker.event.node.NodePingEvent;
 import net.taskwolf.core.worker.event.user.UsersReorganizeEvent;
-import net.taskwolf.core.worker.packet.incoming.database.PacketIncomingTableSwitch;
+import net.taskwolf.core.worker.packet.incoming.database.PacketIncomingTableStateRequest;
+import net.taskwolf.core.worker.packet.incoming.database.PacketIncomingTableStateResponse;
 import net.taskwolf.core.worker.packet.incoming.database.PacketIncomingTableTransform;
 import net.taskwolf.core.worker.packet.incoming.node.PacketIncomingHandshakeResponse;
 import net.taskwolf.core.worker.packet.incoming.node.PacketIncomingPing;
@@ -23,7 +25,8 @@ import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingDisconnect;
 import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingHandshakeRequest;
 import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingModuleLoad;
 import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingModuleUnload;
-import net.taskwolf.core.worker.server.database.TableSwitchHook;
+import net.taskwolf.core.worker.server.database.TableStateRequestHook;
+import net.taskwolf.core.worker.server.database.TableStateResponseHook;
 import net.taskwolf.core.worker.server.database.TableTransformHook;
 import net.taskwolf.core.worker.server.node.NodeDisconnectHook;
 import net.taskwolf.core.worker.server.node.NodeHandshakeResponseHook;
@@ -62,7 +65,8 @@ public final class WorkerDistribution {
     packetRegistry.registerPacket(PacketIncomingPing.class);
     packetRegistry.registerPacket(PacketIncomingUsersReorganize.class);
     packetRegistry.registerPacket(PacketIncomingTableTransform.class);
-    packetRegistry.registerPacket(PacketIncomingTableSwitch.class);
+    packetRegistry.registerPacket(PacketIncomingTableStateRequest.class);
+    packetRegistry.registerPacket(PacketIncomingTableStateResponse.class);
   }
 
   private void registerHooks() {
@@ -71,7 +75,8 @@ public final class WorkerDistribution {
     hookRegistry.register(injector.getInstance(NodePingHook.class));
     hookRegistry.register(injector.getInstance(UsersReorganizeHook.class));
     hookRegistry.register(injector.getInstance(TableTransformHook.class));
-    hookRegistry.register(injector.getInstance(TableSwitchHook.class));
+    hookRegistry.register(injector.getInstance(TableStateRequestHook.class));
+    hookRegistry.register(injector.getInstance(TableStateResponseHook.class));
   }
 
   private void registerEvents() {
@@ -84,8 +89,12 @@ public final class WorkerDistribution {
       (client, packet) -> UsersReorganizeEvent.create(packet.module(), packet.users()));
     packetEventRepository.registerEvent(PacketIncomingTableTransform.class,
       (client, packet) -> TableTransformEvent.create(packet.tableClass()));
-    packetEventRepository.registerEvent(PacketIncomingTableSwitch.class,
-      (client, packet) -> TableSwitchEvent.create(packet.tableClass()));
+    packetEventRepository.registerEvent(PacketIncomingTableStateRequest.class,
+      (client, packet) -> TableStateRequestEvent.create(packet.tableClass(),
+        packet.state()));
+    packetEventRepository.registerEvent(PacketIncomingTableStateResponse.class,
+      (client, packet) -> TableStateResponseEvent.create(packet.tableClass(),
+        packet.state()));
   }
 
   /**

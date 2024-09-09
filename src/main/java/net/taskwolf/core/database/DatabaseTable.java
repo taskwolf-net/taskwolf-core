@@ -3,7 +3,7 @@ package net.taskwolf.core.database;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.database.skeleton.*;
-import net.taskwolf.core.database.transformation.DatabaseTransformationStatus;
+import net.taskwolf.core.database.transformation.DatabaseTransformationState;
 import net.taskwolf.core.database.transformation.DatabaseTransformation;
 
 import java.util.List;
@@ -15,16 +15,15 @@ public class DatabaseTable implements CreatableDatabaseTable,
   DroppableDatabaseTable, InsertableDatabaseTable, DeletableDatabaseTable,
   ExistableDatabaseTable, SelectableDatabaseTable, UpdatableDatabaseTable,
   CountableDatabaseTable, IndexableDatabaseTable, PageableDatabaseTable,
-  ViewableDatabaseTable, TransformableDatabaseTable
-{
+  ViewableDatabaseTable, TransformableDatabaseTable, AbstractDatabaseTable {
   private final DatabaseConnection connection;
   private final DatabaseKeyspace keyspace;
   private final String name;
   private final List<DatabaseColumn> columns;
   private DatabaseTransformation transformation;
-  private DatabaseTransformationStatus transformationStatus =
-    DatabaseTransformationStatus.INACTIVE;
-  private DatabaseTable transformationTemporaryTable;
+  private DatabaseTransformationState transformationState =
+    DatabaseTransformationState.INACTIVE;
+  private DatabaseTable temporaryTable;
 
   public DatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
@@ -215,6 +214,20 @@ public class DatabaseTable implements CreatableDatabaseTable,
   }
 
   /**
+   * When this function is called the table will be registered in the keyspace
+   */
+  public void registerTable() {
+    keyspace.registerTable(this);
+  }
+
+  /**
+   * When this function is called the table will be unregistered from the keyspace
+   */
+  public void unregisterTable() {
+    keyspace.unregisterTable(this);
+  }
+
+  /**
    * The structure used for swapping between old and new format
    * @return The transformation
    */
@@ -224,22 +237,22 @@ public class DatabaseTable implements CreatableDatabaseTable,
   }
 
   /**
-   * The status that is used to determine whether there is a transformation
+   * The state that is used to determine whether there is a transformation
    * currently running
-   * @return The transformation status
+   * @return The transformation state
    */
   @Override
-  public DatabaseTransformationStatus transformationStatus() {
-    return transformationStatus;
+  public DatabaseTransformationState transformationState() {
+    return transformationState;
   }
 
   /**
-   * Is used to update the current transformation status of the table
-   * @param newStatus The new transformation status
+   * Is used to update the current transformation state of the table
+   * @param newState The new transformation state
    */
   @Override
-  public void updateTransformationStatus(DatabaseTransformationStatus newStatus) {
-    transformationStatus = newStatus;
+  public void updateTransformationState(DatabaseTransformationState newState) {
+    transformationState = newState;
   }
 
   /**
@@ -247,8 +260,8 @@ public class DatabaseTable implements CreatableDatabaseTable,
    * @return The temporary database table
    */
   @Override
-  public DatabaseTable transformationTemporaryTable() {
-    return transformationTemporaryTable;
+  public DatabaseTable temporaryTable() {
+    return temporaryTable;
   }
 
   /**
@@ -256,7 +269,7 @@ public class DatabaseTable implements CreatableDatabaseTable,
    * @param temporaryTable The temporary database table
    */
   @Override
-  public void equipTransformationTemporaryTable(DatabaseTable temporaryTable) {
-    transformationTemporaryTable = temporaryTable;
+  public void equipTemporaryTable(DatabaseTable temporaryTable) {
+    this.temporaryTable = temporaryTable;
   }
 }

@@ -4,7 +4,9 @@ import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface ExistableDatabaseTable extends AbstractDatabaseTable {
+public interface ExistableDatabaseTable extends AbstractDatabaseTable,
+  TransformableDatabaseTable
+{
   /**
    * Is used to check whether a row inside the database table exists
    * @param value The primary key value
