@@ -29,8 +29,11 @@ public interface CountableDatabaseTable extends AbstractDatabaseTable,
   ) {
     var query = new StringBuilder("SELECT COUNT(*) FROM ");
     query.append(fullName());
-    query.append(" WHERE ");
-    query.append(condition.build());
+    var conditionValue = condition.build();
+    if (!conditionValue.isEmpty()) {
+      query.append(" WHERE ");
+      query.append(conditionValue);
+    }
     query.append(condition.filteringAddition());
     query.append(";");
     return connection().execute(query, condition.values())

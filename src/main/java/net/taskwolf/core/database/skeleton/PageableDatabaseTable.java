@@ -149,8 +149,11 @@ public interface PageableDatabaseTable extends AbstractDatabaseTable,
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
-    query.append(" WHERE ");
-    query.append(condition.build());
+    var conditionValue = condition.build();
+    if (!conditionValue.isEmpty()) {
+      query.append(" WHERE ");
+      query.append(conditionValue);
+    }
     query.append(" ORDER BY ");
     query.append(columns().stream().filter(column -> column.type().isClusteringKey())
       .findFirst().get().name());

@@ -102,8 +102,11 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
     query.append(fullName());
     query.append(" SET ");
     query.append(keyValuePairs);
-    query.append(" WHERE ");
-    query.append(condition.build());
+    var conditionValue = condition.build();
+    if (!conditionValue.isEmpty()) {
+      query.append(" WHERE ");
+      query.append(conditionValue);
+    }
     query.append(condition.filteringAddition());
     query.append(";");
     var conditionValues = condition.values();

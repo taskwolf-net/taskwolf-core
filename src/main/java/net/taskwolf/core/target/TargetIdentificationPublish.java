@@ -48,8 +48,11 @@ public final class TargetIdentificationPublish {
   ) {
     var query = new StringBuilder("SELECT * FROM ");
     query.append(keyspace.name() + "." + tableName);
-    query.append(" WHERE ");
-    query.append(condition.build());
+    var conditionValue = condition.build();
+    if (!conditionValue.isEmpty()) {
+      query.append(" WHERE ");
+      query.append(conditionValue);
+    }
     query.append(";");
     return connection.execute(query, condition.values())
       .thenApply(result -> result.remaining() > 0);

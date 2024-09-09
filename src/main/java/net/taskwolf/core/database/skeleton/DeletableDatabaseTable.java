@@ -24,8 +24,11 @@ public interface DeletableDatabaseTable extends AbstractDatabaseTable,
   default CompletableFuture<Void> delete(DatabaseCondition condition) {
     var query = new StringBuilder("DELETE FROM ");
     query.append(fullName());
-    query.append(" WHERE ");
-    query.append(condition.build());
+    var conditionValue = condition.build();
+    if (!conditionValue.isEmpty()) {
+      query.append(" WHERE ");
+      query.append(conditionValue);
+    }
     query.append(";");
     return connection().execute(query, condition.values()).thenApply(value -> null);
   }

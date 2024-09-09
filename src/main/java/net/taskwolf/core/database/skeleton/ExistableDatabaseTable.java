@@ -31,8 +31,11 @@ public interface ExistableDatabaseTable extends AbstractDatabaseTable,
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
-    query.append(" WHERE ");
-    query.append(condition.build());
+    var conditionValue = condition.build();
+    if (!conditionValue.isEmpty()) {
+      query.append(" WHERE ");
+      query.append(conditionValue);
+    }
     query.append(condition.filteringAddition());
     query.append(";");
     return connection().execute(query, condition.values())

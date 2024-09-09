@@ -93,8 +93,11 @@ public interface SelectableDatabaseTable extends AbstractDatabaseTable,
     query.append(columnNameCompilation());
     query.append(" FROM ");
     query.append(fullName());
-    query.append(" WHERE ");
-    query.append(condition.build());
+    var conditionValue = condition.build();
+    if (!conditionValue.isEmpty()) {
+      query.append(" WHERE ");
+      query.append(conditionValue);
+    }
     if (limit > 0) {
       query.append(" LIMIT ");
       query.append(limit);
