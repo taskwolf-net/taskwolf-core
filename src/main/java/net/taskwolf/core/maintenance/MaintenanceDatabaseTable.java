@@ -25,7 +25,7 @@ public final class MaintenanceDatabaseTable extends DatabaseTable {
     var maintenanceDatabaseTable =  new MaintenanceDatabaseTable(connection,
       keyspace, TABLE_NAME, columns);
     maintenanceDatabaseTable.createIfNotExists();
-    maintenanceDatabaseTable.createIndex("status");
+    maintenanceDatabaseTable.createIndexIfNotExists("status");
     return maintenanceDatabaseTable;
   }
 
