@@ -1,5 +1,6 @@
 package net.taskwolf.core.database.skeleton;
 
+import net.taskwolf.core.database.DatabaseAccessType;
 import net.taskwolf.core.database.DatabaseRow;
 import net.taskwolf.core.database.condition.DatabaseCondition;
 
@@ -17,10 +18,8 @@ public interface SelectableDatabaseTable extends AbstractDatabaseTable,
   default CompletableFuture<List<DatabaseRow>> selectAllRows() {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
-    query.append(" FROM ");
-    query.append(fullName());
-    query.append(";");
-    return connection().execute(query).thenApply(result ->
+    query.append(" FROM %s;");
+    return execute(DatabaseAccessType.READ, query).thenApply(result ->
       DatabaseRow.multiple(result.currentPage(), columns().size()));
   }
 
@@ -91,8 +90,7 @@ public interface SelectableDatabaseTable extends AbstractDatabaseTable,
   ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
-    query.append(" FROM ");
-    query.append(fullName());
+    query.append(" FROM %s");
     var conditionValue = condition.build();
     if (!conditionValue.isEmpty()) {
       query.append(" WHERE ");
@@ -104,7 +102,8 @@ public interface SelectableDatabaseTable extends AbstractDatabaseTable,
     }
     query.append(condition.filteringAddition());
     query.append(";");
-    return connection().execute(query, condition.values()).thenApply(result ->
-      DatabaseRow.multiple(result.currentPage(), columns().size()));
+    return execute(DatabaseAccessType.READ, query, condition.values())
+      .thenApply(result -> DatabaseRow.multiple(result.currentPage(),
+        columns().size()));
   }
 }

@@ -1,5 +1,6 @@
 package net.taskwolf.core.database.skeleton;
 
+import net.taskwolf.core.database.DatabaseAccessType;
 import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.concurrent.CompletableFuture;
@@ -12,10 +13,7 @@ public interface CountableDatabaseTable extends AbstractDatabaseTable,
    * @return The number of rows
    */
   default CompletableFuture<Long> count() {
-    var query = new StringBuilder("SELECT COUNT(*) FROM ");
-    query.append(fullName());
-    query.append(";");
-    return connection().execute(query)
+    return execute(DatabaseAccessType.READ, "SELECT COUNT(*) FROM %s;")
       .thenApply(result -> result.one().get(0, Long.class));
   }
 
@@ -27,8 +25,7 @@ public interface CountableDatabaseTable extends AbstractDatabaseTable,
   default CompletableFuture<Long> count(
     DatabaseCondition condition
   ) {
-    var query = new StringBuilder("SELECT COUNT(*) FROM ");
-    query.append(fullName());
+    var query = new StringBuilder("SELECT COUNT(*) FROM %s");
     var conditionValue = condition.build();
     if (!conditionValue.isEmpty()) {
       query.append(" WHERE ");
@@ -36,7 +33,7 @@ public interface CountableDatabaseTable extends AbstractDatabaseTable,
     }
     query.append(condition.filteringAddition());
     query.append(";");
-    return connection().execute(query, condition.values())
+    return execute(DatabaseAccessType.READ, query, condition.values())
       .thenApply(result -> result.one().get(0, Long.class));
   }
 }

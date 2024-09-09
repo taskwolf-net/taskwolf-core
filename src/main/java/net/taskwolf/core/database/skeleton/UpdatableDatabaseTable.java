@@ -1,5 +1,6 @@
 package net.taskwolf.core.database.skeleton;
 
+import net.taskwolf.core.database.DatabaseAccessType;
 import net.taskwolf.core.database.DatabaseRow;
 import net.taskwolf.core.database.condition.DatabaseCondition;
 
@@ -98,9 +99,7 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
   private CompletableFuture<Void> update(
     DatabaseCondition condition, Object[] values, String keyValuePairs
   ) {
-    var query = new StringBuilder("UPDATE ");
-    query.append(fullName());
-    query.append(" SET ");
+    var query = new StringBuilder("UPDATE %s SET ");
     query.append(keyValuePairs);
     var conditionValue = condition.build();
     if (!conditionValue.isEmpty()) {
@@ -110,7 +109,7 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
     query.append(condition.filteringAddition());
     query.append(";");
     var conditionValues = condition.values();
-    return connection().execute(query,
+    return execute(DatabaseAccessType.WRITE, query,
         Stream.concat(Arrays.stream(values), Arrays.stream(conditionValues))
           .skip(conditionValues.length).toArray(Object[]::new))
       .thenApply(value -> null);

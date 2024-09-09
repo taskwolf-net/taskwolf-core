@@ -1,5 +1,6 @@
 package net.taskwolf.core.database.skeleton;
 
+import net.taskwolf.core.database.DatabaseAccessType;
 import net.taskwolf.core.database.DatabaseRow;
 
 import java.util.concurrent.CompletableFuture;
@@ -23,15 +24,14 @@ public interface InsertableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that is completed when the insertion is completed
    */
   default CompletableFuture<Void> insert(DatabaseRow row, String addition) {
-    var query = new StringBuilder("INSERT INTO ");
-    query.append(fullName());
-    query.append(" (");
+    var query = new StringBuilder("INSERT INTO %s (");
     query.append(columnNameCompilation());
     query.append(") VALUES (");
     query.append(row.placeholderCompilation());
     query.append(") ");
     query.append(addition);
     query.append(";");
-    return connection().execute(query, row.values()).thenApply(value -> null);
+    return execute(DatabaseAccessType.WRITE, query, row.values())
+      .thenApply(value -> null);
   }
 }

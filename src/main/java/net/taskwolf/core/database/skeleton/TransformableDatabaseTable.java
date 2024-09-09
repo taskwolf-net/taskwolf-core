@@ -9,6 +9,8 @@ import net.taskwolf.core.database.DatabaseTable;
 import net.taskwolf.core.database.transformation.DatabaseTransformation;
 import net.taskwolf.core.database.transformation.DatabaseTransformationState;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -110,6 +112,12 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
       return Optional.empty();
     }
     var columns = columns();
+    var exclusions = columns.stream()
+      .filter(column -> !column.type().isRegular()).toList();
+    exclusions.forEach(columns::remove);
+    Collections.sort(columns, Comparator.comparing(DatabaseColumn::name));
+    exclusions.forEach(exclusion -> columns.add(columns().indexOf(exclusion),
+      exclusion));
     if (previousColumns.size() != columns.size()) {
       return Optional.of(previousColumns);
     }

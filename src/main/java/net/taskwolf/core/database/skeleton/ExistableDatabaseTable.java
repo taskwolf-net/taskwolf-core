@@ -1,5 +1,6 @@
 package net.taskwolf.core.database.skeleton;
 
+import net.taskwolf.core.database.DatabaseAccessType;
 import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.concurrent.CompletableFuture;
@@ -29,8 +30,7 @@ public interface ExistableDatabaseTable extends AbstractDatabaseTable,
   ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
-    query.append(" FROM ");
-    query.append(fullName());
+    query.append(" FROM %s");
     var conditionValue = condition.build();
     if (!conditionValue.isEmpty()) {
       query.append(" WHERE ");
@@ -38,7 +38,7 @@ public interface ExistableDatabaseTable extends AbstractDatabaseTable,
     }
     query.append(condition.filteringAddition());
     query.append(";");
-    return connection().execute(query, condition.values())
+    return execute(DatabaseAccessType.READ, query, condition.values())
       .thenApply(result -> result.remaining() > 0);
   }
 }

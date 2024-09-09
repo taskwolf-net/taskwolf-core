@@ -5,6 +5,7 @@ import com.datastax.oss.driver.api.core.cql.PagingState;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.google.common.collect.Lists;
+import net.taskwolf.core.database.DatabaseAccessType;
 import net.taskwolf.core.database.DatabaseRow;
 import net.taskwolf.core.database.condition.DatabaseCondition;
 import net.taskwolf.core.database.paging.DatabaseDirection;
@@ -53,7 +54,7 @@ public interface PageableDatabaseTable extends AbstractDatabaseTable,
       var offset = (int) (rowNumber % pageSize);
       statement = statement.setPageSize(offset == 0 ? pageSize : offset);
     }
-    return connection().execute(statement, pagingCondition.values())
+    return execute(DatabaseAccessType.READ, statement, pagingCondition.values())
       .thenApply(result -> createDatabasePage(pageNumber, result, direction));
   }
 
@@ -88,7 +89,7 @@ public interface PageableDatabaseTable extends AbstractDatabaseTable,
     var pagingCondition = createPagingCondition(partitionValue, condition);
     var statement = createPagingStatement(pagingCondition,
       direction.isForward() ? order : order.reverse(), pageSize, pageState);
-    return connection().execute(statement, pagingCondition.values())
+    return execute(DatabaseAccessType.READ, statement, pagingCondition.values())
       .thenCompose(result -> findShiftedPage(pageSize, pageNumber, result,
         startingPoint, direction));
   }
@@ -147,8 +148,7 @@ public interface PageableDatabaseTable extends AbstractDatabaseTable,
   ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
-    query.append(" FROM ");
-    query.append(fullName());
+    query.append(" FROM %s");
     var conditionValue = condition.build();
     if (!conditionValue.isEmpty()) {
       query.append(" WHERE ");

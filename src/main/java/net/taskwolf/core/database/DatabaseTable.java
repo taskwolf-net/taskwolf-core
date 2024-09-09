@@ -1,5 +1,8 @@
 package net.taskwolf.core.database;
 
+import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
+import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.database.skeleton.*;
@@ -271,5 +274,71 @@ public class DatabaseTable implements CreatableDatabaseTable,
   @Override
   public void equipTemporaryTable(DatabaseTable temporaryTable) {
     this.temporaryTable = temporaryTable;
+  }
+
+  /**
+   * Is used to execute a cql query
+   * @param accessType The access type used for transformation
+   * @param stringBuilder The string builder that contains the query
+   * @param values The placeholder values
+   * @return The future that contains the result set
+   */
+  public CompletableFuture<AsyncResultSet> execute(
+    DatabaseAccessType accessType, StringBuilder stringBuilder, Object... values
+  ) {
+    return execute(accessType, stringBuilder.toString(), values);
+  }
+
+  /**
+   * Is used to execute a cql query
+   * @param accessType The access type used for transformation
+   * @param query The query
+   * @param values The placeholder values
+   * @return The future that contains the result set
+   */
+  public CompletableFuture<AsyncResultSet> execute(
+    DatabaseAccessType accessType, String query, Object... values
+  ) {
+    return executionTargetTables(accessType).stream()
+      .map(target -> connection.execute(String.format(query, target), values))
+      .findFirst().get();
+  }
+
+  /**
+   * Is used to execute a cql query
+   * @param accessType The access type used for transformation
+   * @param simpleStatement The statement that is to be executed
+   * @param values The placeholder values
+   * @return The future that contains the result set
+   */
+  public CompletableFuture<AsyncResultSet> execute(
+    DatabaseAccessType accessType, SimpleStatement simpleStatement,
+    Object... values
+  ) {
+    return executionTargetTables(accessType).stream()
+      .map(target -> connection.execute(simpleStatement.setQuery(
+        String.format(simpleStatement.getQuery(), target)), values))
+      .findFirst().get();
+  }
+
+  private List<String> executionTargetTables(DatabaseAccessType accessType) {
+    if (accessType.isRead()) {
+      return Lists.newArrayList(transformationState.isInactive() ||
+        transformationState.isFillTemporary() || transformationState.isUseNew() ?
+        fullName() : temporaryTable.fullName());
+    }
+    if (transformationState.isInactive() || transformationState.isUseNew()) {
+      return Lists.newArrayList(fullName());
+    }
+    if (transformationState.isUseTemporary()) {
+      return Lists.newArrayList(temporaryTable.fullName());
+    }
+    if (transformationState.isFillTemporary()) {
+      return Lists.newArrayList(fullName(), temporaryTable.fullName());
+    }
+    if (transformationState.isFillNew()) {
+      return Lists.newArrayList(temporaryTable.fullName(), fullName());
+    }
+    return Lists.newArrayList();
   }
 }
