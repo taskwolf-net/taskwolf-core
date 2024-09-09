@@ -59,6 +59,7 @@ public class CoreApplication {
     registerHooks(injector.getInstance(HookRegistry.class), injector);
     var eventExecutor = injector.getInstance(EventExecutor.class);
     eventExecutor.execute(CoreApplicationLaunchEvent.create());
+    injector.getInstance(TestDatabaseTable.class).createIfNotExists();
     var application = injector.getInstance(SpringApplication.class);
     registerConditions(injector.getInstance(ConditionInformationRepository.class));
     registerTutorialLevels(injector.getInstance(TutorialLevelRegistry.class));

@@ -9,11 +9,14 @@ import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.database.DatabaseTable;
 import net.taskwolf.core.event.EventHook;
 import net.taskwolf.core.event.Hook;
+import net.taskwolf.core.log.Log;
 import net.taskwolf.core.worker.client.WorkerProxyClient;
+import net.taskwolf.core.worker.packet.outgoing.database.PacketOutgoingTableDiscrepancy;
 
 @Singleton
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
 public final class DatabaseDiscrepancyHook implements Hook {
+  private final Log log;
   private final DatabaseKeyspace keyspace;
   private final WorkerProxyClient proxyClient;
 
@@ -21,12 +24,19 @@ public final class DatabaseDiscrepancyHook implements Hook {
   private void applicationRun(CoreApplicationRunEvent event) {
     for (var table : keyspace.tables()) {
       if (table.transformation() != null) {
-        checkDiscrepancy(table);
+        table.checkTableDiscrepancy().thenAccept(discrepancy ->
+          checkDiscrepancy(table, discrepancy));
       }
     }
   }
 
-  private void checkDiscrepancy(DatabaseTable table) {
-
+  private void checkDiscrepancy(DatabaseTable table, boolean discrepancy) {
+    if (!discrepancy) {
+      return;
+    }
+    proxyClient.sendPacket(new PacketOutgoingTableDiscrepancy(
+      table.getClass().getCanonicalName()));
+    log.info("A discrepancy was found in table " + table.getClass().getCanonicalName() +
+      ". The transformation is being prepared.");
   }
 }

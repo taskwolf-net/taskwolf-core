@@ -52,7 +52,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> fillTemporaryTable() {
-    return null;
+    return CompletableFuture.completedFuture(DatabaseTransformationState.USE_TEMPORARY);
   }
 
   /**
@@ -69,7 +69,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> fillNewTable() {
-    return null;
+    return CompletableFuture.completedFuture(DatabaseTransformationState.USE_NEW);
   }
 
   /**
@@ -84,23 +84,28 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
   /**
    * Is used to check if a table discrepancy is present
    */
-  default void checkTableDiscrepancy() {
-    try {
-      var originColumns = findOriginColumns();
-      if (originColumns.isEmpty()) {
-        return;
-      }
-      var temporaryTable = new DatabaseTable(connection(), keyspace(),
-        name() + "_tmp", originColumns.get());
-      temporaryTable.createIfNotExists();
-      equipTemporaryTable(temporaryTable);
-    } catch (Exception exception) {
-      exception.printStackTrace();
+  default CompletableFuture<Boolean> checkTableDiscrepancy() {
+    if (transformation() == null) {
+      return CompletableFuture.completedFuture(false);
     }
+    return findTableColumns().thenApply(this::checkTableDiscrepancy);
   }
 
-  private Optional<List<DatabaseColumn>> findOriginColumns() throws Exception {
-    var previousColumns = findTableColumns().get();
+  private boolean checkTableDiscrepancy(List<DatabaseColumn> previousColumns) {
+    var originColumns = findOriginColumns(previousColumns);
+    if (originColumns.isEmpty()) {
+      return false;
+    }
+    var temporaryTable = new DatabaseTable(connection(), keyspace(),
+      name() + "_tmp", originColumns.get());
+    temporaryTable.createIfNotExists();
+    equipTemporaryTable(temporaryTable);
+    return true;
+  }
+
+  private Optional<List<DatabaseColumn>> findOriginColumns(
+    List<DatabaseColumn> previousColumns
+  ) {
     if (previousColumns.isEmpty()) {
       return Optional.empty();
     }

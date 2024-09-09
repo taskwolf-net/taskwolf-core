@@ -17,6 +17,7 @@ import net.taskwolf.core.worker.packet.outgoing.database.PacketOutgoingTableStat
 @Singleton
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
 public final class TableStateRequestHook implements Hook {
+  private final Log log;
   private final DatabaseKeyspace keyspace;
   private final WorkerProxyClient proxyClient;
 
@@ -30,5 +31,8 @@ public final class TableStateRequestHook implements Hook {
     table.updateTransformationState(event.state());
     proxyClient.sendPacket(new PacketOutgoingTableStateResponse(
       event.tableClass(), event.state()));
+    log.info("The transformation of table " + event.tableClass() +
+      " has progressed. The new state of the transformation is now " +
+      event.state().toString() + ".");
   }
 }

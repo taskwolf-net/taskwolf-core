@@ -10,7 +10,9 @@ import net.taskwolf.core.action.ActionInjectionModule;
 import net.taskwolf.core.bundle.BundleInjectionModule;
 import net.taskwolf.core.command.CommandInjectionModule;
 import net.taskwolf.core.condition.ConditionInjectionModule;
+import net.taskwolf.core.database.DatabaseConnection;
 import net.taskwolf.core.database.DatabaseInjectionModule;
+import net.taskwolf.core.database.DatabaseKeyspace;
 import net.taskwolf.core.intro.IntroInjectionModule;
 import net.taskwolf.core.locale.LocaleInjectionModule;
 import net.taskwolf.core.log.Log;
@@ -34,6 +36,7 @@ import net.taskwolf.core.tutorial.TutorialInjectionModule;
 import net.taskwolf.core.user.UserInjectionModule;
 import net.taskwolf.core.whitelist.WhitelistInjectionModule;
 import net.taskwolf.core.worker.WorkerInjectionModule;
+import net.taskwolf.core.workflow.WorkflowDatabaseTable;
 import net.taskwolf.core.workflow.WorkflowInjectionModule;
 import org.springframework.boot.SpringApplication;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -89,5 +92,13 @@ public class CoreInjectionModule extends AbstractModule {
     var classLoader = moduleLoader.classLoader();
     application.setResourceLoader(new DefaultResourceLoader(classLoader));
     return application;
+  }
+
+  @Provides
+  @Singleton
+  TestDatabaseTable provideTestDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    return TestDatabaseTable.create(connection, keyspace);
   }
 }
