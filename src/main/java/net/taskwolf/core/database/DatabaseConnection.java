@@ -29,7 +29,7 @@ public final class DatabaseConnection {
       ((LoggerContext) LoggerFactory.getILoggerFactory())
         .getLogger("com.datastax").setLevel(Level.ERROR);
       var loader = DriverConfigLoader.programmaticBuilder()
-        .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(5))
+        .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(30))
         .build();
       session = CqlSession.builder()
         .addContactPoint(new InetSocketAddress(databaseConfiguration.hostname(),
@@ -64,10 +64,12 @@ public final class DatabaseConnection {
   public CompletableFuture<AsyncResultSet> execute(
     String query, Object... values
   ) {
-    return session.prepareAsync(query)
+    var result = session.prepareAsync(query)
       .thenApply(statement -> statement.bind(values))
       .thenCompose(statement -> session.executeAsync(statement))
       .toCompletableFuture();
+    result.exceptionally(throwable -> exceptionally(query, throwable));
+    return result;
   }
 
   /**
@@ -79,9 +81,18 @@ public final class DatabaseConnection {
   public CompletableFuture<AsyncResultSet> execute(
     SimpleStatement simpleStatement, Object... values
   ) {
-    return session.prepareAsync(simpleStatement)
+    var result = session.prepareAsync(simpleStatement)
       .thenApply(statement -> statement.bind(values))
       .thenCompose(statement -> session.executeAsync(statement))
       .toCompletableFuture();
+    result.exceptionally(throwable ->
+      exceptionally(simpleStatement.getQuery(), throwable));
+    return result;
+  }
+
+  private AsyncResultSet exceptionally(String query, Throwable throwable) {
+    System.out.println(query);
+    throwable.printStackTrace();
+    return null;
   }
 }
