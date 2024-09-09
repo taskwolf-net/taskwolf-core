@@ -2,6 +2,8 @@ package net.taskwolf.core;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import net.taskwolf.core.application.CoreApplicationLaunchEvent;
+import net.taskwolf.core.application.CoreApplicationRunEvent;
 import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.command.CommandTask;
 import net.taskwolf.core.command.implementation.*;
@@ -11,6 +13,9 @@ import net.taskwolf.core.condition.number.ConditionNumberSmallerThan;
 import net.taskwolf.core.condition.text.ConditionTextEndsWith;
 import net.taskwolf.core.condition.text.ConditionTextEquals;
 import net.taskwolf.core.condition.text.ConditionTextStartsWith;
+import net.taskwolf.core.database.transformation.DatabaseDiscrepancyHook;
+import net.taskwolf.core.event.EventExecutor;
+import net.taskwolf.core.event.HookRegistry;
 import net.taskwolf.core.intro.Intro;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.maintenance.MaintenanceSchedule;
@@ -51,6 +56,9 @@ public class CoreApplication {
     injector.getInstance(Intro.class).print();
     var log = injector.getInstance(Log.class);
     log.info("Initializing Taskwolf - Core");
+    registerHooks(injector.getInstance(HookRegistry.class), injector);
+    var eventExecutor = injector.getInstance(EventExecutor.class);
+    eventExecutor.execute(CoreApplicationLaunchEvent.create());
     var application = injector.getInstance(SpringApplication.class);
     registerConditions(injector.getInstance(ConditionInformationRepository.class));
     registerTutorialLevels(injector.getInstance(TutorialLevelRegistry.class));
@@ -70,6 +78,11 @@ public class CoreApplication {
     Runtime.getRuntime().addShutdownHook(new Thread(() ->
       injector.getInstance(WorkerProxyClient.class)
         .sendPacket(new PacketOutgoingDisconnect())));
+    eventExecutor.execute(CoreApplicationRunEvent.create());
+  }
+
+  private static void registerHooks(HookRegistry registry, Injector injector) {
+    registry.register(injector.getInstance(DatabaseDiscrepancyHook.class));
   }
 
   private static void registerConditions(ConditionInformationRepository repository) {
