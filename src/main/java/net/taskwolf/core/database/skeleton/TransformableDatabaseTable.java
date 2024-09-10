@@ -158,18 +158,19 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     if (transformation() == null) {
       return CompletableFuture.completedFuture(false);
     }
-    return findTableColumns().thenApply(this::checkTableDiscrepancy);
+    return findTableColumns().thenCompose(this::checkTableDiscrepancy);
   }
 
-  private boolean checkTableDiscrepancy(List<DatabaseColumn> currentColumns) {
+  private CompletableFuture<Boolean> checkTableDiscrepancy(
+    List<DatabaseColumn> currentColumns
+  ) {
     if (checkColumnMatch(Lists.newArrayList(currentColumns))) {
-      return false;
+      return CompletableFuture.completedFuture(false);
     }
     var temporaryTable = new DatabaseTable(connection(), keyspace(),
       name() + "_tmp", transformation().oldColumns());
-    temporaryTable.createIfNotExists();
     equipTemporaryTable(temporaryTable);
-    return true;
+    return temporaryTable.createAsyncIfNotExists().thenApply(value -> true);
   }
 
   private boolean checkColumnMatch(
