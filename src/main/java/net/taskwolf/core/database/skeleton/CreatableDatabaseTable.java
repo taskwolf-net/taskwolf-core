@@ -58,11 +58,7 @@ public interface CreatableDatabaseTable extends AbstractDatabaseTable {
     query.append(clusteringOrder());
     query.append(";");
     registerTable();
-    try {
-      connection().execute(query).get();
-    } catch (Exception exception) {
-      exception.printStackTrace();
-    }
+    connection().execute(query).join();
   }
 
   /**
