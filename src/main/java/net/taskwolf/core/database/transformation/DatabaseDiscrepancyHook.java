@@ -32,10 +32,8 @@ public final class DatabaseDiscrepancyHook implements Hook {
       exception.printStackTrace();
     }
     for (var table : keyspace.tables()) {
-      if (table.transformation() != null) {
-        table.checkTableDiscrepancy().thenAccept(discrepancy ->
-          checkTableDiscrepancy(table, discrepancy));
-      }
+      table.checkTableDiscrepancy().thenAccept(discrepancy ->
+        checkTableDiscrepancy(table, discrepancy));
     }
   }
 
