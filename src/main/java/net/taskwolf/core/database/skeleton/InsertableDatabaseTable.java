@@ -34,4 +34,22 @@ public interface InsertableDatabaseTable extends AbstractDatabaseTable,
     return execute(DatabaseAccessType.WRITE, query, row.values())
       .thenApply(value -> null);
   }
+
+  /**
+   * Inserts a new database row into the database table ignoring
+   * transformation processes
+   * @param row The database row that is to be inserted
+   * @return A future that is completed when the insertion is completed
+   */
+  default CompletableFuture<Void> insertFix(DatabaseRow row) {
+    var query = new StringBuilder("INSERT INTO ");
+    query.append(fullName());
+    query.append(" (");
+    query.append(columnNameCompilation());
+    query.append(") VALUES (");
+    query.append(row.placeholderCompilation());
+    query.append(");");
+    return connection().execute(query, row.values())
+      .thenApply(value -> null);
+  }
 }

@@ -6,7 +6,6 @@ import com.google.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.database.DatabaseKeyspace;
-import net.taskwolf.core.database.DatabaseTable;
 import net.taskwolf.core.event.EventHook;
 import net.taskwolf.core.event.Hook;
 import net.taskwolf.core.log.Log;
@@ -24,7 +23,7 @@ public final class TableStateRequestHook implements Hook {
   @EventHook
   private void tableStateRequest(TableStateRequestEvent event) {
     var tableOptional = keyspace.findTableByClass(event.tableClass());
-    if (tableOptional.isEmpty()) {
+    if (tableOptional.isEmpty() || event.state().isFailure()) {
       return;
     }
     var table = tableOptional.get();

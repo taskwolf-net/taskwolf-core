@@ -36,4 +36,17 @@ public interface CountableDatabaseTable extends AbstractDatabaseTable,
     return execute(DatabaseAccessType.READ, query, condition.values())
       .thenApply(result -> result.one().get(0, Long.class));
   }
+
+  /**
+   * Is used to find the number of rows inside a database table ignoring
+   * transformation processes
+   * @return The number of rows
+   */
+  default CompletableFuture<Long> countFix() {
+    var query = new StringBuilder("SELECT COUNT(*) FROM ");
+    query.append(fullName());
+    query.append(";");
+    return connection().execute(query)
+      .thenApply(result -> result.one().get(0, Long.class));
+  }
 }

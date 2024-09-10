@@ -5,7 +5,8 @@ public enum DatabaseTransformationState {
   FILL_TEMPORARY,
   USE_TEMPORARY,
   FILL_NEW,
-  USE_NEW;
+  USE_NEW,
+  FAILURE;
 
   public boolean isInactive() {
     return this == INACTIVE;
@@ -25,5 +26,9 @@ public enum DatabaseTransformationState {
 
   public boolean isUseNew() {
     return this == USE_NEW;
+  }
+
+  public boolean isFailure() {
+    return this == FAILURE;
   }
 }

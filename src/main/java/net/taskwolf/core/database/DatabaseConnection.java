@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor(staticName = "create")
@@ -68,7 +69,7 @@ public final class DatabaseConnection {
       .thenApply(statement -> statement.bind(values))
       .thenCompose(statement -> session.executeAsync(statement))
       .toCompletableFuture();
-    result.exceptionally(throwable -> exceptionally(query, throwable));
+    result.exceptionally(throwable -> exceptionally(throwable, query, values));
     return result;
   }
 
@@ -86,12 +87,14 @@ public final class DatabaseConnection {
       .thenCompose(statement -> session.executeAsync(statement))
       .toCompletableFuture();
     result.exceptionally(throwable ->
-      exceptionally(simpleStatement.getQuery(), throwable));
+      exceptionally(throwable, simpleStatement.getQuery(), values));
     return result;
   }
 
-  private AsyncResultSet exceptionally(String query, Throwable throwable) {
-    System.out.println(query);
+  private AsyncResultSet exceptionally(
+    Throwable throwable, String query, Object... values
+  ) {
+    System.out.println(query + " -> " + Arrays.toString(values));
     throwable.printStackTrace();
     return null;
   }

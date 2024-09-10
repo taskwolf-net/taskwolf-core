@@ -10,7 +10,6 @@ import net.taskwolf.core.event.EventHook;
 import net.taskwolf.core.event.Hook;
 import net.taskwolf.core.log.Log;
 import net.taskwolf.core.worker.client.WorkerProxyClient;
-import net.taskwolf.core.worker.event.database.TableStateRequestEvent;
 import net.taskwolf.core.worker.event.database.TableStateResponseEvent;
 import net.taskwolf.core.worker.packet.outgoing.database.PacketOutgoingTableStateRequest;
 
@@ -45,10 +44,25 @@ public final class TableStateResponseHook implements Hook {
     } else {
       return;
     }
-    futureState.thenAccept(nextState -> proxyClient.sendPacket(
-      new PacketOutgoingTableStateRequest(event.tableClass(), nextState)));
-    futureState.thenAccept(nextState -> log.info("The last transformation " +
-      "phase for the table " + event.tableClass() + "has just been successfully " +
-      "completed. Phase " + nextState.toString() + " is now initiated."));
+    futureState.thenAccept(nextState -> publishNextState(event.tableClass(),
+      event.state(), nextState));
+  }
+
+  private void publishNextState(
+    String tableClass, DatabaseTransformationState currentState,
+    DatabaseTransformationState nextState
+  ) {
+    if (nextState.isFailure()) {
+      log.severe("An error occurred when moving data from one table to another. " +
+        "The error occurred in the " + currentState.toString() +
+        " phase of the " + tableClass + " table. The error was generated because " +
+        "the size of the original and new table did not match. " +
+        "Manual intervention is required!");
+      return;
+    }
+    proxyClient.sendPacket(new PacketOutgoingTableStateRequest(tableClass, nextState));
+    log.info("The last transformation phase for the table " + tableClass +
+      "has just been successfully completed. Phase " + nextState.toString() +
+      " is now initiated.");
   }
 }

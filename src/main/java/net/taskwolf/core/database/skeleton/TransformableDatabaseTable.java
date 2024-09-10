@@ -1,19 +1,18 @@
 package net.taskwolf.core.database.skeleton;
 
+import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
+import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.google.common.collect.Lists;
-import net.taskwolf.core.database.DatabaseColumn;
-import net.taskwolf.core.database.DatabaseDataType;
-import net.taskwolf.core.database.DatabaseListColumn;
-import net.taskwolf.core.database.DatabaseTable;
+import net.taskwolf.core.database.*;
 import net.taskwolf.core.database.transformation.DatabaseTransformation;
 import net.taskwolf.core.database.transformation.DatabaseTransformationState;
+import net.taskwolf.core.iterator.AsyncIterator;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 public interface TransformableDatabaseTable extends AbstractDatabaseTable,
   CreatableDatabaseTable, DroppableDatabaseTable
@@ -54,7 +53,10 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> fillTemporaryTable() {
-    return CompletableFuture.completedFuture(DatabaseTransformationState.USE_TEMPORARY);
+    return transformData(table(), temporaryTable().columns(), temporaryTable(),
+      CompletableFuture::completedFuture)
+      .thenApply(success -> success ? DatabaseTransformationState.USE_TEMPORARY :
+        DatabaseTransformationState.FAILURE);
   }
 
   /**
@@ -62,7 +64,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> useTemporaryTable() {
-    return drop().thenCompose(dropValue -> create()
+    return drop().thenCompose(dropValue -> createAsync()
       .thenApply(createValue -> DatabaseTransformationState.FILL_NEW));
   }
 
@@ -71,7 +73,10 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> fillNewTable() {
-    return CompletableFuture.completedFuture(DatabaseTransformationState.USE_NEW);
+    return transformData(temporaryTable(), table(),
+      transformation()::transformOldToNew)
+      .thenApply(success -> success ? DatabaseTransformationState.USE_NEW :
+        DatabaseTransformationState.FAILURE);
   }
 
   /**
@@ -81,6 +86,69 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
   default CompletableFuture<DatabaseTransformationState> useNewTable() {
     return temporaryTable().drop()
       .thenApply(dropValue -> DatabaseTransformationState.INACTIVE);
+  }
+
+  private CompletableFuture<Boolean> transformData(
+    DatabaseTable origin, DatabaseTable destination,
+    Function<DatabaseRow, CompletableFuture<DatabaseRow>> transformation
+  ) {
+    return transformData(origin, origin.columns(), destination, transformation);
+  }
+
+  private CompletableFuture<Boolean> transformData(
+    DatabaseTable origin, List<DatabaseColumn> originColumns,
+    DatabaseTable destination,
+    Function<DatabaseRow, CompletableFuture<DatabaseRow>> transformation
+  ) {
+    var query = new StringBuilder("SELECT ");
+    query.append(columnNameCompilation(originColumns, "", ""));
+    query.append(" FROM ");
+    query.append(origin.fullName());
+    query.append(";");
+    var futureResponse = new CompletableFuture<Boolean>();
+    var statement = SimpleStatement.builder(query.toString())
+      .setPageSize(10).build();
+    Runnable callback = () -> checkTransformationSuccess(origin, destination)
+      .thenAccept(futureResponse::complete);
+    connection().execute(statement)
+      .thenAccept(result -> processPageTransformationData(origin, originColumns,
+        destination, transformation, result, callback));
+    return futureResponse;
+  }
+
+  private void processPageTransformationData(
+    DatabaseTable origin, List<DatabaseColumn> originColumns,
+    DatabaseTable destination,
+    Function<DatabaseRow, CompletableFuture<DatabaseRow>> transformation,
+    AsyncResultSet result, Runnable callback
+  ) {
+    var rows = DatabaseRow.multiple(result.currentPage(), originColumns.size());
+    AsyncIterator.execute(rows, transformation::apply).thenAccept(transformedRows ->
+      AsyncIterator.execute(transformedRows, destination::insertFix).thenAccept(value ->
+        finishPageTransformation(origin, originColumns, destination,
+          transformation, result, callback)));
+  }
+
+  private void finishPageTransformation(
+    DatabaseTable origin, List<DatabaseColumn> originColumns,
+    DatabaseTable destination,
+    Function<DatabaseRow, CompletableFuture<DatabaseRow>> transformation,
+    AsyncResultSet result, Runnable callback
+  ) {
+    if (result.hasMorePages()) {
+      result.fetchNextPage().thenAccept(nextPage -> processPageTransformationData(
+        origin, originColumns, destination, transformation, nextPage, callback));
+      return;
+    }
+    callback.run();
+  }
+
+  private CompletableFuture<Boolean> checkTransformationSuccess(
+    DatabaseTable origin, DatabaseTable destination
+  ) {
+    return origin.countFix()
+      .thenCompose(originCount -> destination.countFix()
+        .thenApply(destinationCount -> originCount == destinationCount));
   }
 
   /**
@@ -93,40 +161,32 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     return findTableColumns().thenApply(this::checkTableDiscrepancy);
   }
 
-  private boolean checkTableDiscrepancy(List<DatabaseColumn> previousColumns) {
-    var originColumns = findOriginColumns(previousColumns);
-    if (originColumns.isEmpty()) {
+  private boolean checkTableDiscrepancy(List<DatabaseColumn> currentColumns) {
+    if (checkColumnMatch(Lists.newArrayList(currentColumns))) {
       return false;
     }
     var temporaryTable = new DatabaseTable(connection(), keyspace(),
-      name() + "_tmp", originColumns.get());
+      name() + "_tmp", transformation().oldColumns());
     temporaryTable.createIfNotExists();
     equipTemporaryTable(temporaryTable);
     return true;
   }
 
-  private Optional<List<DatabaseColumn>> findOriginColumns(
-    List<DatabaseColumn> previousColumns
+  private boolean checkColumnMatch(
+    List<DatabaseColumn> currentColumns
   ) {
-    if (previousColumns.isEmpty()) {
-      return Optional.empty();
-    }
-    var columns = columns();
-    var exclusions = columns.stream()
-      .filter(column -> !column.type().isRegular()).toList();
-    exclusions.forEach(columns::remove);
-    Collections.sort(columns, Comparator.comparing(DatabaseColumn::name));
-    exclusions.forEach(exclusion -> columns.add(columns().indexOf(exclusion),
-      exclusion));
-    if (previousColumns.size() != columns.size()) {
-      return Optional.of(previousColumns);
+    currentColumns.sort(Comparator.comparing(DatabaseColumn::name));
+    var columns = columns().stream()
+      .sorted(Comparator.comparing(DatabaseColumn::name)).toList();
+    if (currentColumns.size() != columns.size()) {
+      return false;
     }
     for (var i = 0; i < columns.size(); i++) {
-      if (!columns.get(i).equals(previousColumns.get(i))) {
-        return Optional.of(previousColumns);
+      if (!columns.get(i).equals(currentColumns.get(i))) {
+        return false;
       }
     }
-    return Optional.empty();
+    return true;
   }
 
   private CompletableFuture<List<DatabaseColumn>> findTableColumns() {

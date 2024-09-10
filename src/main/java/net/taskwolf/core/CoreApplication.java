@@ -13,6 +13,7 @@ import net.taskwolf.core.condition.number.ConditionNumberSmallerThan;
 import net.taskwolf.core.condition.text.ConditionTextEndsWith;
 import net.taskwolf.core.condition.text.ConditionTextEquals;
 import net.taskwolf.core.condition.text.ConditionTextStartsWith;
+import net.taskwolf.core.database.DatabaseRow;
 import net.taskwolf.core.database.transformation.DatabaseDiscrepancyHook;
 import net.taskwolf.core.event.EventExecutor;
 import net.taskwolf.core.event.HookRegistry;
@@ -42,6 +43,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.Collections;
+import java.util.UUID;
 
 @SpringBootApplication(scanBasePackages = {"net.taskwolf"},
   exclude = {org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration.class})
@@ -59,7 +61,15 @@ public class CoreApplication {
     registerHooks(injector.getInstance(HookRegistry.class), injector);
     var eventExecutor = injector.getInstance(EventExecutor.class);
     eventExecutor.execute(CoreApplicationLaunchEvent.create());
-    injector.getInstance(TestDatabaseTable.class).createIfNotExists();
+    var testTable = injector.getInstance(TestDatabaseTable.class);
+    testTable.createIfNotExists()/*
+      .thenAccept(value -> {
+        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "A"));
+        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "B"));
+        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "C"));
+        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "D"));
+        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "E"));
+      })*/;
     var application = injector.getInstance(SpringApplication.class);
     registerConditions(injector.getInstance(ConditionInformationRepository.class));
     registerTutorialLevels(injector.getInstance(TutorialLevelRegistry.class));

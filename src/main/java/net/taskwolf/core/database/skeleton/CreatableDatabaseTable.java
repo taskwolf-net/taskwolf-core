@@ -7,19 +7,21 @@ import java.util.concurrent.CompletableFuture;
 public interface CreatableDatabaseTable extends AbstractDatabaseTable {
   /**
    * Creates the database table even if it already exists
+   * @return A future that is completed when creation is done
    */
-  default CompletableFuture<Void> create() {
-    return create("");
+  default CompletableFuture<Void> createAsync() {
+    return createAsync("");
   }
 
   /**
    * Creates the database table only if it does not already exist
+   * @return A future that is completed when creation is done
    */
-  default CompletableFuture<Void> createIfNotExists() {
-    return create("IF NOT EXISTS ");
+  default CompletableFuture<Void> createAsyncIfNotExists() {
+    return createAsync("IF NOT EXISTS ");
   }
 
-  private CompletableFuture<Void> create(String addition) {
+  private CompletableFuture<Void> createAsync(String addition) {
     var query = new StringBuilder("CREATE TABLE ");
     query.append(addition);
     query.append(fullName());
@@ -30,6 +32,37 @@ public interface CreatableDatabaseTable extends AbstractDatabaseTable {
     query.append(";");
     registerTable();
     return connection().execute(query).thenApply(value -> null);
+  }
+
+  /**
+   * Creates the database table even if it already exists
+   */
+  default void create() {
+    create("");
+  }
+
+  /**
+   * Creates the database table only if it does not already exist
+   */
+  default void createIfNotExists() {
+    create("IF NOT EXISTS ");
+  }
+
+  private void create(String addition) {
+    var query = new StringBuilder("CREATE TABLE ");
+    query.append(addition);
+    query.append(fullName());
+    query.append(" (");
+    query.append(columnCompilation());
+    query.append(")");
+    query.append(clusteringOrder());
+    query.append(";");
+    registerTable();
+    try {
+      connection().execute(query).get();
+    } catch (Exception exception) {
+      exception.printStackTrace();
+    }
   }
 
   /**

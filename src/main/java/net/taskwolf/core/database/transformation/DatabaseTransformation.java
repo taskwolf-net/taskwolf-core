@@ -1,7 +1,9 @@
 package net.taskwolf.core.database.transformation;
 
+import net.taskwolf.core.database.DatabaseColumn;
 import net.taskwolf.core.database.DatabaseRow;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface DatabaseTransformation {
@@ -20,4 +22,10 @@ public interface DatabaseTransformation {
    * @return A future that contains the {@link DatabaseRow} in the old format
    */
   CompletableFuture<DatabaseRow> transformNewToOld(DatabaseRow newRow);
+
+  /**
+   * The old columns of the table before the transformation
+   * @return The list of old columns
+   */
+  List<DatabaseColumn> oldColumns();
 }

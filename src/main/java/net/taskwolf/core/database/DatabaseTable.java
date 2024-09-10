@@ -9,11 +9,12 @@ import net.taskwolf.core.database.skeleton.*;
 import net.taskwolf.core.database.transformation.DatabaseTransformationState;
 import net.taskwolf.core.database.transformation.DatabaseTransformation;
 
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Accessors(fluent = true)
-@RequiredArgsConstructor
 public class DatabaseTable implements CreatableDatabaseTable,
   DroppableDatabaseTable, InsertableDatabaseTable, DeletableDatabaseTable,
   ExistableDatabaseTable, SelectableDatabaseTable, UpdatableDatabaseTable,
@@ -22,11 +23,22 @@ public class DatabaseTable implements CreatableDatabaseTable,
   private final DatabaseConnection connection;
   private final DatabaseKeyspace keyspace;
   private final String name;
-  private final List<DatabaseColumn> columns;
+  private List<DatabaseColumn> columns;
   private DatabaseTransformation transformation;
   private DatabaseTransformationState transformationState =
     DatabaseTransformationState.INACTIVE;
+  private List<DatabaseColumn> transformationColumns;
   private DatabaseTable temporaryTable;
+
+  public DatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
+    List<DatabaseColumn> columns
+  ) {
+    this.connection = connection;
+    this.keyspace = keyspace;
+    this.name = name;
+    this.columns = columns;
+  }
 
   public DatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
@@ -37,6 +49,14 @@ public class DatabaseTable implements CreatableDatabaseTable,
     this.name = name;
     this.columns = columns;
     this.transformation = transformation;
+  }
+
+  /**
+   * The implemented database table
+   * @return The table
+   */
+  public DatabaseTable table() {
+    return this;
   }
 
   /**
@@ -256,6 +276,9 @@ public class DatabaseTable implements CreatableDatabaseTable,
   @Override
   public void updateTransformationState(DatabaseTransformationState newState) {
     transformationState = newState;
+    if (newState.isUseTemporary()) {
+      columns = transformationColumns;
+    }
   }
 
   /**
@@ -274,6 +297,8 @@ public class DatabaseTable implements CreatableDatabaseTable,
   @Override
   public void equipTemporaryTable(DatabaseTable temporaryTable) {
     this.temporaryTable = temporaryTable;
+    transformationColumns = columns;
+    columns = Lists.newArrayList(temporaryTable.columns());
   }
 
   /**

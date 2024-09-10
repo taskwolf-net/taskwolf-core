@@ -2,15 +2,18 @@ package net.taskwolf.core.database.skeleton;
 
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
-import net.taskwolf.core.database.DatabaseAccessType;
-import net.taskwolf.core.database.DatabaseColumn;
-import net.taskwolf.core.database.DatabaseConnection;
-import net.taskwolf.core.database.DatabaseKeyspace;
+import net.taskwolf.core.database.*;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface AbstractDatabaseTable {
+  /**
+   * The implemented database table
+   * @return The table
+   */
+  DatabaseTable table();
+
   /**
    * Is used to find the connection of the table
    * @return The connection of the table
