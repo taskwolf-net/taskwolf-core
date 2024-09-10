@@ -15,7 +15,7 @@ public final class TestDatabaseTableTransformation implements DatabaseTransforma
   @Override
   public CompletableFuture<DatabaseRow> transformOldToNew(DatabaseRow oldRow) {
     return CompletableFuture.completedFuture(DatabaseRow.of(
-      oldRow.findCell(0).rawValue(), oldRow.findCell(2).rawValue()));
+      oldRow.findCell(0).rawValue(), oldRow.findCell(1).rawValue(), "TEST"));
   }
 
   @Override
@@ -29,7 +29,6 @@ public final class TestDatabaseTableTransformation implements DatabaseTransforma
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
-    columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("email", DatabaseDataType.TEXT));
     return columns;
   }

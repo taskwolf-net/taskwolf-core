@@ -107,7 +107,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     query.append(";");
     var futureResponse = new CompletableFuture<Boolean>();
     var statement = SimpleStatement.builder(query.toString())
-      .setPageSize(10).build();
+      .setPageSize(1).build();
     Runnable callback = () -> checkTransformationSuccess(origin, destination)
       .thenAccept(futureResponse::complete);
     connection().execute(statement)
@@ -122,6 +122,12 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     Function<DatabaseRow, CompletableFuture<DatabaseRow>> transformation,
     AsyncResultSet result, Runnable callback
   ) {
+    try {
+      Thread.sleep(10000);
+    } catch (Exception exception) {
+      exception.printStackTrace();
+    }
+    //TODO: CHECK EXISTENCE BEFORE INSERTING
     var rows = DatabaseRow.multiple(result.currentPage(), originColumns.size());
     AsyncIterator.execute(rows, transformation::apply).thenAccept(transformedRows ->
       AsyncIterator.execute(transformedRows, destination::insertFix).thenAccept(value ->

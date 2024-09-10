@@ -13,8 +13,7 @@ public interface CountableDatabaseTable extends AbstractDatabaseTable,
    * @return The number of rows
    */
   default CompletableFuture<Long> count() {
-    return execute(DatabaseAccessType.READ, "SELECT COUNT(*) FROM %s;")
-      .thenApply(result -> result.one().get(0, Long.class));
+    return count(DatabaseCondition.empty());
   }
 
   /**
@@ -22,19 +21,13 @@ public interface CountableDatabaseTable extends AbstractDatabaseTable,
    * @param condition The condition for counting
    * @return The number of rows
    */
-  default CompletableFuture<Long> count(
-    DatabaseCondition condition
-  ) {
-    var query = new StringBuilder("SELECT COUNT(*) FROM %s");
-    var conditionValue = condition.build();
-    if (!conditionValue.isEmpty()) {
-      query.append(" WHERE ");
-      query.append(conditionValue);
+  default CompletableFuture<Long> count(DatabaseCondition condition) {
+    if (transformationState().isInactive() ||
+      transformationState().isFillTemporary() || transformationState().isUseNew()
+    ) {
+      return countFix(condition);
     }
-    query.append(condition.filteringAddition());
-    query.append(";");
-    return execute(DatabaseAccessType.READ, query, condition.values())
-      .thenApply(result -> result.one().get(0, Long.class));
+    return temporaryTable().countFix(condition);
   }
 
   /**
@@ -43,10 +36,26 @@ public interface CountableDatabaseTable extends AbstractDatabaseTable,
    * @return The number of rows
    */
   default CompletableFuture<Long> countFix() {
+    return countFix(DatabaseCondition.empty());
+  }
+
+  /**
+   * Is used to find the number of rows inside a database table ignoring
+   * transformation processes
+   * @param condition The condition for counting
+   * @return The number of rows
+   */
+  default CompletableFuture<Long> countFix(DatabaseCondition condition) {
     var query = new StringBuilder("SELECT COUNT(*) FROM ");
     query.append(fullName());
+    var conditionValue = condition.build();
+    if (!conditionValue.isEmpty()) {
+      query.append(" WHERE ");
+      query.append(conditionValue);
+    }
+    query.append(condition.filteringAddition());
     query.append(";");
-    return connection().execute(query)
+    return connection().execute(query, condition.values())
       .thenApply(result -> result.one().get(0, Long.class));
   }
 }

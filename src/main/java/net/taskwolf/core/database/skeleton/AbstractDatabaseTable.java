@@ -84,34 +84,4 @@ public interface AbstractDatabaseTable {
    * @return The list of columns
    */
   List<DatabaseColumn> findPartitionKeyColumns();
-
-  /**
-   * Is used to execute a cql query
-   * @param accessType The access type used for transformation
-   * @param stringBuilder The string builder that contains the query
-   * @param values The placeholder values
-   * @return The future that contains the result set
-   */
-  CompletableFuture<AsyncResultSet> execute(DatabaseAccessType accessType,
-    StringBuilder stringBuilder, Object... values);
-
-  /**
-   * Is used to execute a cql query
-   * @param accessType The access type used for transformation
-   * @param query The query
-   * @param values The placeholder values
-   * @return The future that contains the result set
-   */
-  CompletableFuture<AsyncResultSet> execute(DatabaseAccessType accessType,
-    String query, Object... values);
-
-  /**
-   * Is used to execute a cql query
-   * @param accessType The access type used for transformation
-   * @param simpleStatement The statement that is to be executed
-   * @param values The placeholder values
-   * @return The future that contains the result set
-   */
-  CompletableFuture<AsyncResultSet> execute(DatabaseAccessType accessType,
-    SimpleStatement simpleStatement, Object... values);
 }

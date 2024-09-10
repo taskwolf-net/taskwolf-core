@@ -1,5 +1,6 @@
 package net.taskwolf.core.database.skeleton;
 
+import com.google.common.collect.Lists;
 import net.taskwolf.core.database.DatabaseAccessType;
 import net.taskwolf.core.database.DatabaseRow;
 
@@ -24,15 +25,22 @@ public interface InsertableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that is completed when the insertion is completed
    */
   default CompletableFuture<Void> insert(DatabaseRow row, String addition) {
-    var query = new StringBuilder("INSERT INTO %s (");
-    query.append(columnNameCompilation());
-    query.append(") VALUES (");
-    query.append(row.placeholderCompilation());
-    query.append(") ");
-    query.append(addition);
-    query.append(";");
-    return execute(DatabaseAccessType.WRITE, query, row.values())
-      .thenApply(value -> null);
+    //TODO: TRANSFORM INPUT
+    if (transformationState().isInactive() || transformationState().isUseNew()) {
+      return insertFix(row, addition);
+    }
+    if (transformationState().isUseTemporary()) {
+      return temporaryTable().insertFix(row, addition);
+    }
+    if (transformationState().isFillTemporary()) {
+      temporaryTable().insertFix(row, addition);
+      return insertFix(row, addition);
+    }
+    if (transformationState().isFillNew()) {
+      insertFix(row, addition);
+      return temporaryTable().insertFix(row, addition);
+    }
+    return CompletableFuture.completedFuture(null);
   }
 
   /**
@@ -42,13 +50,26 @@ public interface InsertableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that is completed when the insertion is completed
    */
   default CompletableFuture<Void> insertFix(DatabaseRow row) {
+    return insertFix(row, "");
+  }
+
+  /**
+   * Inserts a new database row into the database table ignoring
+   * transformation processes
+   * @param row The database row that is to be inserted
+   * @param addition An addition insertion argument (for example for ttl)
+   * @return A future that is completed when the insertion is completed
+   */
+  default CompletableFuture<Void> insertFix(DatabaseRow row, String addition) {
     var query = new StringBuilder("INSERT INTO ");
     query.append(fullName());
     query.append(" (");
     query.append(columnNameCompilation());
     query.append(") VALUES (");
     query.append(row.placeholderCompilation());
-    query.append(");");
+    query.append(") ");
+    query.append(addition);
+    query.append(";");
     return connection().execute(query, row.values())
       .thenApply(value -> null);
   }

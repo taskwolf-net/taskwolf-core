@@ -1,6 +1,5 @@
 package net.taskwolf.core.database.skeleton;
 
-import net.taskwolf.core.database.DatabaseAccessType;
 import net.taskwolf.core.database.DatabaseRow;
 import net.taskwolf.core.database.condition.DatabaseCondition;
 
@@ -16,10 +15,27 @@ public interface SelectableDatabaseTable extends AbstractDatabaseTable,
    * @return List of all possible rows
    */
   default CompletableFuture<List<DatabaseRow>> selectAllRows() {
+    //TODO: TRANSFORM RESULT
+    if (transformationState().isInactive() ||
+      transformationState().isFillTemporary() || transformationState().isUseNew()
+    ) {
+      return selectAllRowsFix();
+    }
+    return temporaryTable().selectAllRowsFix();
+  }
+
+  /**
+   * Finds all available rows inside the database table ignoring
+   * transformation processes
+   * @return List of all possible rows
+   */
+  default CompletableFuture<List<DatabaseRow>> selectAllRowsFix() {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
-    query.append(" FROM %s;");
-    return execute(DatabaseAccessType.READ, query).thenApply(result ->
+    query.append(" FROM ");
+    query.append(fullName());
+    query.append(";");
+    return connection().execute(query).thenApply(result ->
       DatabaseRow.multiple(result.currentPage(), columns().size()));
   }
 
@@ -88,9 +104,28 @@ public interface SelectableDatabaseTable extends AbstractDatabaseTable,
   default CompletableFuture<List<DatabaseRow>> selectRows(
     DatabaseCondition condition, long limit
   ) {
+    //TODO: TRANSFORM RESULT
+    if (transformationState().isInactive() ||
+      transformationState().isFillTemporary() || transformationState().isUseNew()
+    ) {
+      return selectRowsFix(condition, limit);
+    }
+    return temporaryTable().selectRowsFix(condition, limit);
+  }
+
+  /**
+   * Is used to find a multiple rows ignoring transformation processes
+   * @param condition The condition with which the rows can be found
+   * @param limit The limit of entries that should be returned
+   * @return A future that contains the database rows
+   */
+  default CompletableFuture<List<DatabaseRow>> selectRowsFix(
+    DatabaseCondition condition, long limit
+  ) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
-    query.append(" FROM %s");
+    query.append(" FROM ");
+    query.append(fullName());
     var conditionValue = condition.build();
     if (!conditionValue.isEmpty()) {
       query.append(" WHERE ");
@@ -102,8 +137,7 @@ public interface SelectableDatabaseTable extends AbstractDatabaseTable,
     }
     query.append(condition.filteringAddition());
     query.append(";");
-    return execute(DatabaseAccessType.READ, query, condition.values())
-      .thenApply(result -> DatabaseRow.multiple(result.currentPage(),
-        columns().size()));
+    return connection().execute(query, condition.values()).thenApply(result ->
+      DatabaseRow.multiple(result.currentPage(), columns().size()));
   }
 }

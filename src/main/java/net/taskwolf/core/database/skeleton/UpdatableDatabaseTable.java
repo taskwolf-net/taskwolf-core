@@ -99,7 +99,37 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
   private CompletableFuture<Void> update(
     DatabaseCondition condition, Object[] values, String keyValuePairs
   ) {
-    var query = new StringBuilder("UPDATE %s SET ");
+    //TODO: TRANSFORM INPUT
+    if (transformationState().isInactive() || transformationState().isUseNew()) {
+      return updateFix(condition, values, keyValuePairs);
+    }
+    if (transformationState().isUseTemporary()) {
+      return temporaryTable().updateFix(condition, values, keyValuePairs);
+    }
+    if (transformationState().isFillTemporary()) {
+      temporaryTable().updateFix(condition, values, keyValuePairs);
+      return updateFix(condition, values, keyValuePairs);
+    }
+    if (transformationState().isFillNew()) {
+      updateFix(condition, values, keyValuePairs);
+      return temporaryTable().updateFix(condition, values, keyValuePairs);
+    }
+    return CompletableFuture.completedFuture(null);
+  }
+
+  /**
+   * Updates a row inside the database table ignoring transformation processes
+   * @param condition The condition with which the row can be found
+   * @param values The values used to replace the placeholders
+   * @param keyValuePairs The key value pairs that are used in the update query
+   * @return A future that is completed when the update is completed
+   */
+  default CompletableFuture<Void> updateFix(
+    DatabaseCondition condition, Object[] values, String keyValuePairs
+  ) {
+    var query = new StringBuilder("UPDATE ");
+    query.append(fullName());
+    query.append(" SET ");
     query.append(keyValuePairs);
     var conditionValue = condition.build();
     if (!conditionValue.isEmpty()) {
@@ -109,7 +139,7 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
     query.append(condition.filteringAddition());
     query.append(";");
     var conditionValues = condition.values();
-    return execute(DatabaseAccessType.WRITE, query,
+    return connection().execute(query,
         Stream.concat(Arrays.stream(values), Arrays.stream(conditionValues))
           .skip(conditionValues.length).toArray(Object[]::new))
       .thenApply(value -> null);

@@ -25,12 +25,26 @@ public interface ExistableDatabaseTable extends AbstractDatabaseTable,
    * @param condition The condition with which the row can be found
    * @return A future that contains the existence boolean
    */
-  default CompletableFuture<Boolean> exists(
-    DatabaseCondition condition
-  ) {
+  default CompletableFuture<Boolean> exists(DatabaseCondition condition) {
+    if (transformationState().isInactive() ||
+      transformationState().isFillTemporary() || transformationState().isUseNew()
+    ) {
+      return existsFix(condition);
+    }
+    return temporaryTable().existsFix(condition);
+  }
+
+  /**
+   * Is used to check whether a row inside the database table exists ignoring
+   * transformation processes
+   * @param condition The condition with which the row can be found
+   * @return A future that contains the existence boolean
+   */
+  default CompletableFuture<Boolean> existsFix(DatabaseCondition condition) {
     var query = new StringBuilder("SELECT ");
     query.append(columnNameCompilation());
-    query.append(" FROM %s");
+    query.append(" FROM ");
+    query.append(fullName());
     var conditionValue = condition.build();
     if (!conditionValue.isEmpty()) {
       query.append(" WHERE ");
@@ -38,7 +52,7 @@ public interface ExistableDatabaseTable extends AbstractDatabaseTable,
     }
     query.append(condition.filteringAddition());
     query.append(";");
-    return execute(DatabaseAccessType.READ, query, condition.values())
+    return connection().execute(query, condition.values())
       .thenApply(result -> result.remaining() > 0);
   }
 }
