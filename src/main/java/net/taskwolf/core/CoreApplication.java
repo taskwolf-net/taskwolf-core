@@ -3,7 +3,8 @@ package net.taskwolf.core;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import net.taskwolf.core.application.CoreApplicationLaunchEvent;
-import net.taskwolf.core.application.CoreApplicationRunEvent;
+import net.taskwolf.core.application.CoreApplicationPostRunEvent;
+import net.taskwolf.core.application.CoreApplicationPreRunEvent;
 import net.taskwolf.core.command.CommandRegistry;
 import net.taskwolf.core.command.CommandTask;
 import net.taskwolf.core.command.implementation.*;
@@ -62,14 +63,14 @@ public class CoreApplication {
     var eventExecutor = injector.getInstance(EventExecutor.class);
     eventExecutor.execute(CoreApplicationLaunchEvent.create());
     var testTable = injector.getInstance(TestDatabaseTable.class);
-    testTable.createIfNotExists()/*
+    testTable.createAsyncIfNotExists()
       .thenAccept(value -> {
-        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "A"));
-        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "B"));
-        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "C"));
-        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "D"));
-        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "E"));
-      })*/;
+        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "A", "F"));
+        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "B", "G"));
+        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "C", "H"));
+        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "D", "I"));
+        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "E", "J"));
+      });
     var application = injector.getInstance(SpringApplication.class);
     registerConditions(injector.getInstance(ConditionInformationRepository.class));
     registerTutorialLevels(injector.getInstance(TutorialLevelRegistry.class));
@@ -82,6 +83,7 @@ public class CoreApplication {
     registerCommands(commandRegistry, injector);
     application.setDefaultProperties(Collections.singletonMap("server.port",
       distributionConfiguration.restPort()));
+    eventExecutor.execute(CoreApplicationPreRunEvent.create());
     application.run(args);
     new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
     injector.getInstance(MaintenanceSchedule.class).start();
@@ -89,7 +91,7 @@ public class CoreApplication {
     Runtime.getRuntime().addShutdownHook(new Thread(() ->
       injector.getInstance(WorkerProxyClient.class)
         .sendPacket(new PacketOutgoingDisconnect())));
-    eventExecutor.execute(CoreApplicationRunEvent.create());
+    eventExecutor.execute(CoreApplicationPostRunEvent.create());
   }
 
   private static void registerHooks(HookRegistry registry, Injector injector) {

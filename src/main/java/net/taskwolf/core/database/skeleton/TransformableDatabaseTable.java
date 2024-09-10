@@ -53,7 +53,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> fillTemporaryTable() {
-    return transformData(table(), temporaryTable().columns(), temporaryTable(),
+    return transformData(table(), temporaryTable(),
       CompletableFuture::completedFuture)
       .thenApply(success -> success ? DatabaseTransformationState.USE_TEMPORARY :
         DatabaseTransformationState.FAILURE);
@@ -92,58 +92,52 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     DatabaseTable origin, DatabaseTable destination,
     Function<DatabaseRow, CompletableFuture<DatabaseRow>> transformation
   ) {
-    return transformData(origin, origin.columns(), destination, transformation);
-  }
-
-  private CompletableFuture<Boolean> transformData(
-    DatabaseTable origin, List<DatabaseColumn> originColumns,
-    DatabaseTable destination,
-    Function<DatabaseRow, CompletableFuture<DatabaseRow>> transformation
-  ) {
     var query = new StringBuilder("SELECT ");
-    query.append(columnNameCompilation(originColumns, "", ""));
+    query.append(columnNameCompilation(origin.columns(), "", ""));
     query.append(" FROM ");
     query.append(origin.fullName());
     query.append(";");
     var futureResponse = new CompletableFuture<Boolean>();
     var statement = SimpleStatement.builder(query.toString())
-      .setPageSize(1).build();
+      .setPageSize(10).build();
     Runnable callback = () -> checkTransformationSuccess(origin, destination)
       .thenAccept(futureResponse::complete);
     connection().execute(statement)
-      .thenAccept(result -> processPageTransformationData(origin, originColumns,
+      .thenAccept(result -> processPageTransformationData(origin,
         destination, transformation, result, callback));
     return futureResponse;
   }
 
   private void processPageTransformationData(
-    DatabaseTable origin, List<DatabaseColumn> originColumns,
-    DatabaseTable destination,
+    DatabaseTable origin, DatabaseTable destination,
     Function<DatabaseRow, CompletableFuture<DatabaseRow>> transformation,
     AsyncResultSet result, Runnable callback
   ) {
-    try {
-      Thread.sleep(10000);
-    } catch (Exception exception) {
-      exception.printStackTrace();
-    }
-    //TODO: CHECK EXISTENCE BEFORE INSERTING
-    var rows = DatabaseRow.multiple(result.currentPage(), originColumns.size());
-    AsyncIterator.execute(rows, transformation::apply).thenAccept(transformedRows ->
-      AsyncIterator.execute(transformedRows, destination::insertFix).thenAccept(value ->
-        finishPageTransformation(origin, originColumns, destination,
+    var rows = DatabaseRow.multiple(result.currentPage(), origin.columns().size());
+    AsyncIterator.execute(rows, transformation::apply)
+      .thenAccept(transformedRows -> AsyncIterator.execute(transformedRows,
+        row -> insertTransformedRow(origin, destination, row))
+        .thenAccept(value -> finishPageTransformation(origin, destination,
           transformation, result, callback)));
   }
 
+  private CompletableFuture<Void> insertTransformedRow(
+    DatabaseTable origin, DatabaseTable destination, DatabaseRow row
+  ) {
+    return destination.existsFix(row).thenCompose(destinationExists ->
+      destinationExists ? CompletableFuture.completedFuture(null) :
+        origin.existsFix(row).thenCompose(originExists -> !originExists ?
+          CompletableFuture.completedFuture(null) : destination.insertFix(row)));
+  }
+
   private void finishPageTransformation(
-    DatabaseTable origin, List<DatabaseColumn> originColumns,
-    DatabaseTable destination,
+    DatabaseTable origin, DatabaseTable destination,
     Function<DatabaseRow, CompletableFuture<DatabaseRow>> transformation,
     AsyncResultSet result, Runnable callback
   ) {
     if (result.hasMorePages()) {
       result.fetchNextPage().thenAccept(nextPage -> processPageTransformationData(
-        origin, originColumns, destination, transformation, nextPage, callback));
+        origin, destination, transformation, nextPage, callback));
       return;
     }
     callback.run();

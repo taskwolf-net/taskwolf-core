@@ -2,6 +2,7 @@ package net.taskwolf.core.database.skeleton;
 
 import net.taskwolf.core.database.DatabaseRow;
 import net.taskwolf.core.database.condition.DatabaseCondition;
+import net.taskwolf.core.iterator.AsyncIterator;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,13 +16,21 @@ public interface SelectableDatabaseTable extends AbstractDatabaseTable,
    * @return List of all possible rows
    */
   default CompletableFuture<List<DatabaseRow>> selectAllRows() {
-    //TODO: TRANSFORM RESULT
+    CompletableFuture<List<DatabaseRow>> result;
     if (transformationState().isInactive() ||
       transformationState().isFillTemporary() || transformationState().isUseNew()
     ) {
-      return selectAllRowsFix();
+      result = selectAllRowsFix();
+    } else {
+      result = temporaryTable().selectAllRowsFix();
     }
-    return temporaryTable().selectAllRowsFix();
+    if (transformation() != null && (transformationState().isFillTemporary() ||
+      transformationState().isUseTemporary() || transformationState().isFillNew())
+    ) {
+      return result.thenCompose(rows -> AsyncIterator.execute(rows,
+        row -> transformation().transformOldToNew(row)));
+    }
+    return result;
   }
 
   /**
@@ -104,13 +113,21 @@ public interface SelectableDatabaseTable extends AbstractDatabaseTable,
   default CompletableFuture<List<DatabaseRow>> selectRows(
     DatabaseCondition condition, long limit
   ) {
-    //TODO: TRANSFORM RESULT
+    CompletableFuture<List<DatabaseRow>> result;
     if (transformationState().isInactive() ||
       transformationState().isFillTemporary() || transformationState().isUseNew()
     ) {
-      return selectRowsFix(condition, limit);
+      result = selectRowsFix(condition, limit);
+    } else {
+      result = temporaryTable().selectRowsFix(condition, limit);
     }
-    return temporaryTable().selectRowsFix(condition, limit);
+    if (transformation() != null && (transformationState().isFillTemporary() ||
+      transformationState().isUseTemporary() || transformationState().isFillNew())
+    ) {
+      return result.thenCompose(rows -> AsyncIterator.execute(rows,
+        row -> transformation().transformOldToNew(row)));
+    }
+    return result;
   }
 
   /**

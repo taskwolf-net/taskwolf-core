@@ -1,6 +1,8 @@
 package net.taskwolf.core.database.skeleton;
 
-import net.taskwolf.core.database.DatabaseAccessType;
+import com.beust.jcommander.internal.Lists;
+import net.taskwolf.core.database.DatabaseRow;
+import net.taskwolf.core.database.condition.DatabaseComparison;
 import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.concurrent.CompletableFuture;
@@ -32,6 +34,25 @@ public interface ExistableDatabaseTable extends AbstractDatabaseTable,
       return existsFix(condition);
     }
     return temporaryTable().existsFix(condition);
+  }
+
+  /**
+   * Is used to check whether a row inside the database table exists ignoring
+   * transformation processes
+   * @param row The row that will be checked for existence
+   * @return A future that contains the existence boolean
+   */
+  default CompletableFuture<Boolean> existsFix(DatabaseRow row) {
+    var primaryKeyColumns = columns().stream()
+      .filter(column -> column.type().isPartitionKey() ||
+        column.type().isPrimaryKey())
+      .toList();
+    var comparisons = Lists.<DatabaseComparison>newArrayList();
+    for (var i = 0; i < primaryKeyColumns.size(); i++) {
+      comparisons.add(DatabaseComparison.create(primaryKeyColumns.get(i).name(),
+        row.findCell(i).rawValue()));
+    }
+    return existsFix(DatabaseCondition.create(comparisons));
   }
 
   /**

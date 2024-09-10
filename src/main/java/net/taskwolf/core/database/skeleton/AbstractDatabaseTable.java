@@ -1,11 +1,11 @@
 package net.taskwolf.core.database.skeleton;
 
-import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
-import com.datastax.oss.driver.api.core.cql.SimpleStatement;
-import net.taskwolf.core.database.*;
+import net.taskwolf.core.database.DatabaseColumn;
+import net.taskwolf.core.database.DatabaseConnection;
+import net.taskwolf.core.database.DatabaseKeyspace;
+import net.taskwolf.core.database.DatabaseTable;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public interface AbstractDatabaseTable {
   /**

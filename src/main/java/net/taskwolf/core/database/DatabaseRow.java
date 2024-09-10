@@ -72,6 +72,11 @@ public final class DatabaseRow {
     return DatabaseRow.create(combinedCells, combinedValues);
   }
 
+  public void updateCell(int index, Object value) {
+    cells[index] = DatabaseCell.create(value);
+    values[index] = value;
+  }
+
   /**
    * Used to search fo single cell in row
    * @param index The index of the target cell

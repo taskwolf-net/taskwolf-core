@@ -1,6 +1,5 @@
 package net.taskwolf.core.database.skeleton;
 
-import net.taskwolf.core.database.DatabaseAccessType;
 import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.concurrent.CompletableFuture;

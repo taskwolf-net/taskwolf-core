@@ -1,7 +1,5 @@
 package net.taskwolf.core.database.skeleton;
 
-import com.google.common.collect.Lists;
-import net.taskwolf.core.database.DatabaseAccessType;
 import net.taskwolf.core.database.DatabaseRow;
 
 import java.util.concurrent.CompletableFuture;
@@ -25,20 +23,24 @@ public interface InsertableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that is completed when the insertion is completed
    */
   default CompletableFuture<Void> insert(DatabaseRow row, String addition) {
-    //TODO: TRANSFORM INPUT
     if (transformationState().isInactive() || transformationState().isUseNew()) {
       return insertFix(row, addition);
     }
-    if (transformationState().isUseTemporary()) {
-      return temporaryTable().insertFix(row, addition);
-    }
     if (transformationState().isFillTemporary()) {
-      temporaryTable().insertFix(row, addition);
-      return insertFix(row, addition);
+      var transformation = transformation().transformNewToOld(row);
+      transformation.thenAccept(transformedRow ->
+        temporaryTable().insertFix(transformedRow, addition));
+      return transformation.thenCompose(transformedRow ->
+        insertFix(transformedRow, addition));
+    }
+    if (transformationState().isUseTemporary()) {
+      return transformation().transformNewToOld(row).thenCompose(transformedRow ->
+        temporaryTable().insertFix(transformedRow, addition));
     }
     if (transformationState().isFillNew()) {
       insertFix(row, addition);
-      return temporaryTable().insertFix(row, addition);
+      return transformation().transformNewToOld(row).thenCompose(transformedRow ->
+        temporaryTable().insertFix(transformedRow, addition));
     }
     return CompletableFuture.completedFuture(null);
   }

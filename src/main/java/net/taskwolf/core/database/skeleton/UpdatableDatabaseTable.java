@@ -1,11 +1,11 @@
 package net.taskwolf.core.database.skeleton;
 
-import net.taskwolf.core.database.DatabaseAccessType;
 import net.taskwolf.core.database.DatabaseRow;
 import net.taskwolf.core.database.condition.DatabaseCondition;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
@@ -30,10 +30,10 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
   default CompletableFuture<Void> update(
     DatabaseCondition condition, DatabaseRow row
   ) {
-    return update(condition, row.values(), buildUpdateKeyValuePairs());
+    return update(condition, row, this::buildUpdateChange);
   }
 
-  private String buildUpdateKeyValuePairs() {
+  private String buildUpdateChange(DatabaseRow row) {
     var pairs = new StringBuilder();
     for (var i = 0; i < columns().size(); i++) {
       var column = columns().get(i);
@@ -71,12 +71,12 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
   ) {
     var values = row.values();
     for (var i = condition.values().length; i < values.length; i++) {
-      values[i] = Math.abs((long) values[i]);
+      row.updateCell(i, Math.abs((long) values[i]));
     }
-    return update(condition, values, buildUpdateCounterKeyValuePairs(row));
+    return update(condition, row, this::buildUpdateCounterChange);
   }
 
-  private String buildUpdateCounterKeyValuePairs(DatabaseRow row) {
+  private String buildUpdateCounterChange(DatabaseRow row) {
     var pairs = new StringBuilder();
     for (var i = 0; i < columns().size(); i++) {
       var column = columns().get(i);
@@ -97,22 +97,27 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
   }
 
   private CompletableFuture<Void> update(
-    DatabaseCondition condition, Object[] values, String keyValuePairs
+    DatabaseCondition condition, DatabaseRow row,
+    Function<DatabaseRow, String> changeGenerator
   ) {
-    //TODO: TRANSFORM INPUT
     if (transformationState().isInactive() || transformationState().isUseNew()) {
-      return updateFix(condition, values, keyValuePairs);
-    }
-    if (transformationState().isUseTemporary()) {
-      return temporaryTable().updateFix(condition, values, keyValuePairs);
+      return updateFix(condition, row, changeGenerator);
     }
     if (transformationState().isFillTemporary()) {
-      temporaryTable().updateFix(condition, values, keyValuePairs);
-      return updateFix(condition, values, keyValuePairs);
+      var transformation = transformation().transformNewToOld(row);
+      transformation.thenAccept(transformedRow ->
+        temporaryTable().updateFix(condition, transformedRow, changeGenerator));
+      return transformation.thenCompose(transformedRow ->
+        updateFix(condition, transformedRow, changeGenerator));
+    }
+    if (transformationState().isUseTemporary()) {
+      return transformation().transformNewToOld(row).thenCompose(transformedRow ->
+        temporaryTable().updateFix(condition, transformedRow, changeGenerator));
     }
     if (transformationState().isFillNew()) {
-      updateFix(condition, values, keyValuePairs);
-      return temporaryTable().updateFix(condition, values, keyValuePairs);
+      updateFix(condition, row, changeGenerator);
+      return transformation().transformNewToOld(row).thenCompose(transformedRow ->
+        temporaryTable().updateFix(condition, transformedRow, changeGenerator));
     }
     return CompletableFuture.completedFuture(null);
   }
@@ -120,17 +125,18 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
   /**
    * Updates a row inside the database table ignoring transformation processes
    * @param condition The condition with which the row can be found
-   * @param values The values used to replace the placeholders
-   * @param keyValuePairs The key value pairs that are used in the update query
+   * @param row The row used to replace the placeholders
+   * @param changeGenerator The function that creates the key value pairs
    * @return A future that is completed when the update is completed
    */
   default CompletableFuture<Void> updateFix(
-    DatabaseCondition condition, Object[] values, String keyValuePairs
+    DatabaseCondition condition, DatabaseRow row,
+    Function<DatabaseRow, String> changeGenerator
   ) {
     var query = new StringBuilder("UPDATE ");
     query.append(fullName());
     query.append(" SET ");
-    query.append(keyValuePairs);
+    query.append(changeGenerator.apply(row));
     var conditionValue = condition.build();
     if (!conditionValue.isEmpty()) {
       query.append(" WHERE ");
@@ -140,7 +146,7 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
     query.append(";");
     var conditionValues = condition.values();
     return connection().execute(query,
-        Stream.concat(Arrays.stream(values), Arrays.stream(conditionValues))
+        Stream.concat(Arrays.stream(row.values()), Arrays.stream(conditionValues))
           .skip(conditionValues.length).toArray(Object[]::new))
       .thenApply(value -> null);
   }

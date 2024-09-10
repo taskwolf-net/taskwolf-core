@@ -3,7 +3,6 @@ package net.taskwolf.core.database;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.database.paging.DatabaseOrder;
 

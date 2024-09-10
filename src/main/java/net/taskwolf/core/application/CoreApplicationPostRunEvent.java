@@ -8,5 +8,5 @@ import net.taskwolf.core.event.Event;
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
-public final class CoreApplicationRunEvent extends Event {
+public final class CoreApplicationPostRunEvent extends Event {
 }

@@ -5,12 +5,12 @@ import com.datastax.oss.driver.api.core.cql.PagingState;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.google.common.collect.Lists;
-import net.taskwolf.core.database.DatabaseAccessType;
 import net.taskwolf.core.database.DatabaseRow;
 import net.taskwolf.core.database.condition.DatabaseCondition;
 import net.taskwolf.core.database.paging.DatabaseDirection;
 import net.taskwolf.core.database.paging.DatabaseOrder;
 import net.taskwolf.core.database.paging.DatabasePage;
+import net.taskwolf.core.iterator.AsyncIterator;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,15 +41,26 @@ public interface PageableDatabaseTable extends AbstractDatabaseTable,
     Object partitionValue, DatabaseCondition condition, DatabaseOrder order,
     int pageSize, long rowNumber, int targetPage
   ) {
-    //TODO: TRANSFORM RESULT
+    CompletableFuture<DatabasePage<DatabaseRow>> result;
     if (transformationState().isInactive() ||
       transformationState().isFillTemporary() || transformationState().isUseNew()
     ) {
-      return selectPageFix(partitionValue, condition, order, pageSize,
+      result = selectPageFix(partitionValue, condition, order, pageSize,
         rowNumber, targetPage);
+    } else {
+      result = temporaryTable().selectPageFix(partitionValue, condition, order,
+        pageSize, rowNumber, targetPage);
     }
-    return temporaryTable().selectPageFix(partitionValue, condition, order,
-      pageSize, rowNumber, targetPage);
+    if (transformation() != null && (transformationState().isFillTemporary() ||
+      transformationState().isUseTemporary() || transformationState().isFillNew())
+    ) {
+      return result
+        .thenCompose(page -> AsyncIterator.execute(page.content(),
+            row -> transformation().transformOldToNew(row))
+          .thenApply(transformed -> DatabasePage.create(transformed,
+            page.pageState(), page.pageNumber())));
+    }
+    return result;
   }
 
   default CompletableFuture<DatabasePage<DatabaseRow>> selectPageFix(
@@ -69,7 +80,7 @@ public interface PageableDatabaseTable extends AbstractDatabaseTable,
       var offset = (int) (rowNumber % pageSize);
       statement = statement.setPageSize(offset == 0 ? pageSize : offset);
     }
-    return connection().execute(statement, statement, pagingCondition.values())
+    return connection().execute(statement, pagingCondition.values())
       .thenApply(result -> createDatabasePage(pageNumber, result, direction));
   }
 
@@ -100,15 +111,26 @@ public interface PageableDatabaseTable extends AbstractDatabaseTable,
     int pageSize, long rowNumber, String pageState, DatabaseDirection startingPoint,
     DatabaseDirection direction
   ) {
-    //TODO: TRANSFORM RESULT
+    CompletableFuture<DatabasePage<DatabaseRow>> result;
     if (transformationState().isInactive() ||
       transformationState().isFillTemporary() || transformationState().isUseNew()
     ) {
-      return shiftPageFix(partitionValue, condition, order, pageSize,
+      result = shiftPageFix(partitionValue, condition, order, pageSize,
         rowNumber, pageState, startingPoint, direction);
+    } else {
+      result = temporaryTable().shiftPageFix(partitionValue, condition, order,
+        pageSize, rowNumber, pageState, startingPoint, direction);
     }
-    return temporaryTable().shiftPageFix(partitionValue, condition, order,
-      pageSize, rowNumber, pageState, startingPoint, direction);
+    if (transformation() != null && (transformationState().isFillTemporary() ||
+      transformationState().isUseTemporary() || transformationState().isFillNew())
+    ) {
+      return result
+        .thenCompose(page -> AsyncIterator.execute(page.content(),
+            row -> transformation().transformOldToNew(row))
+        .thenApply(transformed -> DatabasePage.create(transformed,
+          page.pageState(), page.pageNumber())));
+    }
+    return result;
   }
 
   default CompletableFuture<DatabasePage<DatabaseRow>> shiftPageFix(
@@ -120,7 +142,7 @@ public interface PageableDatabaseTable extends AbstractDatabaseTable,
     var pagingCondition = createPagingCondition(partitionValue, condition);
     var statement = createPagingStatement(pagingCondition,
       direction.isForward() ? order : order.reverse(), pageSize, pageState);
-    return connection().execute(statement, statement, pagingCondition.values())
+    return connection().execute(statement, pagingCondition.values())
       .thenCompose(result -> findShiftedPage(pageSize, pageNumber, result,
         startingPoint, direction));
   }

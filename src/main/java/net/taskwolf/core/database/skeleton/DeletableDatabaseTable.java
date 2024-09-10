@@ -22,7 +22,6 @@ public interface DeletableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that is completed when the deletion is completed
    */
   default CompletableFuture<Void> delete(DatabaseCondition condition) {
-    //TODO: HANDLE DELETE IN TRANSFORMATION PROCESS (IS NOT NOTICED)
     if (transformationState().isInactive() || transformationState().isUseNew()) {
       return deleteFix(condition);
     }

@@ -1,17 +1,12 @@
 package net.taskwolf.core.database;
 
-import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
-import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.google.common.collect.Lists;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.taskwolf.core.database.skeleton.*;
-import net.taskwolf.core.database.transformation.DatabaseTransformationState;
 import net.taskwolf.core.database.transformation.DatabaseTransformation;
+import net.taskwolf.core.database.transformation.DatabaseTransformationState;
 
-import java.util.AbstractMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Accessors(fluent = true)
