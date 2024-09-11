@@ -53,8 +53,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> fillTemporaryTable() {
-    return transformData(table(), temporaryTable(),
-      CompletableFuture::completedFuture)
+    return transformData(table(), temporaryTable(), CompletableFuture::completedFuture)
       .thenApply(success -> success ? DatabaseTransformationState.USE_TEMPORARY :
         DatabaseTransformationState.FAILURE);
   }
@@ -64,9 +63,12 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> useTemporaryTable() {
-    return drop().thenCompose(dropValue -> createAsyncIfNotExists()
-      .thenAccept(createValue -> transformation().initializeNewTable(table()))
-      .thenApply(initializedValue -> DatabaseTransformationState.FILL_NEW));
+    return checkTransformationSuccess(table(), temporaryTable())
+      .thenCompose(success -> success ?
+        drop().thenCompose(dropValue -> createAsyncIfNotExists()
+          .thenAcceptAsync(createValue -> transformation().initializeNewTable(table()))
+          .thenApply(initializedValue -> DatabaseTransformationState.FILL_NEW)) :
+        CompletableFuture.completedFuture(DatabaseTransformationState.FAILURE));
   }
 
   /**
@@ -74,12 +76,9 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> fillNewTable() {
-    return createAsyncIfNotExists()
-      .thenAccept(createValue -> transformation().initializeNewTable(table()))
-      .thenCompose(initializedValue -> transformData(temporaryTable(), table(),
-        transformation()::transformOldToNew)
-        .thenApply(success -> success ? DatabaseTransformationState.USE_NEW :
-          DatabaseTransformationState.FAILURE));
+    return transformData(temporaryTable(), table(), transformation()::transformOldToNew)
+      .thenApply(success -> success ? DatabaseTransformationState.USE_NEW :
+        DatabaseTransformationState.FAILURE);
   }
 
   /**
@@ -87,8 +86,11 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> useNewTable() {
-    return temporaryTable().drop()
-      .thenApply(dropValue -> DatabaseTransformationState.INACTIVE);
+    return checkTransformationSuccess(table(), temporaryTable())
+      .thenCompose(success -> success ?
+        temporaryTable().drop()
+          .thenApply(dropValue -> DatabaseTransformationState.INACTIVE) :
+        CompletableFuture.completedFuture(DatabaseTransformationState.FAILURE));
   }
 
   private CompletableFuture<Boolean> transformData(
@@ -157,34 +159,27 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
   /**
    * Is used to check if a table discrepancy is present
    */
-  default CompletableFuture<Boolean> checkTableDiscrepancy() {
+  default void checkTableDiscrepancy() {
     if (transformation() == null) {
-      return CompletableFuture.completedFuture(false);
+      return;
     }
-    return findTableColumns(keyspace().name(), name())
-      .thenCompose(this::checkTableDiscrepancy);
-  }
-
-  private CompletableFuture<Boolean> checkTableDiscrepancy(
-    List<DatabaseColumn> currentColumns
-  ) {
     if (connection().tableExists(table()) &&
-      checkColumnMatch(columns(), currentColumns)
+      checkColumnMatch(columns(), findTableColumns(keyspace().name(), name()))
     ) {
-      return CompletableFuture.completedFuture(false);
+      return;
     }
     var temporaryTable = new DatabaseTable(connection(), keyspace(),
       name() + "_tmp", transformation().oldColumns());
     equipTemporaryTable(temporaryTable);
     determineInitialState();
     if (!transformationState().isInactive()) {
-      return CompletableFuture.completedFuture(true);
+      return;
     }
-    return temporaryTable.createAsyncIfNotExists()
-      .thenApply(value -> setupTemporaryTable(temporaryTable));
+    temporaryTable.createIfNotExists();
+    setupTemporaryTable(temporaryTable);
   }
 
-  private boolean setupTemporaryTable(DatabaseTable temporaryTable) {
+  private void setupTemporaryTable(DatabaseTable temporaryTable) {
     var keyspaceMetadata = connection().metadata().getKeyspace(keyspace().name())
       .orElseThrow();
     var tableMetadata = keyspaceMetadata.getTable(name()).orElseThrow();
@@ -193,7 +188,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
         .replace("ON \"" + keyspace().name() + "\".\"" + name() + "\"",
           "ON \"" + keyspace().name() + "\".\"" + temporaryTable.name() + "\"")
         .replace("_idx\" ON", "_tmp_idx\" ON");
-      connection().execute(query).join();
+      connection().executesSynchronously(query);
     }
     for (var view : keyspaceMetadata.getViews().values()) {
       if (view.getBaseTable().equals(tableMetadata.getName())) {
@@ -201,25 +196,33 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
         var query = view.describe(false)
           .replace("ON \"" + keyspace().name() + "\".\"" + name() + "\"",
             "ON \"" + keyspace().name() + "\".\"" + temporaryTable.name() + "\"");
-        connection().execute(query).join();
+        connection().executesSynchronously(query);
       }
     }
-    return true;
   }
 
   private void determineInitialState() {
     var currentExists = connection().tableExists(keyspace().name(), name());
     var temporaryExists = connection().tableExists(keyspace().name(), name() + "_tmp");
-    if (currentExists && !temporaryExists) {
+    var currentCount = currentExists ? table().countFix().join() : 0;
+    var temporaryCount = temporaryExists ? temporaryTable().countFix().join() : 0;
+    if ((currentExists && !temporaryExists) ||
+      (currentExists && temporaryExists && (currentCount > 0 && temporaryCount == 0))
+    ) {
       updateTransformationState(DatabaseTransformationState.INACTIVE);
       return;
     }
-    if (temporaryExists && !currentExists) {
+    if ((temporaryExists && !currentExists) ||
+      (currentExists && temporaryExists && (temporaryCount > 0 && currentCount == 0))
+    ) {
       updateTransformationState(DatabaseTransformationState.USE_TEMPORARY);
+      drop().join();
+      createIfNotExists();
+      transformation().initializeNewTable(table());
       return;
     }
-    var currentColumns = findTableColumns(keyspace().name(), name()).join();
-    var temporaryColumns = findTableColumns(keyspace().name(), name() + "_tmp").join();
+    var currentColumns = findTableColumns(keyspace().name(), name());
+    var temporaryColumns = findTableColumns(keyspace().name(), name() + "_tmp");
     if (checkColumnMatch(currentColumns, temporaryColumns)) {
       updateTransformationState(DatabaseTransformationState.FILL_TEMPORARY);
     } else {
@@ -227,13 +230,9 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     }
   }
 
-  default CompletableFuture<AsyncResultSet> executeTableCreateQuery(
-    StringBuilder query
-  ) {
-    if (transformation() != null && transformationState().isInactive()) {
-      return CompletableFuture.completedFuture(null);
-    }
-    return connection().execute(query);
+  default boolean isCreationAuthorised() {
+    return !connection().tableExists(keyspace().name(), name() + "_tmp") ||
+      !transformationState().isInactive();
   }
 
   private boolean checkColumnMatch(
@@ -254,7 +253,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     return true;
   }
 
-  private CompletableFuture<List<DatabaseColumn>> findTableColumns(
+  private List<DatabaseColumn> findTableColumns(
     String keyspaceName, String tableName
   ) {
     var query = new StringBuilder("SELECT * FROM system_schema.columns WHERE ");
@@ -263,8 +262,9 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     query.append("' AND table_name = '");
     query.append(tableName);
     query.append("';");
-    return connection().execute(query).thenApply(result -> result.remaining() > 0 ?
-      createDatabaseColumns(result.currentPage()) : Lists.newArrayList());
+    var result = connection().executesSynchronously(query);
+    return result.getAvailableWithoutFetching() > 0 ?
+      createDatabaseColumns(result.all()) : Lists.newArrayList();
   }
 
   private List<DatabaseColumn> createDatabaseColumns(Iterable<Row> rows) {

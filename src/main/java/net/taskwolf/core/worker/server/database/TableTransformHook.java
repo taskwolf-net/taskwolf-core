@@ -5,7 +5,6 @@ import com.google.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.database.DatabaseKeyspace;
-import net.taskwolf.core.database.DatabaseTable;
 import net.taskwolf.core.database.transformation.DatabaseTransformationState;
 import net.taskwolf.core.event.EventHook;
 import net.taskwolf.core.event.Hook;
@@ -13,8 +12,6 @@ import net.taskwolf.core.log.Log;
 import net.taskwolf.core.worker.client.WorkerProxyClient;
 import net.taskwolf.core.worker.event.database.TableTransformEvent;
 import net.taskwolf.core.worker.packet.outgoing.database.PacketOutgoingTableStateRequest;
-
-import java.util.concurrent.CompletableFuture;
 
 @Singleton
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))

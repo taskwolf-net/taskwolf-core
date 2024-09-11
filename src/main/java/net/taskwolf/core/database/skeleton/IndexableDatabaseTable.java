@@ -53,6 +53,6 @@ public interface IndexableDatabaseTable extends AbstractDatabaseTable {
       query.append(customType);
     }
     query.append(";");
-    connection().execute(query).join();
+    connection().executesSynchronously(query);
   }
 }

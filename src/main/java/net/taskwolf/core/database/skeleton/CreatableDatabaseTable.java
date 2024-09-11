@@ -32,7 +32,10 @@ public interface CreatableDatabaseTable extends AbstractDatabaseTable {
     query.append(clusteringOrder());
     query.append(";");
     registerTable();
-    return executeTableCreateQuery(query).thenApply(value -> null);
+    if (isCreationAuthorised()) {
+      return connection().execute(query).thenApply(value -> null);
+    }
+    return CompletableFuture.completedFuture(null);
   }
 
   /**
@@ -59,15 +62,13 @@ public interface CreatableDatabaseTable extends AbstractDatabaseTable {
     query.append(clusteringOrder());
     query.append(";");
     registerTable();
-    if (connection().tableExists(table())) {
-      executeTableCreateQuery(query).join();
+    if (isCreationAuthorised()) {
+      connection().executesSynchronously(query);
     }
   }
 
-  default CompletableFuture<AsyncResultSet> executeTableCreateQuery(
-    StringBuilder query
-  ) {
-    return connection().execute(query);
+  default boolean isCreationAuthorised() {
+    return true;
   }
 
   /**

@@ -6,6 +6,7 @@ import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.datastax.oss.driver.api.core.metadata.Metadata;
 import lombok.RequiredArgsConstructor;
@@ -93,6 +94,63 @@ public final class DatabaseConnection {
   }
 
   private AsyncResultSet exceptionally(
+    Throwable throwable, String query, Object... values
+  ) {
+    System.out.println(query + " -> " + Arrays.toString(values));
+    throwable.printStackTrace();
+    return null;
+  }
+
+  /**
+   * Is used to execute a cql query synchronously
+   * @param stringBuilder The string builder that contains the query
+   * @param values The placeholder values
+   * @return The future that contains the result set
+   */
+  public ResultSet executesSynchronously(
+    StringBuilder stringBuilder, Object... values
+  ) {
+    return executesSynchronously(stringBuilder.toString(), values);
+  }
+
+  /**
+   * Is used to execute a cql query synchronously
+   * @param query The query
+   * @param values The placeholder values
+   * @return The future that contains the result set
+   */
+  public ResultSet executesSynchronously(
+    String query, Object... values
+  ) {
+    try {
+      var preparedStatement = session.prepare(query);
+      var boundStatement = preparedStatement.bind(values);
+      return session.execute(boundStatement);
+    } catch (Exception exception) {
+      return exceptionallySynchronously(exception, query, values);
+    }
+  }
+
+  /**
+   * Is used to execute a cql query synchronously
+   * @param simpleStatement The statement that is to be executed
+   * @param values The placeholder values
+   * @return The future that contains the result set
+   */
+  public ResultSet executesSynchronously(
+    SimpleStatement simpleStatement, Object... values
+  ) {
+    try {
+      var preparedStatement = session.prepare(simpleStatement);
+      var boundStatement = preparedStatement.bind(values);
+      return session.execute(boundStatement);
+    } catch (Exception exception) {
+      return exceptionallySynchronously(exception, simpleStatement.getQuery(),
+        values);
+    }
+  }
+
+  private ResultSet exceptionallySynchronously(
     Throwable throwable, String query, Object... values
   ) {
     System.out.println(query + " -> " + Arrays.toString(values));

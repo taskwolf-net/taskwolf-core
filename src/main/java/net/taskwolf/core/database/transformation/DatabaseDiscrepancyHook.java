@@ -23,12 +23,8 @@ public final class DatabaseDiscrepancyHook implements Hook {
 
   @EventHook
   private void preApplicationRun(CoreApplicationPreRunEvent event) {
-    new Thread(this::checkTablesDiscrepancy).start();
-  }
-
-  private void checkTablesDiscrepancy() {
     for (var table : keyspace.tables()) {
-      table.checkTableDiscrepancy().join();
+      table.checkTableDiscrepancy();
     }
   }
 

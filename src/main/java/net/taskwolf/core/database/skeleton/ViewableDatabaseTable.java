@@ -75,7 +75,7 @@ public interface ViewableDatabaseTable extends AbstractDatabaseTable {
     query.append(columnNameCompilation(columns.stream()
       .filter(column -> column.type().isPrimaryKey()).toList(), "", ""));
     query.append(");");
-    connection().execute(query).join();
+    connection().executesSynchronously(query);
     var viewTableColumns = Lists.newArrayList(columns);
     viewTableColumns.addAll(this.columns().stream().filter(tableColumn ->
       columns.stream().noneMatch(viewColumn ->
