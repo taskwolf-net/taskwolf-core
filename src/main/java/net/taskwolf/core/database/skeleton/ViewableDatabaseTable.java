@@ -1,10 +1,13 @@
 package net.taskwolf.core.database.skeleton;
 
+import com.datastax.oss.driver.api.core.metadata.schema.ViewMetadata;
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.DatabaseColumn;
 import net.taskwolf.core.database.DatabaseTable;
+import net.taskwolf.core.iterator.AsyncIterator;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface ViewableDatabaseTable extends AbstractDatabaseTable {
   /**
@@ -29,7 +32,8 @@ public interface ViewableDatabaseTable extends AbstractDatabaseTable {
     String name, String clusteringColumnName
   ) {
     var primaryColumns = Lists.newArrayList(columns().stream()
-      .filter(column -> column.type().isPartitionKey()).toList());
+      .filter(column -> column.type().isPartitionKey() || column.type().isPrimaryKey())
+      .toList());
     primaryColumns.add(columns().stream()
       .filter(column -> column.name().equalsIgnoreCase(clusteringColumnName))
       .map(column -> DatabaseColumn.create(column.name(), column.dataType(),
@@ -69,11 +73,10 @@ public interface ViewableDatabaseTable extends AbstractDatabaseTable {
     }
     query.append(" PRIMARY KEY (");
     query.append(columnNameCompilation(columns.stream()
-      .filter(column -> column.type().isPartitionKey()).toList(), "(", "),"));
+      .filter(column -> column.type().isPartitionKey() || column.type().isPrimaryKey())
+      .toList(), "(", "),"));
     query.append(columnNameCompilation(columns.stream()
       .filter(column -> column.type().isClusteringKey()).toList(), "", ""));
-    query.append(columnNameCompilation(columns.stream()
-      .filter(column -> column.type().isPrimaryKey()).toList(), "", ""));
     query.append(");");
     connection().executesSynchronously(query);
     var viewTableColumns = Lists.newArrayList(columns);
@@ -85,24 +88,79 @@ public interface ViewableDatabaseTable extends AbstractDatabaseTable {
   }
 
   /**
-   * Deletes the materialized view and all its content
+   * Is used to delete all registered view
+   * @return A future that is completed when the deletion is completed
    */
-  default void dropMaterializedView() {
-    dropMaterializedView("");
+  default CompletableFuture<Void> dropAllViews() {
+    var keyspaceMetadata = connection().metadata().getKeyspace(keyspace().name())
+      .orElseThrow();
+    var tableMetadata = keyspaceMetadata.getTable(name());
+    if (tableMetadata.isEmpty()) {
+      return CompletableFuture.completedFuture(null);
+    }
+    var views = Lists.<ViewMetadata>newArrayList();
+    for (var view : keyspaceMetadata.getViews().values()) {
+      if (view.getBaseTable().equals(tableMetadata.get().getName())) {
+        views.add(view);
+      }
+    }
+    return AsyncIterator.execute(views,
+        view -> dropMaterializedView(view.getKeyspace().asInternal(),
+          view.getName().asInternal()))
+      .thenApply(value -> null);
+  }
+
+  /**
+   * Deletes the materialized view and all its content
+   * @return A future that is completed when the deletion is completed
+   */
+  default CompletableFuture<Void> dropMaterializedView() {
+    return dropMaterializedView("");
   }
 
   /**
    * Deletes the materialized view and all its content only if it exists
+   * @return A future that is completed when the deletion is completed
    */
-  default void dropMaterializedViewIfExists() {
-    dropMaterializedView("IF EXISTS ");
+  default CompletableFuture<Void> dropMaterializedViewIfExists() {
+    return dropMaterializedView("IF EXISTS ");
   }
 
-  private void dropMaterializedView(String addition) {
+  private CompletableFuture<Void> dropMaterializedView(String addition) {
     var query = new StringBuilder("DROP MATERIALIZED VIEW ");
     query.append(addition);
     query.append(fullName());
     query.append(";");
-    connection().execute(query);
+    return connection().execute(query).thenApply(value -> null);
+  }
+
+  /**
+   * Deletes the materialized view and all its content
+   * @return A future that is completed when the deletion is completed
+   */
+  default CompletableFuture<Void> dropMaterializedView(
+    String keyspaceName, String viewName
+  ) {
+    return dropMaterializedView(keyspaceName, viewName, "");
+  }
+
+  /**
+   * Deletes the materialized view and all its content only if it exists
+   * @return A future that is completed when the deletion is completed
+   */
+  default CompletableFuture<Void> dropMaterializedViewIfExists(
+    String keyspaceName, String viewName
+  ) {
+    return dropMaterializedView(keyspaceName, viewName, "IF EXISTS ");
+  }
+
+  private CompletableFuture<Void> dropMaterializedView(
+    String keyspaceName, String viewName, String addition
+  ) {
+    var query = new StringBuilder("DROP MATERIALIZED VIEW ");
+    query.append(addition);
+    query.append(keyspaceName + "." + viewName);
+    query.append(";");
+    return connection().execute(query).thenApply(value -> null);
   }
 }

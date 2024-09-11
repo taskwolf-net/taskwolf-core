@@ -21,6 +21,7 @@ public final class TestDatabaseTable extends DatabaseTable {
       TestDatabaseTableTransformation.create());
     table.createIfNotExists();
     //table.createIndexIfNotExists("email");
+    //table.createMaterializedViewIfNotExists("email_view", "email");
     return table;
   }
 

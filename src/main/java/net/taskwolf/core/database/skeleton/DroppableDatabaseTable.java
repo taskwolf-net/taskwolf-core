@@ -2,20 +2,22 @@ package net.taskwolf.core.database.skeleton;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface DroppableDatabaseTable extends AbstractDatabaseTable {
+public interface DroppableDatabaseTable extends AbstractDatabaseTable,
+  ViewableDatabaseTable
+{
 
   /**
    * Deletes the database table and all its content
    */
   default CompletableFuture<Void> drop() {
-    return drop("");
+    return dropAllViews().thenCompose(value -> drop(""));
   }
 
   /**
    * Deletes the database table and all its content only if it exists
    */
   default CompletableFuture<Void> dropIfExists() {
-    return drop("IF EXISTS ");
+    return dropAllViews().thenCompose(value -> drop("IF EXISTS "));
   }
 
   default CompletableFuture<Void> drop(String addition) {

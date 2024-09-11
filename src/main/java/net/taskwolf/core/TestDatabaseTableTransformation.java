@@ -29,14 +29,20 @@ public final class TestDatabaseTableTransformation implements DatabaseTransforma
   public List<DatabaseColumn> oldColumns() {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
-      DatabaseColumn.Type.PRIMARY_KEY));
+      DatabaseColumn.Type.PARTITION_KEY));
     columns.add(DatabaseColumn.create("email", DatabaseDataType.TEXT));
     return columns;
   }
 
   @Override
-  public void initializeNewTable(DatabaseTable newTable) {
+  public void initializeNewTableIndexes(DatabaseTable newTable) {
     newTable.createIndexIfNotExists("email");
     newTable.createIndexIfNotExists("name");
+  }
+
+  @Override
+  public void initializeNewTableViews(DatabaseTable newTable) {
+    newTable.createMaterializedViewIfNotExists("email_view", "email");
+    newTable.createMaterializedViewIfNotExists("name_view", "name");
   }
 }

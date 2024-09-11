@@ -3,6 +3,8 @@ package net.taskwolf.core.database.skeleton;
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import com.datastax.oss.driver.api.core.metadata.schema.KeyspaceMetadata;
+import com.datastax.oss.driver.api.core.metadata.schema.TableMetadata;
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
 import net.taskwolf.core.database.transformation.DatabaseTransformation;
@@ -63,11 +65,17 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> useTemporaryTable() {
+    var keyspaceMetadata = connection().metadata().getKeyspace(keyspace().name())
+      .orElseThrow();
+    var tableMetadata = keyspaceMetadata.getTable(name()).orElseThrow();
     return checkTransformationSuccess(table(), temporaryTable())
       .thenCompose(success -> success ?
-        drop().thenCompose(dropValue -> createAsyncIfNotExists()
-          .thenAcceptAsync(createValue -> transformation().initializeNewTable(table()))
-          .thenApply(initializedValue -> DatabaseTransformationState.FILL_NEW)) :
+        dropIfExists()
+          .thenAcceptAsync(dropValue ->
+            setupTemporaryTableViews(keyspaceMetadata, tableMetadata))
+          .thenCompose(viewValue -> createAsyncIfNotExists()
+          .thenAcceptAsync(createValue -> transformation().initializeNewTableIndexes(table()))
+          .thenApply(initializeValue -> DatabaseTransformationState.FILL_NEW)) :
         CompletableFuture.completedFuture(DatabaseTransformationState.FAILURE));
   }
 
@@ -88,8 +96,9 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
   default CompletableFuture<DatabaseTransformationState> useNewTable() {
     return checkTransformationSuccess(table(), temporaryTable())
       .thenCompose(success -> success ?
-        temporaryTable().drop()
-          .thenApply(dropValue -> DatabaseTransformationState.INACTIVE) :
+        temporaryTable().dropIfExists()
+          .thenAcceptAsync(dropValue -> transformation().initializeNewTableViews(table()))
+          .thenApply(initializeValue -> DatabaseTransformationState.INACTIVE) :
         CompletableFuture.completedFuture(DatabaseTransformationState.FAILURE));
   }
 
@@ -176,10 +185,10 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
       return;
     }
     temporaryTable.createIfNotExists();
-    setupTemporaryTable(temporaryTable);
+    setupTemporaryTableIndexes(temporaryTable);
   }
 
-  private void setupTemporaryTable(DatabaseTable temporaryTable) {
+  private void setupTemporaryTableIndexes(DatabaseTable temporaryTable) {
     var keyspaceMetadata = connection().metadata().getKeyspace(keyspace().name())
       .orElseThrow();
     var tableMetadata = keyspaceMetadata.getTable(name()).orElseThrow();
@@ -190,12 +199,18 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
         .replace("_idx\" ON", "_tmp_idx\" ON");
       connection().executesSynchronously(query);
     }
+  }
+
+  private void setupTemporaryTableViews(
+    KeyspaceMetadata keyspaceMetadata, TableMetadata tableMetadata
+  ) {
+    //TODO: PROBABLY CREATE VIEWS ON DISCREPANCY CHECK AND RENAME LATER WHEN NEEDED
     for (var view : keyspaceMetadata.getViews().values()) {
       if (view.getBaseTable().equals(tableMetadata.getName())) {
-        //TODO: IMPLEMENT MATERIALIZED VIEW CREATION
+        System.out.println("VIEW: " + view.describe(false));
         var query = view.describe(false)
-          .replace("ON \"" + keyspace().name() + "\".\"" + name() + "\"",
-            "ON \"" + keyspace().name() + "\".\"" + temporaryTable.name() + "\"");
+          .replace("FROM \"" + keyspace().name() + "\".\"" + name() + "\"",
+            "FROM \"" + keyspace().name() + "\".\"" + temporaryTable().name() + "\"");
         connection().executesSynchronously(query);
       }
     }
@@ -216,9 +231,13 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
       (currentExists && temporaryExists && (temporaryCount > 0 && currentCount == 0))
     ) {
       updateTransformationState(DatabaseTransformationState.USE_TEMPORARY);
-      drop().join();
+      var keyspaceMetadata = connection().metadata().getKeyspace(keyspace().name())
+        .orElseThrow();
+      var tableMetadata = keyspaceMetadata.getTable(name()).orElseThrow();
+      dropIfExists().join();
+      setupTemporaryTableViews(keyspaceMetadata, tableMetadata);
       createIfNotExists();
-      transformation().initializeNewTable(table());
+      transformation().initializeNewTableIndexes(table());
       return;
     }
     var currentColumns = findTableColumns(keyspace().name(), name());

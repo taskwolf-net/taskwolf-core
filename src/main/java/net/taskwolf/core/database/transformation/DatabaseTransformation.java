@@ -31,8 +31,14 @@ public interface DatabaseTransformation {
   List<DatabaseColumn> oldColumns();
 
   /**
-   * This function is called to create indexes and view for the new table
-   * @param newTable The new table for which the indexes and views are created
+   * This function is called to create indexes for the new table
+   * @param newTable The new table for which the indexes are created
    */
-  void initializeNewTable(DatabaseTable newTable);
+  void initializeNewTableIndexes(DatabaseTable newTable);
+
+  /**
+   * This function is called to create views for the new table
+   * @param newTable The new table for which the views are created
+   */
+  void initializeNewTableViews(DatabaseTable newTable);
 }

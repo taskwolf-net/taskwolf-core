@@ -84,9 +84,9 @@ public interface CreatableDatabaseTable extends AbstractDatabaseTable {
     }
     compilation.append("PRIMARY KEY (");
     compilation.append(columnNameCompilation(columns().stream()
-      .filter(column -> column.type().isPartitionKey()).toList(), "(", "),"));
+      .filter(column -> column.type().isPartitionKey()).toList(), "(", ")"));
     compilation.append(columnNameCompilation(columns().stream()
-      .filter(column -> column.type().isClusteringKey()).toList(), "", ""));
+      .filter(column -> column.type().isClusteringKey()).toList(), ",", ""));
     compilation.append(columnNameCompilation(columns().stream()
       .filter(column -> column.type().isPrimaryKey()).toList(), "", ""));
     compilation.append(")");
