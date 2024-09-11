@@ -64,8 +64,9 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> useTemporaryTable() {
-    return drop().thenCompose(dropValue -> createAsync()
-      .thenApply(createValue -> DatabaseTransformationState.FILL_NEW));
+    return drop().thenCompose(dropValue -> createAsyncIfNotExists()
+      .thenAccept(createValue -> transformation().initializeNewTable(table()))
+      .thenApply(initializedValue -> DatabaseTransformationState.FILL_NEW));
   }
 
   /**
@@ -73,10 +74,12 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> fillNewTable() {
-    return transformData(temporaryTable(), table(),
-      transformation()::transformOldToNew)
-      .thenApply(success -> success ? DatabaseTransformationState.USE_NEW :
-        DatabaseTransformationState.FAILURE);
+    return createAsyncIfNotExists()
+      .thenAccept(createValue -> transformation().initializeNewTable(table()))
+      .thenCompose(initializedValue -> transformData(temporaryTable(), table(),
+        transformation()::transformOldToNew)
+        .thenApply(success -> success ? DatabaseTransformationState.USE_NEW :
+          DatabaseTransformationState.FAILURE));
   }
 
   /**
@@ -158,44 +161,107 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     if (transformation() == null) {
       return CompletableFuture.completedFuture(false);
     }
-    return findTableColumns().thenCompose(this::checkTableDiscrepancy);
+    return findTableColumns(keyspace().name(), name())
+      .thenCompose(this::checkTableDiscrepancy);
   }
 
   private CompletableFuture<Boolean> checkTableDiscrepancy(
     List<DatabaseColumn> currentColumns
   ) {
-    if (checkColumnMatch(Lists.newArrayList(currentColumns))) {
+    if (connection().tableExists(table()) &&
+      checkColumnMatch(columns(), currentColumns)
+    ) {
       return CompletableFuture.completedFuture(false);
     }
     var temporaryTable = new DatabaseTable(connection(), keyspace(),
       name() + "_tmp", transformation().oldColumns());
     equipTemporaryTable(temporaryTable);
-    return temporaryTable.createAsyncIfNotExists().thenApply(value -> true);
+    determineInitialState();
+    if (!transformationState().isInactive()) {
+      return CompletableFuture.completedFuture(true);
+    }
+    return temporaryTable.createAsyncIfNotExists()
+      .thenApply(value -> setupTemporaryTable(temporaryTable));
+  }
+
+  private boolean setupTemporaryTable(DatabaseTable temporaryTable) {
+    var keyspaceMetadata = connection().metadata().getKeyspace(keyspace().name())
+      .orElseThrow();
+    var tableMetadata = keyspaceMetadata.getTable(name()).orElseThrow();
+    for (var index : tableMetadata.getIndexes().values()) {
+      var query = index.describe(false)
+        .replace("ON \"" + keyspace().name() + "\".\"" + name() + "\"",
+          "ON \"" + keyspace().name() + "\".\"" + temporaryTable.name() + "\"")
+        .replace("_idx\" ON", "_tmp_idx\" ON");
+      connection().execute(query).join();
+    }
+    for (var view : keyspaceMetadata.getViews().values()) {
+      if (view.getBaseTable().equals(tableMetadata.getName())) {
+        //TODO: IMPLEMENT MATERIALIZED VIEW CREATION
+        var query = view.describe(false)
+          .replace("ON \"" + keyspace().name() + "\".\"" + name() + "\"",
+            "ON \"" + keyspace().name() + "\".\"" + temporaryTable.name() + "\"");
+        connection().execute(query).join();
+      }
+    }
+    return true;
+  }
+
+  private void determineInitialState() {
+    var currentExists = connection().tableExists(keyspace().name(), name());
+    var temporaryExists = connection().tableExists(keyspace().name(), name() + "_tmp");
+    if (currentExists && !temporaryExists) {
+      updateTransformationState(DatabaseTransformationState.INACTIVE);
+      return;
+    }
+    if (temporaryExists && !currentExists) {
+      updateTransformationState(DatabaseTransformationState.USE_TEMPORARY);
+      return;
+    }
+    var currentColumns = findTableColumns(keyspace().name(), name()).join();
+    var temporaryColumns = findTableColumns(keyspace().name(), name() + "_tmp").join();
+    if (checkColumnMatch(currentColumns, temporaryColumns)) {
+      updateTransformationState(DatabaseTransformationState.FILL_TEMPORARY);
+    } else {
+      updateTransformationState(DatabaseTransformationState.FILL_NEW);
+    }
+  }
+
+  default CompletableFuture<AsyncResultSet> executeTableCreateQuery(
+    StringBuilder query
+  ) {
+    if (transformation() != null && transformationState().isInactive()) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return connection().execute(query);
   }
 
   private boolean checkColumnMatch(
-    List<DatabaseColumn> currentColumns
+    List<DatabaseColumn> firstColumns, List<DatabaseColumn> secondColumns
   ) {
-    currentColumns.sort(Comparator.comparing(DatabaseColumn::name));
-    var columns = columns().stream()
-      .sorted(Comparator.comparing(DatabaseColumn::name)).toList();
-    if (currentColumns.size() != columns.size()) {
+    if (firstColumns.size() != secondColumns.size()) {
       return false;
     }
-    for (var i = 0; i < columns.size(); i++) {
-      if (!columns.get(i).equals(currentColumns.get(i))) {
+    var firstCopy = Lists.newArrayList(firstColumns);
+    var secondCopy = Lists.newArrayList(secondColumns);
+    firstCopy.sort(Comparator.comparing(DatabaseColumn::name));
+    secondCopy.sort(Comparator.comparing(DatabaseColumn::name));
+    for (var i = 0; i < firstCopy.size(); i++) {
+      if (!firstCopy.get(i).equals(secondCopy.get(i))) {
         return false;
       }
     }
     return true;
   }
 
-  private CompletableFuture<List<DatabaseColumn>> findTableColumns() {
+  private CompletableFuture<List<DatabaseColumn>> findTableColumns(
+    String keyspaceName, String tableName
+  ) {
     var query = new StringBuilder("SELECT * FROM system_schema.columns WHERE ");
     query.append("keyspace_name = '");
-    query.append(keyspace().name());
+    query.append(keyspaceName);
     query.append("' AND table_name = '");
-    query.append(name());
+    query.append(tableName);
     query.append("';");
     return connection().execute(query).thenApply(result -> result.remaining() > 0 ?
       createDatabaseColumns(result.currentPage()) : Lists.newArrayList());

@@ -2,6 +2,7 @@ package net.taskwolf.core.database.transformation;
 
 import net.taskwolf.core.database.DatabaseColumn;
 import net.taskwolf.core.database.DatabaseRow;
+import net.taskwolf.core.database.DatabaseTable;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -28,4 +29,10 @@ public interface DatabaseTransformation {
    * @return The list of old columns
    */
   List<DatabaseColumn> oldColumns();
+
+  /**
+   * This function is called to create indexes and view for the new table
+   * @param newTable The new table for which the indexes and views are created
+   */
+  void initializeNewTable(DatabaseTable newTable);
 }

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -17,7 +18,7 @@ public final class DatabaseKeyspace {
   private final String name;
   private final String replicationClass;
   private final int replicationFactor;
-  private final List<DatabaseTable> tables = Lists.newArrayList();
+  private final LinkedHashSet<DatabaseTable> tables = new LinkedHashSet<>();
 
   /**
    * Creates keyspace even if it already exists

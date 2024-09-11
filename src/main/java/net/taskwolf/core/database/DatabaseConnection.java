@@ -3,13 +3,17 @@ package net.taskwolf.core.database;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
+import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import com.datastax.oss.driver.api.core.metadata.Metadata;
 import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.log.Log;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
@@ -26,10 +30,14 @@ public final class DatabaseConnection {
     try {
       ((LoggerContext) LoggerFactory.getILoggerFactory())
         .getLogger("com.datastax").setLevel(Level.ERROR);
+      var loader = DriverConfigLoader.programmaticBuilder()
+        .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(30))
+        .build();
       session = CqlSession.builder()
         .addContactPoint(new InetSocketAddress(databaseConfiguration.hostname(),
           databaseConfiguration.port()))
         .withLocalDatacenter(databaseConfiguration.datacenter())
+        .withConfigLoader(loader)
         .build();
     } catch (Exception exception) {
       log.severe("The connection to cassandra failed");
@@ -90,5 +98,18 @@ public final class DatabaseConnection {
     System.out.println(query + " -> " + Arrays.toString(values));
     throwable.printStackTrace();
     return null;
+  }
+
+  public Metadata metadata() {
+    return session.getMetadata();
+  }
+
+  public boolean tableExists(DatabaseTable table) {
+    return tableExists(table.keyspace().name(), table.name());
+  }
+
+  public boolean tableExists(String keyspaceName, String tableName) {
+    return session.getMetadata().getKeyspace(keyspaceName).get()
+      .getTable(tableName).isPresent();
   }
 }

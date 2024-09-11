@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import net.taskwolf.core.database.DatabaseColumn;
 import net.taskwolf.core.database.DatabaseDataType;
 import net.taskwolf.core.database.DatabaseRow;
+import net.taskwolf.core.database.DatabaseTable;
 import net.taskwolf.core.database.transformation.DatabaseTransformation;
 
 import java.util.List;
@@ -15,13 +16,13 @@ public final class TestDatabaseTableTransformation implements DatabaseTransforma
   @Override
   public CompletableFuture<DatabaseRow> transformOldToNew(DatabaseRow oldRow) {
     return CompletableFuture.completedFuture(DatabaseRow.of(
-      oldRow.findCell(0).rawValue(), oldRow.findCell(1).rawValue(), "TEST"));
+      oldRow.findCell(0).rawValue(), "NAME", oldRow.findCell(1).rawValue()));
   }
 
   @Override
   public CompletableFuture<DatabaseRow> transformNewToOld(DatabaseRow newRow) {
     return CompletableFuture.completedFuture(DatabaseRow.of(
-      newRow.findCell(0).rawValue(), "", newRow.findCell(1).rawValue()));
+      newRow.findCell(0).rawValue(), newRow.findCell(2).rawValue()));
   }
 
   @Override
@@ -31,5 +32,11 @@ public final class TestDatabaseTableTransformation implements DatabaseTransforma
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("email", DatabaseDataType.TEXT));
     return columns;
+  }
+
+  @Override
+  public void initializeNewTable(DatabaseTable newTable) {
+    newTable.createIndexIfNotExists("email");
+    newTable.createIndexIfNotExists("name");
   }
 }

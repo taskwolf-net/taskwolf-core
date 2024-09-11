@@ -17,8 +17,11 @@ public final class TestDatabaseTable extends DatabaseTable {
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("email", DatabaseDataType.TEXT));
-    return new TestDatabaseTable(connection, keyspace, TABLE_NAME, columns,
+    var table = new TestDatabaseTable(connection, keyspace, TABLE_NAME, columns,
       TestDatabaseTableTransformation.create());
+    table.createIfNotExists();
+    //table.createIndexIfNotExists("email");
+    return table;
   }
 
   private TestDatabaseTable(

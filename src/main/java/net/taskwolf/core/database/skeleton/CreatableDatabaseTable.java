@@ -1,5 +1,6 @@
 package net.taskwolf.core.database.skeleton;
 
+import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import net.taskwolf.core.database.DatabaseColumn;
 
 import java.util.concurrent.CompletableFuture;
@@ -31,7 +32,7 @@ public interface CreatableDatabaseTable extends AbstractDatabaseTable {
     query.append(clusteringOrder());
     query.append(";");
     registerTable();
-    return connection().execute(query).thenApply(value -> null);
+    return executeTableCreateQuery(query).thenApply(value -> null);
   }
 
   /**
@@ -58,7 +59,15 @@ public interface CreatableDatabaseTable extends AbstractDatabaseTable {
     query.append(clusteringOrder());
     query.append(";");
     registerTable();
-    connection().execute(query).join();
+    if (connection().tableExists(table())) {
+      executeTableCreateQuery(query).join();
+    }
+  }
+
+  default CompletableFuture<AsyncResultSet> executeTableCreateQuery(
+    StringBuilder query
+  ) {
+    return connection().execute(query);
   }
 
   /**
