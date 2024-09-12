@@ -23,8 +23,8 @@ import net.taskwolf.core.worker.packet.incoming.node.PacketIncomingPing;
 import net.taskwolf.core.worker.packet.incoming.user.PacketIncomingUsersReorganize;
 import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingDisconnect;
 import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingHandshakeRequest;
-import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingModuleLoad;
-import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingModuleUnload;
+import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingModulesLoad;
+import net.taskwolf.core.worker.packet.outgoing.node.PacketOutgoingModulesUnload;
 import net.taskwolf.core.worker.server.database.TableStateRequestHook;
 import net.taskwolf.core.worker.server.database.TableStateResponseHook;
 import net.taskwolf.core.worker.server.database.TableTransformHook;
@@ -98,11 +98,11 @@ public final class WorkerDistribution {
   }
 
   /**
-   * Registers a new module
-   * @param module The module name
+   * Registers new modules
+   * @param modules The name of the modules
    */
-  public void registerModule(String module) {
-    workerProxyClient.sendPacket(new PacketOutgoingModuleLoad(module));
+  public void registerMultipleModules(List<String> modules) {
+    workerProxyClient.sendPacket(new PacketOutgoingModulesLoad(modules));
   }
 
   /**
@@ -116,11 +116,11 @@ public final class WorkerDistribution {
   }
 
   /**
-   * Unregisters a module
-   * @param module The name of the module
+   * Unregisters modules
+   * @param modules The name of the modules
    */
-  public void unregisterModule(String module) {
-    workerProxyClient.sendPacket(new PacketOutgoingModuleUnload(module));
+  public void unregisterMultipleModules(List<String> modules) {
+    workerProxyClient.sendPacket(new PacketOutgoingModulesUnload(modules));
   }
 
   /**

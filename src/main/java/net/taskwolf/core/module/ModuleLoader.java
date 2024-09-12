@@ -80,9 +80,8 @@ public final class ModuleLoader {
       applyModuleLocales(module.name());
       log.info("Successfully loaded module " + module.name());
     }
-    for (var module : modules) {
-      distribution.registerModule(module.name());
-    }
+    distribution.registerMultipleModules(modules.stream()
+      .map(RegisteredModule::name).toList());
   }
 
   /**
