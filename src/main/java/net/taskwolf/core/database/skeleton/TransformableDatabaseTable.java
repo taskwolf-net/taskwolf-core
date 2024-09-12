@@ -3,8 +3,6 @@ package net.taskwolf.core.database.skeleton;
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
-import com.datastax.oss.driver.api.core.metadata.schema.KeyspaceMetadata;
-import com.datastax.oss.driver.api.core.metadata.schema.TableMetadata;
 import com.google.common.collect.Lists;
 import net.taskwolf.core.database.*;
 import net.taskwolf.core.database.transformation.DatabaseTransformation;
@@ -65,14 +63,10 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
    * @return A future that then next transformation state
    */
   default CompletableFuture<DatabaseTransformationState> useTemporaryTable() {
-    var keyspaceMetadata = connection().metadata().getKeyspace(keyspace().name())
-      .orElseThrow();
-    var tableMetadata = keyspaceMetadata.getTable(name()).orElseThrow();
     return checkTransformationSuccess(table(), temporaryTable())
       .thenCompose(success -> success ?
         dropIfExists()
-          .thenAcceptAsync(dropValue ->
-            setupTemporaryTableViews(keyspaceMetadata, tableMetadata))
+          .thenAcceptAsync(dropValue -> renameTemporaryTableViews())
           .thenCompose(viewValue -> createAsyncIfNotExists()
           .thenAcceptAsync(createValue -> transformation().initializeNewTableIndexes(table()))
           .thenApply(initializeValue -> DatabaseTransformationState.FILL_NEW)) :
@@ -185,10 +179,10 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
       return;
     }
     temporaryTable.createIfNotExists();
-    setupTemporaryTableIndexes(temporaryTable);
+    setupTemporaryTable(temporaryTable);
   }
 
-  private void setupTemporaryTableIndexes(DatabaseTable temporaryTable) {
+  private void setupTemporaryTable(DatabaseTable temporaryTable) {
     var keyspaceMetadata = connection().metadata().getKeyspace(keyspace().name())
       .orElseThrow();
     var tableMetadata = keyspaceMetadata.getTable(name()).orElseThrow();
@@ -199,20 +193,31 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
         .replace("_idx\" ON", "_tmp_idx\" ON");
       connection().executesSynchronously(query);
     }
-  }
-
-  private void setupTemporaryTableViews(
-    KeyspaceMetadata keyspaceMetadata, TableMetadata tableMetadata
-  ) {
-    //TODO: PROBABLY CREATE VIEWS ON DISCREPANCY CHECK AND RENAME LATER WHEN NEEDED
     for (var view : keyspaceMetadata.getViews().values()) {
       if (view.getBaseTable().equals(tableMetadata.getName())) {
-        System.out.println("VIEW: " + view.describe(false));
         var query = view.describe(false)
           .replace("FROM \"" + keyspace().name() + "\".\"" + name() + "\"",
-            "FROM \"" + keyspace().name() + "\".\"" + temporaryTable().name() + "\"");
+            "FROM \"" + keyspace().name() + "\".\"" + temporaryTable().name() + "\"")
+          .replace("_view\" AS", "_tmp_view\" AS");
         connection().executesSynchronously(query);
       }
+    }
+  }
+
+  private void renameTemporaryTableViews() {
+    var keyspaceMetadata = connection().metadata()
+      .getKeyspace(temporaryTable().keyspace().name()).orElseThrow();
+    var tableMetadata = keyspaceMetadata.getTable(temporaryTable().name())
+      .orElseThrow();
+    var views = Lists.<String>newArrayList();
+    for (var view : keyspaceMetadata.getViews().values()) {
+      if (view.getBaseTable().equals(tableMetadata.getName())) {
+        views.add(view.describe(false).replace("_tmp_view\" AS", "_view\" AS"));
+      }
+    }
+    temporaryTable().dropAllViews();
+    for (var view : views) {
+      connection().executesSynchronously(view);
     }
   }
 
@@ -231,11 +236,8 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
       (currentExists && temporaryExists && (temporaryCount > 0 && currentCount == 0))
     ) {
       updateTransformationState(DatabaseTransformationState.USE_TEMPORARY);
-      var keyspaceMetadata = connection().metadata().getKeyspace(keyspace().name())
-        .orElseThrow();
-      var tableMetadata = keyspaceMetadata.getTable(name()).orElseThrow();
       dropIfExists().join();
-      setupTemporaryTableViews(keyspaceMetadata, tableMetadata);
+      renameTemporaryTableViews();
       createIfNotExists();
       transformation().initializeNewTableIndexes(table());
       return;
