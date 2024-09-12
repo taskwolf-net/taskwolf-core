@@ -188,6 +188,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     var tableMetadata = keyspaceMetadata.getTable(name()).orElseThrow();
     for (var index : tableMetadata.getIndexes().values()) {
       var query = index.describe(false)
+        .replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS")
         .replace("ON \"" + keyspace().name() + "\".\"" + name() + "\"",
           "ON \"" + keyspace().name() + "\".\"" + temporaryTable.name() + "\"")
         .replace("_idx\" ON", "_tmp_idx\" ON");
@@ -196,6 +197,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     for (var view : keyspaceMetadata.getViews().values()) {
       if (view.getBaseTable().equals(tableMetadata.getName())) {
         var query = view.describe(false)
+          .replace("CREATE MATERIALIZED VIEW", "CREATE MATERIALIZED VIEW IF NOT EXISTS")
           .replace("FROM \"" + keyspace().name() + "\".\"" + name() + "\"",
             "FROM \"" + keyspace().name() + "\".\"" + temporaryTable().name() + "\"")
           .replace("_view\" AS", "_tmp_view\" AS");
