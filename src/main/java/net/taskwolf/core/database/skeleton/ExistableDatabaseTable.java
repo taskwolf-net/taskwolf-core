@@ -44,8 +44,7 @@ public interface ExistableDatabaseTable extends AbstractDatabaseTable,
    */
   default CompletableFuture<Boolean> existsFix(DatabaseRow row) {
     var primaryKeyColumns = columns().stream()
-      .filter(column -> column.type().isPartitionKey() ||
-        column.type().isPrimaryKey())
+      .filter(column -> !column.type().isRegular())
       .toList();
     var comparisons = Lists.<DatabaseComparison>newArrayList();
     for (var i = 0; i < primaryKeyColumns.size(); i++) {
