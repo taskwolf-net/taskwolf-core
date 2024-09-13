@@ -189,6 +189,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     for (var index : tableMetadata.getIndexes().values()) {
       var query = index.describe(false)
         .replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS")
+        .replace("CREATE CUSTOM INDEX", "CREATE CUSTOM INDEX IF NOT EXISTS")
         .replace("ON \"" + keyspace().name() + "\".\"" + name() + "\"",
           "ON \"" + keyspace().name() + "\".\"" + temporaryTable.name() + "\"")
         .replace("_idx\" ON", "_tmp_idx\" ON");
