@@ -1,10 +1,12 @@
 package net.taskwolf.core.database;
 
-import com.beust.jcommander.internal.Lists;
+import com.datastax.oss.driver.api.core.cql.Row;
+import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -78,6 +80,68 @@ public final class DatabaseKeyspace {
     query.append(name);
     query.append(";");
     connection.execute(query);
+  }
+
+  /**
+   * Is used find the schema of a table
+   * @param tableName The name of the table
+   * @return The columns of the table
+   */
+  public List<DatabaseColumn> findTableColumns(String tableName) {
+    var query = new StringBuilder("SELECT * FROM system_schema.columns WHERE ");
+    query.append("keyspace_name = '");
+    query.append(name);
+    query.append("' AND table_name = '");
+    query.append(tableName);
+    query.append("';");
+    var result = connection().executesSynchronously(query);
+    return result.getAvailableWithoutFetching() > 0 ?
+      createDatabaseColumns(result.all()) : Lists.newArrayList();
+  }
+
+  private List<DatabaseColumn> createDatabaseColumns(Iterable<Row> iterator) {
+    var rows = Lists.newArrayList(iterator);
+    rows.sort(Comparator.comparingInt(row -> row.getInt("position")));
+    var partitionKeyColumns = Lists.<DatabaseColumn>newArrayList();
+    var clusteringKeyColumns = Lists.<DatabaseColumn>newArrayList();
+    var columns = Lists.<DatabaseColumn>newArrayList();
+    for (var row : rows) {
+      var column = createDatabaseColumnEntry(row);
+      if (column.type().isPartitionKey()) {
+        partitionKeyColumns.add(column);
+      } else if (column.type().isClusteringKey()) {
+        clusteringKeyColumns.add(column);
+      } else {
+        columns.add(column);
+      }
+    }
+    if (partitionKeyColumns.size() == 1 && clusteringKeyColumns.isEmpty()) {
+      var partitionKeyColumn = partitionKeyColumns.get(0);
+      partitionKeyColumn.updateType(DatabaseColumn.Type.PRIMARY_KEY);
+      columns.add(0, partitionKeyColumn);
+      return columns;
+    }
+    columns.addAll(0, clusteringKeyColumns);
+    columns.addAll(0, partitionKeyColumns);
+    return columns;
+  }
+
+  private DatabaseColumn createDatabaseColumnEntry(Row row) {
+    var columnName = row.getString("column_name");
+    var kind = row.getString("kind");
+    var columnType = switch (kind) {
+      case "partition_key" -> DatabaseColumn.Type.PARTITION_KEY;
+      case "clustering" -> DatabaseColumn.Type.CLUSTERING_KEY;
+      default -> DatabaseColumn.Type.REGULAR;
+    };
+    var dataType = row.getString("type").toUpperCase();
+    if (dataType.contains("LIST")) {
+      return DatabaseListColumn.create(columnName, DatabaseDataType.valueOf(
+          dataType.replace("LIST", "").replace("<", "").replace(">", "")),
+        columnType);
+    }
+    return DatabaseColumn.create(columnName, DatabaseDataType.valueOf(dataType),
+      columnType);
   }
 
   /**
