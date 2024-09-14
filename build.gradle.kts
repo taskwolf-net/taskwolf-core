@@ -9,7 +9,7 @@ plugins {
   id("io.freefair.lombok") version "8.6"
 }
 
-group = "net.taskwolf"
+group = "com.dulno"
 version = "1.0.0-SNAPSHOT"
 
 publishing {
@@ -20,10 +20,11 @@ publishing {
   }
   repositories {
     maven {
-      url = uri("https://git.taskwolf.net/api/v4/projects/8/packages/maven")
+      url = uri("https://git.dulno.com/api/v4/projects/8/packages/maven")
       credentials(HttpHeaderCredentials::class) {
         name = "Private-Token"
-        value = "***REMOVED***"
+        value = System.getenv("DULNO_GITLAB_PRIVATE_TOKEN") ?:
+          findProperty("dulnoGitlabPrivateToken") as String?
       }
       authentication {
         create("header", HttpHeaderAuthentication::class)
@@ -78,7 +79,7 @@ tasks.test {
 }
 
 tasks.bootJar {
-  mainClass = "net.taskwolf.core.CoreApplication"
+  mainClass = "com.dulno.core.CoreApplication"
 }
 
 tasks.register("downloadGeoLite2Database") {

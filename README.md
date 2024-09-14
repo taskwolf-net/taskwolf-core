@@ -1,12 +1,12 @@
-# Taskwolf - Core
+# Dulno - Core
 
-Core of the backend of Taskwolf. Each module relies on the core. It bundles central functionalities and forms the framework of the entire application.
+Core of the backend of Dulno. Each module relies on the core. It bundles central functionalities and forms the framework of the entire application.
 
 ## Status
 
-|             | Build Status                                                                                   |
-|-------------|------------------------------------------------------------------------------------------------|
-| Master      | ![Java CI with Gradle](https://git.taskwolf.net/root/taskwolf-core/badges/master/pipeline.svg) |
+|             | Build Status                                                                                |
+|-------------|---------------------------------------------------------------------------------------------|
+| Master      | ![Java CI with Gradle](https://git.dulno.com/root/dulno-core/badges/master/pipeline.svg) |
 
 ## Integration
 This module can be integrated into a submodule.
@@ -16,11 +16,11 @@ To do this, the repository must first be included in *build.gradle.kts*. This lo
 repositories {
   mavenCentral()
   maven {
-    url = uri("https://git.taskwolf.net/api/v4/projects/8/packages/maven")
+    url = uri("https://git.dulno.com/api/v4/projects/8/packages/maven")
     credentials(HttpHeaderCredentials::class) {
       name = "Private-Token"
-      value = System.getenv("TASKWOLF_GITLAB_PRIVATE_TOKEN") ?:
-        findProperty("taskwolfGitlabPrivateToken") as String?
+      value = System.getenv("DULNO_GITLAB_PRIVATE_TOKEN") ?:
+        findProperty("dulnoGitlabPrivateToken") as String?
     }
     authentication {
       create("header", HttpHeaderAuthentication::class)
@@ -32,12 +32,12 @@ repositories {
 The repository can then be added and used like a regular dependency. This is done in the following way:
 ```
 dependencies {
-  compileOnly("net.taskwolf:core:1.0.0-SNAPSHOT")
+  compileOnly("com.dulno:core:1.0.0-SNAPSHOT")
 }
 ```
 
 ## Module
-Although the Core module offers the basic structure and skeleton of Taskwolf, the entire system has been developed to be extremely modular. This is how the module system was brought to life, which is based on calling up jar files at runtime when the service is started.
+Although the Core module offers the basic structure and skeleton of Dulno, the entire system has been developed to be extremely modular. This is how the module system was brought to life, which is based on calling up jar files at runtime when the service is started.
 
 The following demonstrates how a module can be defined:
 ```
@@ -95,7 +95,7 @@ public final class TestModule extends Module {
 ```
 
 ## Trigger
-The triggers are a core component of the Taskwolf system. They are used to trigger workflows. To implement a trigger, we provide the following example class:
+The triggers are a core component of the Dulno system. They are used to trigger workflows. To implement a trigger, we provide the following example class:
 
 ```
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
@@ -166,7 +166,7 @@ public final class TestTrigger implements Trigger {
 ```
 
 ## Action
-Actions are also an important part of most modules in Taskwolf. This is because they ensure that the workflows have any use at all. They react to the triggering of a workflow and execute tasks.
+Actions are also an important part of most modules in Dulno. This is because they ensure that the workflows have any use at all. They react to the triggering of a workflow and execute tasks.
 
 Actions are implemented in two separate classes. The action itself, which defines the basic parameters, and the ActionExecutor, which implements the actual execution. The structure of an action class is shown below:
 ```
