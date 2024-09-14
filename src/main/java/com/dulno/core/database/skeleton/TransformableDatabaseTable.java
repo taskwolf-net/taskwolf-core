@@ -1,7 +1,6 @@
 package com.dulno.core.database.skeleton;
 
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
-import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.dulno.core.database.*;
 import com.dulno.core.iterator.AsyncIterator;
@@ -168,7 +167,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
       return;
     }
     if (connection().tableExists(table()) &&
-      checkColumnMatch(columns(), findTableColumns(keyspace().name(), name()))
+      checkColumnMatch(columns(), keyspace().findTableColumns(name()))
     ) {
       return;
     }
@@ -190,6 +189,7 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
     for (var index : tableMetadata.getIndexes().values()) {
       var query = index.describe(false)
         .replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS")
+        .replace("CREATE CUSTOM INDEX", "CREATE CUSTOM INDEX IF NOT EXISTS")
         .replace("ON \"" + keyspace().name() + "\".\"" + name() + "\"",
           "ON \"" + keyspace().name() + "\".\"" + temporaryTable.name() + "\"")
         .replace("_idx\" ON", "_tmp_idx\" ON");
@@ -245,8 +245,8 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
       transformation().initializeNewTableIndexes(table());
       return;
     }
-    var currentColumns = findTableColumns(keyspace().name(), name());
-    var temporaryColumns = findTableColumns(keyspace().name(), name() + "_tmp");
+    var currentColumns = keyspace().findTableColumns(name());
+    var temporaryColumns = keyspace().findTableColumns(name() + "_tmp");
     if (checkColumnMatch(currentColumns, temporaryColumns)) {
       updateTransformationState(DatabaseTransformationState.FILL_TEMPORARY);
     } else {
@@ -275,62 +275,5 @@ public interface TransformableDatabaseTable extends AbstractDatabaseTable,
       }
     }
     return true;
-  }
-
-  private List<DatabaseColumn> findTableColumns(
-    String keyspaceName, String tableName
-  ) {
-    var query = new StringBuilder("SELECT * FROM system_schema.columns WHERE ");
-    query.append("keyspace_name = '");
-    query.append(keyspaceName);
-    query.append("' AND table_name = '");
-    query.append(tableName);
-    query.append("';");
-    var result = connection().executesSynchronously(query);
-    return result.getAvailableWithoutFetching() > 0 ?
-      createDatabaseColumns(result.all()) : Lists.newArrayList();
-  }
-
-  private List<DatabaseColumn> createDatabaseColumns(Iterable<Row> rows) {
-    var partitionKeyColumns = Lists.<DatabaseColumn>newArrayList();
-    var clusteringKeyColumns = Lists.<DatabaseColumn>newArrayList();
-    var columns = Lists.<DatabaseColumn>newArrayList();
-    for (var row : rows) {
-      var column = createDatabaseColumnEntry(row);
-      if (column.type().isPartitionKey()) {
-        partitionKeyColumns.add(column);
-      } else if (column.type().isClusteringKey()) {
-        clusteringKeyColumns.add(column);
-      } else {
-        columns.add(column);
-      }
-    }
-    if (partitionKeyColumns.size() == 1 && clusteringKeyColumns.isEmpty()) {
-      var partitionKeyColumn = partitionKeyColumns.get(0);
-      partitionKeyColumn.updateType(DatabaseColumn.Type.PRIMARY_KEY);
-      columns.add(0, partitionKeyColumn);
-      return columns;
-    }
-    columns.addAll(0, clusteringKeyColumns);
-    columns.addAll(0, partitionKeyColumns);
-    return columns;
-  }
-
-  private DatabaseColumn createDatabaseColumnEntry(Row row) {
-    var columnName = row.getString("column_name");
-    var kind = row.getString("kind");
-    var columnType = switch (kind) {
-      case "partition_key" -> DatabaseColumn.Type.PARTITION_KEY;
-      case "clustering" -> DatabaseColumn.Type.CLUSTERING_KEY;
-      default -> DatabaseColumn.Type.REGULAR;
-    };
-    var dataType = row.getString("type").toUpperCase();
-    if (dataType.contains("LIST")) {
-      return DatabaseListColumn.create(columnName, DatabaseDataType.valueOf(
-          dataType.replace("LIST", "").replace("<", "").replace(">", "")),
-        columnType);
-    }
-    return DatabaseColumn.create(columnName, DatabaseDataType.valueOf(dataType),
-      columnType);
   }
 }

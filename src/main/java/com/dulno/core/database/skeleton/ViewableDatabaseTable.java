@@ -87,6 +87,18 @@ public interface ViewableDatabaseTable extends AbstractDatabaseTable {
       viewTableColumns);
   }
 
+
+  /**
+   * Is used to find an existing materialized view by its name
+   * @param name The name of the materialized view
+   * @return The materialized view table
+   */
+  default DatabaseTable findMaterializedView(String name) {
+    return new DatabaseTable(connection(), keyspace(), this.name() + "_" + name,
+      keyspace().findTableColumns(this.name() + "_" + name));
+  }
+
+
   /**
    * Is used to delete all registered view
    * @return A future that is completed when the deletion is completed
