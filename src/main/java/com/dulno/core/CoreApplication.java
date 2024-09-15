@@ -61,15 +61,6 @@ public class CoreApplication {
     registerHooks(injector.getInstance(HookRegistry.class), injector);
     var eventExecutor = injector.getInstance(EventExecutor.class);
     eventExecutor.execute(CoreApplicationLaunchEvent.create());
-    var testTable = injector.getInstance(TestDatabaseTable.class);
-    testTable.createAsyncIfNotExists()/*
-      .thenAccept(value -> {
-        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "A"));
-        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "B"));
-        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "C"));
-        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "D"));
-        testTable.insert(DatabaseRow.of(UUID.randomUUID(), "E"));
-      })*/;
     var application = injector.getInstance(SpringApplication.class);
     registerConditions(injector.getInstance(ConditionInformationRepository.class));
     registerTutorialLevels(injector.getInstance(TutorialLevelRegistry.class));

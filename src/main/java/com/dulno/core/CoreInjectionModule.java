@@ -92,12 +92,4 @@ public class CoreInjectionModule extends AbstractModule {
     application.setResourceLoader(new DefaultResourceLoader(classLoader));
     return application;
   }
-
-  @Provides
-  @Singleton
-  TestDatabaseTable provideTestDatabaseTable(
-    DatabaseConnection connection, DatabaseKeyspace keyspace
-  ) {
-    return TestDatabaseTable.create(connection, keyspace);
-  }
 }

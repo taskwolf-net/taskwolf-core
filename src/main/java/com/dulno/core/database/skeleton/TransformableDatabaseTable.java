@@ -5,7 +5,6 @@ import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.dulno.core.database.*;
 import com.dulno.core.iterator.AsyncIterator;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 import com.dulno.core.database.transformation.DatabaseTransformation;
 import com.dulno.core.database.transformation.DatabaseTransformationState;
 
