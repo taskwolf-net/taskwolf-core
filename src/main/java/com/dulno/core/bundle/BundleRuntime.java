@@ -3,7 +3,8 @@ package com.dulno.core.bundle;
 public enum BundleRuntime {
   WEEKLY,
   MONTHLY,
-  YEARLY;
+  YEARLY,
+  UNBOUND;
 
   public boolean isWeekly() {
     return this == WEEKLY;
@@ -15,5 +16,9 @@ public enum BundleRuntime {
 
   public boolean isYearly() {
     return this == YEARLY;
+  }
+
+  public boolean isUnbound() {
+    return this == UNBOUND;
   }
 }

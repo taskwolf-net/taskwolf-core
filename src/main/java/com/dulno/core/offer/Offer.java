@@ -32,11 +32,11 @@ public final class Offer {
   }
 
   public static Offer of(
-          UUID id, UUID targetId, String priceId, OfferStatus offerStatus,
-          BundlePreset preset, BundleRuntime runtime, double price,
-          long workflowNumberLimit, long workflowOperationLimit, long processNumberLimit,
-          long databaseNumberLimit, double databaseDataLimit,
-          long organizationMemberLimit, long organizationTeamLimit
+    UUID id, UUID targetId, String priceId, OfferStatus offerStatus,
+    BundlePreset preset, BundleRuntime runtime, double price,
+    long workflowNumberLimit, long workflowOperationLimit, long processNumberLimit,
+    long databaseNumberLimit, double databaseDataLimit,
+    long organizationMemberLimit, long organizationTeamLimit
   ) {
     return create(id, targetId, priceId, offerStatus, preset.bundleType(),
       preset.bundleClass(), runtime, price, preset.workflowAccess(),
@@ -93,6 +93,7 @@ public final class Offer {
       case WEEKLY -> 7;
       case MONTHLY -> 30;
       case YEARLY -> 365;
+      case UNBOUND -> 0;
     };
   }
 }
