@@ -16,11 +16,13 @@ public final class User {
   public static User of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).stringValue(),
       row.findCell(2).stringValue(), row.findCell(3).stringValue(),
-      row.findCell(4).stringValue(), row.findCell(5).listValue());
+      row.findCell(4).stringValue(), row.findCell(5).listValue(),
+      row.findCell(6).booleanValue(), row.findCell(7).booleanValue());
   }
 
   public static User unknown(UUID id) {
-    return create(id, "Unknown", "Unknown", "", "", Lists.newArrayList());
+    return create(id, "Unknown", "Unknown", "", "", Lists.newArrayList(),
+      true, true);
   }
 
   private final UUID id;
@@ -29,6 +31,8 @@ public final class User {
   private String passwordHash;
   private String language;
   private final List<UUID> organizations;
+  private final boolean legalAccepted;
+  private final boolean newsletter;
 
   public void addOrganization(UUID organization) {
     organizations.add(organization);

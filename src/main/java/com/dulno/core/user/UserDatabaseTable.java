@@ -2,7 +2,6 @@ package com.dulno.core.user;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseCondition;
 import com.dulno.core.target.TargetIdentificationPublish;
 
@@ -14,8 +13,8 @@ public final class UserDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "user";
 
   public static UserDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace,
-          TargetIdentificationPublish targetIdentificationPublish
+    DatabaseConnection connection, DatabaseKeyspace keyspace,
+    TargetIdentificationPublish targetIdentificationPublish
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
@@ -25,6 +24,8 @@ public final class UserDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("password", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("language", DatabaseDataType.TEXT));
     columns.add(DatabaseListColumn.create("organizations", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("legalAccepted", DatabaseDataType.BOOLEAN));
+    columns.add(DatabaseColumn.create("newsletter", DatabaseDataType.BOOLEAN));
     return new UserDatabaseTable(connection, keyspace, TABLE_NAME, columns,
       targetIdentificationPublish);
   }
@@ -42,15 +43,16 @@ public final class UserDatabaseTable extends DatabaseTable {
 
   public void insertUser(User user) {
     insertUser(user.id(), user.name(), user.email(), user.passwordHash(),
-      user.language(), user.organizations());
+      user.language(), user.organizations(), user.legalAccepted(),
+      user.newsletter());
   }
 
   public void insertUser(
     UUID id, String name, String email, String passwordHash, String language,
-    List<UUID> organizations
+    List<UUID> organizations, boolean legalAccepted, boolean newsletter
   ) {
     insert(DatabaseRow.of(id, name, email.toLowerCase(), passwordHash,
-      language, organizations));
+      language, organizations, legalAccepted, newsletter));
   }
 
   public void addUserOrganization(UUID userId, UUID organizationId) {
@@ -110,7 +112,7 @@ public final class UserDatabaseTable extends DatabaseTable {
   private void updateUser(User user) {
     update(user.id(), DatabaseRow.of(user.id(), user.name(),
       user.email().toLowerCase(), user.passwordHash(), user.language(),
-      user.organizations()));
+      user.organizations(), user.legalAccepted(), user.newsletter()));
   }
 
   public CompletableFuture<UUID> generateAvailableUserId() {
