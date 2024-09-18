@@ -2,7 +2,6 @@ package com.dulno.core.user;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,7 +11,7 @@ public final class UserPasswordResetDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "user_password_reset";
 
   public static UserPasswordResetDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,

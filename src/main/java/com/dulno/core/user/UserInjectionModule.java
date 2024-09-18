@@ -1,5 +1,6 @@
 package com.dulno.core.user;
 
+import com.dulno.core.bundle.BundleDatabaseTable;
 import com.dulno.core.user.activity.UserActivityDatabaseTable;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -41,10 +42,13 @@ public final class UserInjectionModule extends AbstractModule {
   @Singleton
   UserTargetDatabaseTable provideUserTargetDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace,
-    OrganizationDatabaseTable organizationDatabaseTable
+    UserDatabaseTable userDatabaseTable,
+    OrganizationDatabaseTable organizationDatabaseTable,
+    BundleDatabaseTable bundleDatabaseTable
   ) {
-    var userTargetDatabaseTable = UserTargetDatabaseTable.create(
-      connection, keyspace, organizationDatabaseTable);
+    var userTargetDatabaseTable = UserTargetDatabaseTable.create(connection,
+      keyspace, userDatabaseTable, organizationDatabaseTable,
+      bundleDatabaseTable);
     userTargetDatabaseTable.createIfNotExists();
     return userTargetDatabaseTable;
   }

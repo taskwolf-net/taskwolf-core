@@ -1,11 +1,12 @@
 package com.dulno.core.user;
 
+import com.dulno.core.bundle.BundleDatabaseTable;
 import com.dulno.core.database.*;
+import com.dulno.core.iterator.AsyncIterator;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
-import com.dulno.core.organization.Organization;
 import com.dulno.core.organization.OrganizationDatabaseTable;
 
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -14,26 +15,33 @@ public final class UserTargetDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "user_target";
 
   public static UserTargetDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace,
-          OrganizationDatabaseTable organizationDatabaseTable
+    DatabaseConnection connection, DatabaseKeyspace keyspace,
+    UserDatabaseTable userDatabaseTable,
+    OrganizationDatabaseTable organizationDatabaseTable,
+    BundleDatabaseTable bundleDatabaseTable
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("target", DatabaseDataType.UUID));
     return new UserTargetDatabaseTable(connection, keyspace, TABLE_NAME,
-      columns, organizationDatabaseTable);
+      columns, userDatabaseTable, organizationDatabaseTable, bundleDatabaseTable);
   }
 
+  private final UserDatabaseTable userDatabaseTable;
   private final OrganizationDatabaseTable organizationDatabaseTable;
+  private final BundleDatabaseTable bundleDatabaseTable;
 
   private UserTargetDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
-    List<DatabaseColumn> columns,
-    OrganizationDatabaseTable organizationDatabaseTable
+    List<DatabaseColumn> columns, UserDatabaseTable userDatabaseTable,
+    OrganizationDatabaseTable organizationDatabaseTable,
+    BundleDatabaseTable bundleDatabaseTable
   ) {
     super(connection, keyspace, name, columns);
+    this.userDatabaseTable = userDatabaseTable;
     this.organizationDatabaseTable = organizationDatabaseTable;
+    this.bundleDatabaseTable = bundleDatabaseTable;
   }
 
   public void insertTarget(UUID id, UUID target) {
@@ -53,49 +61,85 @@ public final class UserTargetDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<UUID> findTargetSecured(UUID userId) {
-    var futureResponse = new CompletableFuture<UUID>();
-    findTarget(userId).thenAccept(target -> checkTargetValidity(userId, target)
-      .thenAccept(futureResponse::complete));
-    return futureResponse;
+    return targetExists(userId).thenCompose(exists -> exists ?
+      findTarget(userId).thenCompose(currentTarget ->
+        checkTargetValidity(userId, currentTarget).thenCompose(valid ->
+          valid ? CompletableFuture.completedFuture(currentTarget) :
+            correctCurrentTarget(userId))) :
+      CompletableFuture.completedFuture(null));
   }
 
-  private CompletableFuture<UUID> checkTargetValidity(UUID userId, UUID target) {
-    if (userId.equals(target)) {
-      return CompletableFuture.completedFuture(target);
+  private CompletableFuture<Boolean> checkTargetValidity(UUID userId, UUID target) {
+    return checkTargetUsability(target)
+      .thenCompose(usable -> checkTargetValidity(userId, target, usable));
+  }
+
+  private CompletableFuture<Boolean> checkTargetValidity(
+    UUID userId, UUID target, boolean isUsable
+  ) {
+    if (!isUsable) {
+      return CompletableFuture.completedFuture(false);
     }
-    var futureResponse = new CompletableFuture<UUID>();
-    organizationDatabaseTable.organizationExists(target).thenAccept(exists ->
-      checkTargetOrganizationExistence(userId, target, exists)
-        .thenAccept(futureResponse::complete));
-    return futureResponse;
+    if (userId.equals(target)) {
+      return CompletableFuture.completedFuture(true);
+    }
+    return organizationDatabaseTable.organizationExists(target).thenCompose(
+      exists -> checkTargetOrganizationExistence(userId, target, exists));
   }
 
-  private CompletableFuture<UUID> checkTargetOrganizationExistence(
+  private CompletableFuture<Boolean> checkTargetOrganizationExistence(
     UUID userId, UUID target, boolean organizationExists
   ) {
     if (!organizationExists) {
-      changeTarget(userId, userId);
-      return CompletableFuture.completedFuture(userId);
+      return CompletableFuture.completedFuture(false);
     }
     return organizationDatabaseTable.findOrganization(target).thenApply(
-      organization -> checkTargetOrganizationPermission(userId, organization));
+      organization -> organization.owner().equals(userId) ||
+        organization.members().contains(userId));
   }
 
-  private UUID checkTargetOrganizationPermission(
-    UUID userId, Organization organization
+  private CompletableFuture<UUID> correctCurrentTarget(UUID userId) {
+    return userDatabaseTable.findUser(userId)
+      .thenCompose(user -> filterUsableTargets(user)
+        .thenCompose(organizations -> checkTargetUsability(user.id())
+          .thenApply(personalBundleUsable -> correctCurrentTarget(user.id(),
+            organizations, personalBundleUsable))));
+  }
+
+  private CompletableFuture<List<UUID>> filterUsableTargets(User user) {
+    return AsyncIterator.execute(user.organizations(),
+        organization -> checkTargetUsability(organization)
+          .thenApply(usable -> new AbstractMap.SimpleEntry<>(organization, usable)))
+      .thenApply(result -> result.stream().filter(AbstractMap.SimpleEntry::getValue)
+        .map(AbstractMap.SimpleEntry::getKey).toList());
+  }
+
+  private UUID correctCurrentTarget(
+    UUID userId, List<UUID> organizations, boolean personalBundleUsable
   ) {
-    if (!organization.owner().equals(userId) &&
-      !organization.members().contains(userId)
-    ) {
-      changeTarget(userId, userId);
-      return userId;
+    UUID newTarget;
+    if (personalBundleUsable) {
+      newTarget = userId;
+      changeTarget(userId, newTarget);
+    } else if (!organizations.isEmpty()) {
+      newTarget = organizations.get(0);
+      changeTarget(userId, newTarget);
+    } else {
+      newTarget = null;
+      deleteTarget(userId);
     }
-    return organization.id();
+    return newTarget;
   }
 
-  public CompletableFuture<UUID> findTarget(UUID userId) {
-    return selectRow(userId).thenApply(row ->
-      row.findCell(1).uuidValue());
+  private CompletableFuture<Boolean> checkTargetUsability(UUID target) {
+    return bundleDatabaseTable.bundleExists(target)
+      .thenCompose(exists -> !exists ? CompletableFuture.completedFuture(false) :
+        bundleDatabaseTable.findBundle(target).thenApply(bundle ->
+          bundle.expiration() > System.currentTimeMillis()));
+  }
+
+  private CompletableFuture<UUID> findTarget(UUID userId) {
+    return selectRow(userId).thenApply(row -> row.findCell(1).uuidValue());
   }
 }
 

@@ -2,7 +2,6 @@ package com.dulno.core.user;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 
 import java.util.AbstractMap;
 import java.util.List;
@@ -14,7 +13,7 @@ public final class UserEmailChangeDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "user_email_change";
 
   public static UserEmailChangeDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
