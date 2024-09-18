@@ -5,7 +5,6 @@ import com.dulno.core.database.condition.DatabaseCondition;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
@@ -30,7 +29,7 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
   default CompletableFuture<Void> update(
     DatabaseCondition condition, DatabaseRow row
   ) {
-    return update(condition, row, this::buildUpdateChange);
+    return update(condition, row, buildUpdateChange(row));
   }
 
   private String buildUpdateChange(DatabaseRow row) {
@@ -71,9 +70,9 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
   ) {
     var values = row.values();
     for (var i = condition.values().length; i < values.length; i++) {
-      row.updateCell(i, Math.abs((long) values[i]));
+      values[i] = Math.abs((long) values[i]);
     }
-    return update(condition, row, this::buildUpdateCounterChange);
+    return update(condition, DatabaseRow.of(values), buildUpdateCounterChange(row));
   }
 
   private String buildUpdateCounterChange(DatabaseRow row) {
@@ -97,27 +96,26 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
   }
 
   private CompletableFuture<Void> update(
-    DatabaseCondition condition, DatabaseRow row,
-    Function<DatabaseRow, String> changeGenerator
+    DatabaseCondition condition, DatabaseRow row, String updateChange
   ) {
     if (transformationState().isInactive() || transformationState().isUseNew()) {
-      return updateFix(condition, row, changeGenerator);
+      return updateFix(condition, row, updateChange);
     }
     if (transformationState().isFillTemporary()) {
       var transformation = transformation().transformNewToOld(row);
       transformation.thenAccept(transformedRow ->
-        temporaryTable().updateFix(condition, transformedRow, changeGenerator));
+        temporaryTable().updateFix(condition, transformedRow, updateChange));
       return transformation.thenCompose(transformedRow ->
-        updateFix(condition, transformedRow, changeGenerator));
+        updateFix(condition, transformedRow, updateChange));
     }
     if (transformationState().isUseTemporary()) {
       return transformation().transformNewToOld(row).thenCompose(transformedRow ->
-        temporaryTable().updateFix(condition, transformedRow, changeGenerator));
+        temporaryTable().updateFix(condition, transformedRow, updateChange));
     }
     if (transformationState().isFillNew()) {
-      updateFix(condition, row, changeGenerator);
+      updateFix(condition, row, updateChange);
       return transformation().transformNewToOld(row).thenCompose(transformedRow ->
-        temporaryTable().updateFix(condition, transformedRow, changeGenerator));
+        temporaryTable().updateFix(condition, transformedRow, updateChange));
     }
     return CompletableFuture.completedFuture(null);
   }
@@ -126,17 +124,16 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
    * Updates a row inside the database table ignoring transformation processes
    * @param condition The condition with which the row can be found
    * @param row The row used to replace the placeholders
-   * @param changeGenerator The function that creates the key value pairs
+   * @param updateChange The key value pairs
    * @return A future that is completed when the update is completed
    */
   default CompletableFuture<Void> updateFix(
-    DatabaseCondition condition, DatabaseRow row,
-    Function<DatabaseRow, String> changeGenerator
+    DatabaseCondition condition, DatabaseRow row, String updateChange
   ) {
     var query = new StringBuilder("UPDATE ");
     query.append(fullName());
     query.append(" SET ");
-    query.append(changeGenerator.apply(row));
+    query.append(updateChange);
     var conditionValue = condition.build();
     if (!conditionValue.isEmpty()) {
       query.append(" WHERE ");
