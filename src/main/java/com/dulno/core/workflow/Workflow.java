@@ -60,13 +60,18 @@ public final class Workflow {
       return CompletableFuture.completedFuture(false);
     }
     return findWorkflowBundleOwner().thenAccept(owner -> bundleOwner = owner)
-      .thenCompose(value -> checkOperationLimit().thenCompose(limitReached ->
-        triggerLimit(information, limitReached)));
+      .thenCompose(value -> bundleDatabaseTable.findBundle(bundleOwner)
+        .thenCompose(bundle -> checkOperationLimit(bundle)
+          .thenCompose(limitReached -> triggerLimit(information, bundle,
+            limitReached))));
   }
 
   private CompletableFuture<Boolean> triggerLimit(
-    Map<String, Object> information, boolean limitReached
+    Map<String, Object> information, Bundle bundle, boolean limitReached
   ) {
+    if (System.currentTimeMillis() > bundle.expiration()) {
+      return CompletableFuture.completedFuture(false);
+    }
     if (limitReached) {
       postExecutionFailure("workflow.operations.limit.reached");
       return CompletableFuture.completedFuture(false);
@@ -86,16 +91,15 @@ public final class Workflow {
     return executeNextAction(Maps.newHashMap(information));
   }
 
-  private CompletableFuture<Boolean> checkOperationLimit() {
-    return bundleDatabaseTable.findBundle(bundleOwner).thenCompose(
-      bundle -> operationDatabaseTable.findOperations(bundleOwner)
-        .thenApply(operations -> checkOperationLimit(bundle, operations)));
+  private CompletableFuture<Boolean> checkOperationLimit(Bundle bundle) {
+    return operationDatabaseTable.findOperations(bundleOwner)
+      .thenApply(operations -> checkOperationLimit(bundle, operations));
   }
 
   private boolean checkOperationLimit(Bundle bundle, Operation operations) {
     if (System.currentTimeMillis() > operations.expiration()) {
       operationDatabaseTable.extendExpiration(bundleOwner);
-      return true;
+      return false;
     }
     return operations.operations() + actions.size() >
       bundle.workflowOperationLimit();
@@ -121,7 +125,7 @@ public final class Workflow {
   }
 
   private CompletableFuture<Boolean> processActionResult(
-          ActionResult result, Map<String, Object> information
+    ActionResult result, Map<String, Object> information
   ) {
     if (result.isFailure()) {
       postExecutionFailure(result.failureMessage());
@@ -188,7 +192,7 @@ public final class Workflow {
   }
 
   private void sendExecutionFailureNotification(
-          User target, NotificationSetting notificationSetting, String failureMessage
+    User target, NotificationSetting notificationSetting, String failureMessage
   ) {
     if (!notificationSetting.general() || !notificationSetting.workflowFail()) {
       return;
