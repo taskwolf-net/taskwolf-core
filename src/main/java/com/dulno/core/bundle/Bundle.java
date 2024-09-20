@@ -98,7 +98,7 @@ public final class Bundle {
     return System.currentTimeMillis() + 1000L * 60 * 60 * 24 * switch (runtime) {
       case WEEKLY -> 7;
       case MONTHLY -> 30;
-      case YEARLY -> 365;
+      case YEARLY -> 360;
       default -> 0;
     };
   }
