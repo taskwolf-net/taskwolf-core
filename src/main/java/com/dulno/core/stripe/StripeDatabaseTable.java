@@ -2,7 +2,6 @@ package com.dulno.core.stripe;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseCondition;
 
 import java.util.List;
@@ -13,7 +12,7 @@ public final class StripeDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "stripe";
 
   public static StripeDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("account", DatabaseDataType.TEXT,
@@ -46,10 +45,6 @@ public final class StripeDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> deleteStripeAccount(String accountId) {
     return delete(accountId);
-  }
-
-  public CompletableFuture<Void> deleteStripeAccountByTarget(UUID targetId) {
-    return delete(DatabaseCondition.of("target", targetId));
   }
 
   public CompletableFuture<Boolean> stripeAccountExists(String accountId) {
