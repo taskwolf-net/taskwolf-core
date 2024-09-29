@@ -6,6 +6,7 @@ package com.dulno.core.workflow.component.input;
  */
 public enum InputComponentDataType {
   TEXT,
+  TEXT_AREA,
   NUMBER,
   BOOLEAN,
   UUID,

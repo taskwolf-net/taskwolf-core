@@ -19,5 +19,5 @@ public interface InputComponentSelect {
    * @return The future list of select options
    */
   CompletableFuture<List<InputComponentSelectEntry>> compile(User user,
-                                                             UUID target, Map<String, String> previousInputs);
+    UUID target, Map<String, String> previousInputs);
 }
