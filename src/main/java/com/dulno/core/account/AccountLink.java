@@ -15,9 +15,9 @@ public interface AccountLink {
   /**
    * Is used to find all accounts that are registered for one user / organization
    * @param id The id of an user or an organization
-   * @return The list of account identifiers
+   * @return The list of linked account
    */
-  CompletableFuture<List<String>> findAccounts(UUID id);
+  CompletableFuture<List<AccountLinkEntry>> findAccounts(UUID id);
 
   /**
    * Removes an account
