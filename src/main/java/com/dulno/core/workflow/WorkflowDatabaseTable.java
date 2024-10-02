@@ -17,7 +17,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "workflow";
 
   public static WorkflowDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID,
@@ -64,31 +64,33 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     createdView = createMaterializedViewIfNotExists("created_view", "created");
   }
 
-  public void insertWorkflow(WorkflowEntry entry) {
-    insertWorkflow(entry.ownerId(), entry.id(), entry.creatorId(), entry.triggerId(),
-      entry.actionIds(), entry.conditionIds(), entry.modules(), entry.created(),
-      entry.name(), entry.description(), entry.state().toString());
+  public CompletableFuture<Void> insertWorkflow(WorkflowEntry entry) {
+    return insertWorkflow(entry.ownerId(), entry.id(), entry.creatorId(),
+      entry.triggerId(), entry.actionIds(), entry.conditionIds(), entry.modules(),
+      entry.created(), entry.name(), entry.description(), entry.state().toString());
   }
 
-  public void insertWorkflow(
+  public CompletableFuture<Void> insertWorkflow(
     UUID id, UUID ownerId, UUID creatorId, UUID triggerId, List<UUID> actionIds,
     List<UUID> conditionIds, List<String> modules, long created, String name,
     String description, String state
   ) {
-    insert(DatabaseRow.of(ownerId, id, creatorId, triggerId, actionIds,
+    return insert(DatabaseRow.of(ownerId, id, creatorId, triggerId, actionIds,
       conditionIds, modules, created, name, description, state));
   }
 
-  public void updateWorkflowState(WorkflowEntry entry, WorkflowState state) {
-    update(DatabaseCondition.of("owner", entry.ownerId(), "id", entry.id()),
+  public CompletableFuture<Void> updateWorkflowState(
+    WorkflowEntry entry, WorkflowState state
+  ) {
+    return update(DatabaseCondition.of("owner", entry.ownerId(), "id", entry.id()),
       DatabaseRow.of(entry.ownerId(), entry.id(), entry.creatorId(),
         entry.triggerId(), entry.actionIds(), entry.conditionIds(),
         entry.modules(), entry.created(), entry.name(), entry.description(),
         state.toString()));
   }
 
-  public void deleteWorkflow(UUID workflowId) {
-    findWorkflow(workflowId).thenAccept(workflow ->
+  public CompletableFuture<Void> deleteWorkflow(UUID workflowId) {
+    return findWorkflow(workflowId).thenAccept(workflow ->
       delete(DatabaseCondition.of("owner", workflow.ownerId(), "id", workflow.id())));
   }
 
