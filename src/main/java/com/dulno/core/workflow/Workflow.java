@@ -27,6 +27,8 @@ import com.dulno.core.organization.team.TeamDatabaseTable;
 import com.dulno.core.workflow.throttle.WorkflowThrottle;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -50,6 +52,9 @@ public final class Workflow {
   private final Multimap<Integer, Condition> conditions;
   private UUID bundleOwner;
   private int currentActionIndex = 0;
+  private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+  private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+
 
   /**
    * Triggers the workflow
@@ -88,7 +93,12 @@ public final class Workflow {
       postExecutionFailure("workflow.throttle.intervention");
       return CompletableFuture.completedFuture(false);
     }
-    return executeNextAction(Maps.newHashMap(information));
+    var triggerInformation = Maps.newHashMap(information);
+    var time = System.currentTimeMillis();
+    triggerInformation.put("formattedTime", timeFormat.format(new Date(time)));
+    triggerInformation.put("formattedDate", dateFormat.format(time));
+    triggerInformation.put("unixTime", time);
+    return executeNextAction(triggerInformation);
   }
 
   private CompletableFuture<Boolean> checkOperationLimit(Bundle bundle) {
