@@ -2,7 +2,6 @@ package com.dulno.core.stripe;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,7 +11,7 @@ public final class TerminationDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "stripe_termination";
 
   public static TerminationDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("target", DatabaseDataType.UUID,

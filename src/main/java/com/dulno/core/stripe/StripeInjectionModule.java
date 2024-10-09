@@ -19,13 +19,24 @@ public final class StripeInjectionModule extends AbstractModule {
   @Provides
   @Singleton
   StripeDatabaseTable provideStripeDatabaseTable(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var stripeDatabaseTable = StripeDatabaseTable.create(connection,
       keyspace);
     stripeDatabaseTable.createIfNotExists();
     stripeDatabaseTable.createIndexIfNotExists("target");
     return stripeDatabaseTable;
+  }
+
+  @Provides
+  @Singleton
+  StripeCompletionDatabaseTable provideStripeCompletionDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var stripeCompletionDatabaseTable = StripeCompletionDatabaseTable.create(
+      connection, keyspace);
+    stripeCompletionDatabaseTable.createIfNotExists();
+    return stripeCompletionDatabaseTable;
   }
 
   @Provides
