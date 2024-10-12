@@ -2,7 +2,6 @@ package com.dulno.core.action;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -10,8 +9,8 @@ import java.util.concurrent.CompletableFuture;
 
 public final class ActionContentDatabaseTable extends DatabaseTable {
   public static ActionContentDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace,
-          String tableName, List<DatabaseColumn> contentColumns
+    DatabaseConnection connection, DatabaseKeyspace keyspace,
+    String tableName, List<DatabaseColumn> contentColumns
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("action", DatabaseDataType.UUID,
@@ -31,6 +30,12 @@ public final class ActionContentDatabaseTable extends DatabaseTable {
     UUID actionId, DatabaseRow content
   ) {
     return insert(DatabaseRow.of(actionId).concat(content));
+  }
+
+  public CompletableFuture<Void> updateContent(
+    UUID actionId, DatabaseRow content
+  ) {
+    return update(actionId, DatabaseRow.of(actionId).concat(content));
   }
 
   public CompletableFuture<Void> deleteContent(UUID actionId) {

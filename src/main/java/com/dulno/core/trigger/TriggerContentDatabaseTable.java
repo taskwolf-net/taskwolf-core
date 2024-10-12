@@ -2,7 +2,6 @@ package com.dulno.core.trigger;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseCondition;
 
 import java.util.List;
@@ -11,8 +10,8 @@ import java.util.concurrent.CompletableFuture;
 
 public final class TriggerContentDatabaseTable extends DatabaseTable {
   public static TriggerContentDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace,
-          String tableName, List<DatabaseColumn> contentColumns
+    DatabaseConnection connection, DatabaseKeyspace keyspace,
+    String tableName, List<DatabaseColumn> contentColumns
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("trigger", DatabaseDataType.UUID,
@@ -32,6 +31,12 @@ public final class TriggerContentDatabaseTable extends DatabaseTable {
     UUID triggerId, DatabaseRow content
   ) {
     return insert(DatabaseRow.of(triggerId).concat(content));
+  }
+
+  public CompletableFuture<Void> updateContent(
+    UUID triggerId, DatabaseRow content
+  ) {
+    return update(triggerId, DatabaseRow.of(triggerId).concat(content));
   }
 
   public CompletableFuture<Void> deleteContent(UUID triggerId) {

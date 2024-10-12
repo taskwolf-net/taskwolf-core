@@ -14,7 +14,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.dulno.core.action.*;
 import com.dulno.core.database.condition.DatabaseCondition;
 import com.dulno.core.iterator.AsyncIterator;
 import com.dulno.core.locale.Translation;
@@ -198,7 +197,7 @@ public class CoreModule {
   public CompletableFuture<List<TriggerEntry>> findAllTriggerEntries(
     String module, String type
   ) {
-    return findAllTriggerEntries(module, type, true);
+    return findSomeTriggerEntries(module, type, DatabaseCondition.empty(), true);
   }
 
   /**
@@ -212,8 +211,38 @@ public class CoreModule {
   public CompletableFuture<List<TriggerEntry>> findAllTriggerEntries(
     String module, String type, boolean checkDistribution
   ) {
+    return findSomeTriggerEntries(module, type, DatabaseCondition.empty(),
+      checkDistribution);
+  }
+
+  /**
+   * Is used to find some triggers of one kind
+   * @param module The name of the module in which the triggers are located
+   * @param type The type of the trigger
+   * @param condition The condition with that the triggers are found
+   * @return A future that contains the list of trigger entries
+   */
+  public CompletableFuture<List<TriggerEntry>> findSomeTriggerEntries(
+    String module, String type, DatabaseCondition condition
+  ) {
+    return findSomeTriggerEntries(module, type, condition, true);
+  }
+
+  /**
+   * Is used to find all triggers of one kind
+   * @param module The name of the module in which the triggers are located
+   * @param type The type of the trigger
+   * @param condition The condition with that the triggers are found
+   * @param checkDistribution If true there is a distribution check,
+   *                          if false there is no distribution check
+   * @return A future that contains the list of trigger entries
+   */
+  public CompletableFuture<List<TriggerEntry>> findSomeTriggerEntries(
+    String module, String type, DatabaseCondition condition,
+    boolean checkDistribution
+  ) {
     var futureResponse = new CompletableFuture<List<TriggerEntry>>();
-    findTrigger(module, type).get().findEntries(DatabaseCondition.empty())
+    findTrigger(module, type).get().findEntries(condition)
       .thenAccept(entries -> AsyncIterator.execute(entries,
           triggerDatabaseTable::findTrigger)
         .thenAccept(triggers -> futureResponse.complete(
