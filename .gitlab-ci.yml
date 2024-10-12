@@ -4,27 +4,25 @@ stages:
   - deploy
 
 before_script:
-  - GRADLE_USER_HOME="$(pwd)/.gradle"
-  - export GRADLE_USER_HOME
   - export DULNO_GITLAB_PRIVATE_TOKEN="$DULNO_GITLAB_PRIVATE_TOKEN"
 
 test:
   stage: test
-  image: openjdk:21
+  image: gradle:8.5-jdk21
   script:
-    - ./gradlew test
+    - gradle test
 
 build:
   stage: build
-  image: openjdk:21
+  image: gradle:8.5-jdk21
   artifacts:
     paths:
       - build/libs/core-1.0.0-SNAPSHOT.jar
       - build/docs/javadoc
     expire_in: 1 day
   script:
-    - ./gradlew assemble
-    - ./gradlew javadoc
+    - gradle assemble
+    - gradle javadoc
 
 deploy:
   stage: deploy

@@ -66,7 +66,7 @@ public final class UserTargetDatabaseTable extends DatabaseTable {
         checkTargetValidity(userId, currentTarget).thenCompose(valid ->
           valid ? CompletableFuture.completedFuture(currentTarget) :
             correctCurrentTarget(userId))) :
-      CompletableFuture.completedFuture(null));
+      correctCurrentTarget(userId));
   }
 
   private CompletableFuture<Boolean> checkTargetValidity(UUID userId, UUID target) {
