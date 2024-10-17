@@ -44,20 +44,20 @@ public final class UserTargetDatabaseTable extends DatabaseTable {
     this.bundleDatabaseTable = bundleDatabaseTable;
   }
 
-  public void insertTarget(UUID id, UUID target) {
-    insert(DatabaseRow.of(id, target));
+  public CompletableFuture<Void> insertTarget(UUID id, UUID target) {
+    return insert(DatabaseRow.of(id, target));
   }
 
-  public void changeTarget(UUID id, UUID target) {
-    update(id, DatabaseRow.of(id, target));
+  public CompletableFuture<Void> changeTarget(UUID id, UUID target) {
+    return update(id, DatabaseRow.of(id, target));
   }
 
   public CompletableFuture<Boolean> targetExists(UUID userId) {
     return exists(userId);
   }
 
-  public void deleteTarget(UUID userId) {
-    delete(userId);
+  public CompletableFuture<Void> deleteTarget(UUID userId) {
+    return delete(userId);
   }
 
   public CompletableFuture<UUID> findTargetSecured(UUID userId) {

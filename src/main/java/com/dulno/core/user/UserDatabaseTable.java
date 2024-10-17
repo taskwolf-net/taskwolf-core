@@ -41,76 +41,91 @@ public final class UserDatabaseTable extends DatabaseTable {
     this.targetIdentificationPublish = targetIdentificationPublish;
   }
 
-  public void insertUser(User user) {
-    insertUser(user.id(), user.name(), user.email(), user.passwordHash(),
+  public CompletableFuture<Void> insertUser(User user) {
+    return insertUser(user.id(), user.name(), user.email(), user.passwordHash(),
       user.language(), user.organizations(), user.legalAccepted(),
       user.newsletter());
   }
 
-  public void insertUser(
+  public CompletableFuture<Void> insertUser(
     UUID id, String name, String email, String passwordHash, String language,
     List<UUID> organizations, boolean legalAccepted, boolean newsletter
   ) {
-    insert(DatabaseRow.of(id, name, email.toLowerCase(), passwordHash,
+    return insert(DatabaseRow.of(id, name, email.toLowerCase(), passwordHash,
       language, organizations, legalAccepted, newsletter));
   }
 
-  public void addUserOrganization(UUID userId, UUID organizationId) {
-    findUser(userId).thenAccept(user -> addUserOrganization(user, organizationId));
+  public CompletableFuture<Void> addUserOrganization(
+    UUID userId, UUID organizationId
+  ) {
+    return findUser(userId).thenCompose(user ->
+      addUserOrganization(user, organizationId));
   }
 
-  private void addUserOrganization(User user, UUID organizationId) {
+  private CompletableFuture<Void> addUserOrganization(
+    User user, UUID organizationId
+  ) {
     user.addOrganization(organizationId);
-    updateUser(user);
+    return updateUser(user);
   }
 
-  public void removeUserOrganization(UUID userId, UUID organizationId) {
-    findUser(userId).thenAccept(user -> removeUserOrganization(user, organizationId));
+  public CompletableFuture<Void> removeUserOrganization(
+    UUID userId, UUID organizationId
+  ) {
+    return findUser(userId).thenCompose(user ->
+      removeUserOrganization(user, organizationId));
   }
 
-  private void removeUserOrganization(User user, UUID organizationId) {
+  private CompletableFuture<Void> removeUserOrganization(
+    User user, UUID organizationId
+  ) {
     user.removeOrganization(organizationId);
-    updateUser(user);
+    return updateUser(user);
   }
 
-  public void changeUserName(UUID userId, String newName) {
-    findUser(userId).thenAccept(user -> changeUserName(user, newName));
+  public CompletableFuture<Void> changeUserName(UUID userId, String newName) {
+    return findUser(userId).thenCompose(user -> changeUserName(user, newName));
   }
 
-  private void changeUserName(User user, String newName) {
+  private CompletableFuture<Void> changeUserName(User user, String newName) {
     user.changeName(newName);
-    updateUser(user);
+    return updateUser(user);
   }
 
-  public void changeUserEmail(UUID userId, String newEmail) {
-    findUser(userId).thenAccept(user -> changeUserEmail(user, newEmail));
+  public CompletableFuture<Void> changeUserEmail(UUID userId, String newEmail) {
+    return findUser(userId).thenCompose(user -> changeUserEmail(user, newEmail));
   }
 
-  private void changeUserEmail(User user, String newEmail) {
+  private CompletableFuture<Void> changeUserEmail(User user, String newEmail) {
     user.changeEmail(newEmail);
-    updateUser(user);
+    return updateUser(user);
   }
 
-  public void changeUserPassword(UUID userId, String newPasswordHash) {
-    findUser(userId).thenAccept(user -> changeUserPassword(user, newPasswordHash));
+  public CompletableFuture<Void> changeUserPassword(
+    UUID userId, String newPasswordHash
+  ) {
+    return findUser(userId).thenCompose(user ->
+      changeUserPassword(user, newPasswordHash));
   }
 
-  private void changeUserPassword(User user, String newPasswordHash) {
+  private CompletableFuture<Void> changeUserPassword(
+    User user, String newPasswordHash
+  ) {
     user.changePassword(newPasswordHash);
-    updateUser(user);
+    return updateUser(user);
   }
 
-  public void changeUserLanguage(UUID userId, String newLanguage) {
-    findUser(userId).thenAccept(user -> changeUserLanguage(user, newLanguage));
+  public CompletableFuture<Void>  changeUserLanguage(UUID userId, String newLanguage) {
+    return findUser(userId).thenCompose(user -> changeUserLanguage(user, newLanguage));
   }
 
-  private void changeUserLanguage(User user, String newLanguage) {
+  private CompletableFuture<Void> changeUserLanguage(User user, String newLanguage) {
     user.changeLanguage(newLanguage);
-    updateUser(user);
+    return updateUser(user);
   }
 
-  private void updateUser(User user) {
-    update(user.id(), DatabaseRow.of(user.id(), user.name(),
+  private CompletableFuture<Void> updateUser(User user) {
+    return update(user.id(), DatabaseRow.of(user.id(), user.name(),
       user.email().toLowerCase(), user.passwordHash(), user.language(),
       user.organizations(), user.legalAccepted(), user.newsletter()));
   }
@@ -127,8 +142,8 @@ public final class UserDatabaseTable extends DatabaseTable {
     return exists(DatabaseCondition.of("email", email.toLowerCase()));
   }
 
-  public void deleteUser(UUID userId) {
-    delete(userId);
+  public CompletableFuture<Void> deleteUser(UUID userId) {
+    return delete(userId);
   }
 
   public CompletableFuture<User> findUser(UUID userId) {
