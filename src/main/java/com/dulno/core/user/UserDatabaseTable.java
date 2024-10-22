@@ -26,6 +26,7 @@ public final class UserDatabaseTable extends DatabaseTable {
     columns.add(DatabaseListColumn.create("organizations", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("legalAccepted", DatabaseDataType.BOOLEAN));
     columns.add(DatabaseColumn.create("newsletter", DatabaseDataType.BOOLEAN));
+    columns.add(DatabaseColumn.create("joinDate", DatabaseDataType.BIGINT));
     return new UserDatabaseTable(connection, keyspace, TABLE_NAME, columns,
       targetIdentificationPublish);
   }
@@ -44,15 +45,16 @@ public final class UserDatabaseTable extends DatabaseTable {
   public CompletableFuture<Void> insertUser(User user) {
     return insertUser(user.id(), user.name(), user.email(), user.passwordHash(),
       user.language(), user.organizations(), user.legalAccepted(),
-      user.newsletter());
+      user.newsletter(), user.joinDate());
   }
 
   public CompletableFuture<Void> insertUser(
     UUID id, String name, String email, String passwordHash, String language,
-    List<UUID> organizations, boolean legalAccepted, boolean newsletter
+    List<UUID> organizations, boolean legalAccepted, boolean newsletter,
+    long joinDate
   ) {
     return insert(DatabaseRow.of(id, name, email.toLowerCase(), passwordHash,
-      language, organizations, legalAccepted, newsletter));
+      language, organizations, legalAccepted, newsletter, joinDate));
   }
 
   public CompletableFuture<Void> addUserOrganization(
@@ -127,7 +129,8 @@ public final class UserDatabaseTable extends DatabaseTable {
   private CompletableFuture<Void> updateUser(User user) {
     return update(user.id(), DatabaseRow.of(user.id(), user.name(),
       user.email().toLowerCase(), user.passwordHash(), user.language(),
-      user.organizations(), user.legalAccepted(), user.newsletter()));
+      user.organizations(), user.legalAccepted(), user.newsletter(),
+      user.joinDate()));
   }
 
   public CompletableFuture<UUID> generateAvailableUserId() {
