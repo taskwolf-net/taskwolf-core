@@ -66,7 +66,8 @@ public interface SelectableDatabaseTable extends AbstractDatabaseTable,
     DatabaseCondition condition
   ) {
     var futureResponse = new CompletableFuture<DatabaseRow>();
-    selectRows(condition).thenAccept(rows -> futureResponse.complete(rows.get(0)));
+    selectRows(condition).thenAccept(rows -> futureResponse.complete(
+      rows.isEmpty() ? DatabaseRow.of() : rows.get(0)));
     return futureResponse;
   }
 

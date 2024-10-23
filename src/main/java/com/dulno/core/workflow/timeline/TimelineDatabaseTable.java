@@ -2,7 +2,6 @@ package com.dulno.core.workflow.timeline;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseCondition;
 
 import java.util.List;
@@ -14,7 +13,7 @@ public final class TimelineDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "workflow_timeline";
 
   public static TimelineDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
@@ -33,19 +32,19 @@ public final class TimelineDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public void insertEntry(TimelineDatabaseEntry entry) {
-    insertEntry(entry.id(), entry.workflowId(), entry.time(), entry.type(),
+  public CompletableFuture<Void> insertEntry(TimelineDatabaseEntry entry) {
+    return insertEntry(entry.id(), entry.workflowId(), entry.time(), entry.type(),
       entry.content());
   }
 
-  public void insertEntry(
+  public CompletableFuture<Void> insertEntry(
     UUID id, UUID workflowId, long time, String type, String content
   ) {
-    insert(DatabaseRow.of(id, workflowId, time, type, content));
+    return insert(DatabaseRow.of(id, workflowId, time, type, content));
   }
 
-  public void deleteEntry(UUID entryId) {
-    delete(entryId);
+  public CompletableFuture<Void> deleteEntry(UUID entryId) {
+    return delete(entryId);
   }
 
   public CompletableFuture<UUID> generateAvailableEntryId() {

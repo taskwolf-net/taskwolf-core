@@ -2,7 +2,6 @@ package com.dulno.core.condition;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseCondition;
 
 import java.util.List;
@@ -14,7 +13,7 @@ public final class ConditionDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "condition";
 
   public static ConditionDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
@@ -35,21 +34,21 @@ public final class ConditionDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public void insertCondition(ConditionEntry entry) {
-    insertCondition(entry.id(), entry.ownerId(), entry.workflowId(),
+  public CompletableFuture<Void> insertCondition(ConditionEntry entry) {
+    return insertCondition(entry.id(), entry.ownerId(), entry.workflowId(),
       entry.actionIndex(), entry.conditionIndex(), entry.type(), entry.content());
   }
 
-  public void insertCondition(
+  public CompletableFuture<Void> insertCondition(
     UUID id, UUID ownerId, UUID workflowId, int actionIndex, int conditionIndex,
     String type, String content
   ) {
-    insert(DatabaseRow.of(id, ownerId, workflowId, actionIndex, conditionIndex,
-      type, content));
+    return insert(DatabaseRow.of(id, ownerId, workflowId, actionIndex,
+      conditionIndex, type, content));
   }
 
-  public void deleteCondition(UUID conditionId) {
-    delete(conditionId);
+  public CompletableFuture<Void> deleteCondition(UUID conditionId) {
+    return delete(conditionId);
   }
 
   public CompletableFuture<UUID> generateAvailableConditionId() {

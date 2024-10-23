@@ -2,7 +2,6 @@ package com.dulno.core.trigger;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseCondition;
 
 import java.util.List;
@@ -13,7 +12,7 @@ public final class TriggerDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "trigger";
 
   public static TriggerDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
@@ -33,34 +32,34 @@ public final class TriggerDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public void insertTrigger(TriggerEntry entry) {
-    insertTrigger(entry.id(), entry.ownerId(), entry.workflowId(),
+  public CompletableFuture<Void> insertTrigger(TriggerEntry entry) {
+    return insertTrigger(entry.id(), entry.ownerId(), entry.workflowId(),
       entry.module(), entry.type(), entry.state().toString());
   }
 
-  public void insertTrigger(
+  public CompletableFuture<Void> insertTrigger(
     UUID id, UUID ownerId, UUID workflowId, String module, String type,
     String state
   ) {
-    insert(DatabaseRow.of(id, ownerId, workflowId, module, type, state));
+    return insert(DatabaseRow.of(id, ownerId, workflowId, module, type, state));
   }
 
-  public void changeState(UUID triggerId, TriggerState state) {
-    findTrigger(triggerId).thenAccept(entry -> changeState(entry, state));
+  public CompletableFuture<Void> changeState(UUID triggerId, TriggerState state) {
+    return findTrigger(triggerId).thenCompose(entry -> changeState(entry, state));
   }
 
-  private void changeState(TriggerEntry entry, TriggerState state) {
+  private CompletableFuture<Void> changeState(TriggerEntry entry, TriggerState state) {
     entry.changeState(state);
-    updateTrigger(entry);
+    return updateTrigger(entry);
   }
 
-  private void updateTrigger(TriggerEntry entry) {
-    update(entry.id(), DatabaseRow.of(entry.id(), entry.ownerId(),
+  private CompletableFuture<Void> updateTrigger(TriggerEntry entry) {
+    return update(entry.id(), DatabaseRow.of(entry.id(), entry.ownerId(),
       entry.workflowId(), entry.module(), entry.type(), entry.state().toString()));
   }
 
-  public void deleteTrigger(UUID triggerId) {
-    delete(triggerId);
+  public CompletableFuture<Void> deleteTrigger(UUID triggerId) {
+    return delete(triggerId);
   }
 
   public CompletableFuture<UUID> generateAvailableTriggerId() {

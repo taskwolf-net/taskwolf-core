@@ -2,7 +2,6 @@ package com.dulno.core.action;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseCondition;
 
 import java.util.List;
@@ -14,7 +13,7 @@ public final class ActionDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "action";
 
   public static ActionDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
@@ -34,20 +33,20 @@ public final class ActionDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public void insertAction(ActionEntry entry) {
-    insertAction(entry.id(), entry.ownerId(), entry.workflowId(),
+  public CompletableFuture<Void> insertAction(ActionEntry entry) {
+    return insertAction(entry.id(), entry.ownerId(), entry.workflowId(),
       entry.actionIndex(), entry.module(), entry.type());
   }
 
-  public void insertAction(
+  public CompletableFuture<Void> insertAction(
     UUID id, UUID ownerId, UUID workflowId, int actionIndex, String module,
     String type
   ) {
-    insert(DatabaseRow.of(id, ownerId, workflowId, actionIndex, module, type));
+    return insert(DatabaseRow.of(id, ownerId, workflowId, actionIndex, module, type));
   }
 
-  public void deleteAction(UUID actionId) {
-    delete(actionId);
+  public CompletableFuture<Void> deleteAction(UUID actionId) {
+    return delete(actionId);
   }
 
   public CompletableFuture<UUID> generateAvailableActionId() {
