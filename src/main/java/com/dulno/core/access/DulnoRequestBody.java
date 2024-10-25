@@ -33,6 +33,18 @@ public final class DulnoRequestBody {
   }
 
   /**
+   * Is used to get a string from request body
+   * @param key The key to find the content
+   * @param maxLength The maximum length of the content (if the content is longer,
+   *                 it is split, so it matches the maximum length)
+   * @return The value behind the key
+   */
+  public String getString(String key, int maxLength) {
+    var value = getString(key);
+    return value.substring(0, Math.min(maxLength, value.length()));
+  }
+
+  /**
    * Is used to get an integer from request body
    * @param key The key to find the content
    * @return The value behind the key
