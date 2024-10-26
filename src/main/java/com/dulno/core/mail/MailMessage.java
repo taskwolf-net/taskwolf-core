@@ -23,7 +23,11 @@ public final class MailMessage {
           body.append(bodyPart.getContent());
         }
       }
-      return create(message.getSubject(), body.toString(), message.getFrom()[0],
+      var messageId = message.getHeader("Message-ID");
+      var inReplyTo = message.getHeader("In-Reply-To");
+      return create(messageId != null && messageId.length > 0 ? messageId[0] : "",
+        inReplyTo != null && inReplyTo.length > 0 ? inReplyTo[0] : "",
+        message.getSubject(), body.toString(), message.getFrom()[0],
         message.getReceivedDate());
     } catch (Exception exception) {
       exception.printStackTrace();
@@ -31,6 +35,8 @@ public final class MailMessage {
     }
   }
 
+  private final String messageId;
+  private final String inReplyTo;
   private final String title;
   private final String body;
   private final Address sender;

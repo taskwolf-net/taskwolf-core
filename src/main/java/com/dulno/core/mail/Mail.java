@@ -77,28 +77,28 @@ public class Mail {
     }
   }
 
-  public CompletableFuture<Void> send(String target, String title, String body) {
+  public CompletableFuture<String> send(String target, String title, String body) {
     return send(target, title, body, Lists.newArrayList());
   }
 
-  public CompletableFuture<Void> send(
+  public CompletableFuture<String> send(
     String target, String title, String body, String dataType
   ) {
     return send(target, title, body, dataType, Lists.newArrayList());
   }
 
-  public CompletableFuture<Void> send(
+  public CompletableFuture<String> send(
     String target, String title, String body,
     List<MailAttachment> attachments
   ) {
     return send(target, title, body, "", attachments);
   }
 
-  public CompletableFuture<Void> send(
+  public CompletableFuture<String> send(
     String target, String title, String body, String dataType,
     List<MailAttachment> attachments
   ) {
-    var futureResponse = new CompletableFuture<Void>();
+    var futureResponse = new CompletableFuture<String>();
     new Thread(() -> sendEmail(target, title, body, dataType,
       attachments, futureResponse)).start();
     return futureResponse;
@@ -107,7 +107,7 @@ public class Mail {
   private void sendEmail(
     String target, String title, String body, String dataType,
     List<MailAttachment> attachments,
-    CompletableFuture<Void> futureResponse
+    CompletableFuture<String> futureResponse
   ) {
     try {
       var session = createSession("smtp", smtpMailHost, smtpMailPort);
@@ -117,10 +117,11 @@ public class Mail {
       transport.connect(smtpMailHost, mailUser, mailPassword);
       transport.sendMessage(message, message.getAllRecipients());
       transport.close();
+      var messageId = message.getHeader("Message-ID")[0];
       outgoingMailDatabaseTable.generateAvailableOutgoingMailId()
         .thenAccept(id -> outgoingMailDatabaseTable.insertOutgoingMail(id, target,
           mail, System.currentTimeMillis(), title, serializeMessage(message))
-          .thenAccept(futureResponse::complete));
+          .thenAccept(value -> futureResponse.complete(messageId)));
     } catch (Exception exception) {
       exception.printStackTrace();
     }
