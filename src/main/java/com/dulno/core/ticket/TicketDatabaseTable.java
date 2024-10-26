@@ -1,9 +1,9 @@
 package com.dulno.core.ticket;
 
 import com.dulno.core.database.*;
+import com.dulno.core.database.condition.DatabaseComparison;
 import com.dulno.core.database.condition.DatabaseCondition;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -108,6 +108,12 @@ public final class TicketDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<Ticket>> findTicketsByCreator(UUID creatorId) {
     return selectRows(DatabaseCondition.of("creator", creatorId)).thenApply(rows ->
       rows.stream().map(Ticket::of).toList());
+  }
+
+  public CompletableFuture<Long> findTicketCount(UUID creatorId) {
+    return count(DatabaseCondition.of(DatabaseCondition.Filtering.ALLOWED,
+      DatabaseComparison.create("creator", creatorId),
+      DatabaseComparison.create("status", Ticket.Status.OPEN.toString())));
   }
 
   public CompletableFuture<List<Ticket>> findAllTickets() {
