@@ -19,6 +19,7 @@ public final class TicketMessageDatabaseTable extends DatabaseTable {
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("ticket", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("author", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("authorType", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("message", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("time", DatabaseDataType.BIGINT));
     return new TicketMessageDatabaseTable(connection, keyspace, TABLE_NAME, columns);
@@ -33,13 +34,14 @@ public final class TicketMessageDatabaseTable extends DatabaseTable {
 
   public void insertTicketMessage(TicketMessage ticket) {
     insertTicketMessage(ticket.id(), ticket.ticket(), ticket.author(),
-      ticket.message(), ticket.time());
+      ticket.authorType(), ticket.message(), ticket.time());
   }
 
   public void insertTicketMessage(
-    UUID id, UUID ticket, UUID author, String message, long time
+    UUID id, UUID ticket, UUID author, TicketMessageAuthorType authorType,
+    String message, long time
   ) {
-    insert(DatabaseRow.of(id, ticket, author, message, time));
+    insert(DatabaseRow.of(id, ticket, author, authorType.toString(), message, time));
   }
 
   public CompletableFuture<UUID> generateAvailableTicketMessageId() {
