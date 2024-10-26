@@ -1,8 +1,8 @@
 package com.dulno.core.question;
 
 import com.dulno.core.database.*;
+import com.dulno.core.database.condition.DatabaseCondition;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +17,8 @@ public final class QuestionMessageDatabaseTable extends DatabaseTable {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
+    columns.add(DatabaseColumn.create("publicId", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("questionId", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("sender", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("senderType", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
@@ -34,17 +36,18 @@ public final class QuestionMessageDatabaseTable extends DatabaseTable {
   public CompletableFuture<Void> insertQuestionMessage(
     QuestionMessage questionMessage
   ) {
-    return insertQuestionMessage(questionMessage.id(), questionMessage.sender(),
+    return insertQuestionMessage(questionMessage.id(), questionMessage.publicId(),
+      questionMessage.questionId(), questionMessage.sender(),
       questionMessage.senderType(), questionMessage.content(),
       questionMessage.time());
   }
 
   public CompletableFuture<Void> insertQuestionMessage(
-    UUID id, String sender, QuestionMessageSenderType senderType,
-    String content, long time
+    UUID id, String publicId, UUID questionId, String sender,
+    QuestionMessageSenderType senderType, String content, long time
   ) {
-    return insert(DatabaseRow.of(id, sender, senderType.toString(), content,
-      time));
+    return insert(DatabaseRow.of(id, publicId, questionId, sender,
+      senderType.toString(), content, time));
   }
 
   public CompletableFuture<UUID> generateAvailableMessageId() {
@@ -64,7 +67,23 @@ public final class QuestionMessageDatabaseTable extends DatabaseTable {
     return exists(id);
   }
 
+  public CompletableFuture<Boolean> questionMessageExists(String publicId) {
+    return exists(DatabaseCondition.of("publicId", publicId));
+  }
+
   public CompletableFuture<QuestionMessage> findQuestionMessage(UUID id) {
     return selectRow(id).thenApply(QuestionMessage::of);
+  }
+
+  public CompletableFuture<QuestionMessage> findQuestionMessage(String publicId) {
+    return selectRow(DatabaseCondition.of("publicId", publicId))
+      .thenApply(QuestionMessage::of);
+  }
+
+  public CompletableFuture<List<QuestionMessage>> findMessagesOfQuestion(
+    UUID questionId
+  ) {
+    return selectRows(DatabaseCondition.of("questionId", questionId))
+      .thenApply(rows -> rows.stream().map(QuestionMessage::of).toList());
   }
 }
