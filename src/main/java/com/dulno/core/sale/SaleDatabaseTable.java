@@ -2,7 +2,6 @@ package com.dulno.core.sale;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseCondition;
 
 import java.util.List;
@@ -14,10 +13,10 @@ public final class SaleDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "sale";
 
   public static SaleDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
-    columns.add(DatabaseColumn.create("requestMessage", DatabaseDataType.UUID,
+    columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("sender", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("firstName", DatabaseDataType.TEXT));
@@ -29,7 +28,6 @@ public final class SaleDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("companyRole", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("title", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT));
-    columns.add(DatabaseListColumn.create("conversationMessages", DatabaseDataType.UUID));
     return new SaleDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
 
@@ -41,53 +39,18 @@ public final class SaleDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> insertSale(Sale sale) {
-    return insertSale(sale.requestMessage(), sale.sender(), sale.firstName(),
+    return insertSale(sale.id(), sale.sender(), sale.firstName(),
       sale.lastName(), sale.phoneNumber(), sale.country(), sale.companyName(),
-      sale.companySize(), sale.companyRole(), sale.title(), sale.expirationTime(),
-      sale.conversationMessages());
+      sale.companySize(), sale.companyRole(), sale.title(), sale.expirationTime());
   }
 
   public CompletableFuture<Void> insertSale(
     UUID id, String sender, String firstName, String lastName,
     String phoneNumber, String country, String companyName, String companySize,
-    String companyRole, String title, long expirationTime,
-    List<UUID> conversationMessages
+    String companyRole, String title, long expirationTime
   ) {
     return insert(DatabaseRow.of(id, sender, firstName, lastName, phoneNumber,
-      country, companyName, companySize, companyRole, title, expirationTime,
-      conversationMessages));
-  }
-
-  public CompletableFuture<Void> addSaleMessage(
-    UUID id, UUID conversationMessage
-  ) {
-    var futureResponse = new CompletableFuture<Void>();
-    findSale(id).thenAccept(sale -> addSaleMessage(sale, conversationMessage)
-      .thenAccept(futureResponse::complete));
-    return futureResponse;
-  }
-
-  private CompletableFuture<Void> addSaleMessage(
-    Sale sale, UUID conversationMessage
-  ) {
-    sale.addConversationMessage(conversationMessage);
-    return updateSale(sale);
-  }
-
-  public CompletableFuture<Void> removeSaleMessage(
-    UUID id, UUID conversationMessage
-  ) {
-    var futureResponse = new CompletableFuture<Void>();
-    findSale(id).thenAccept(sale -> removeSaleMessage(sale, conversationMessage)
-      .thenAccept(futureResponse::complete));
-    return futureResponse;
-  }
-
-  private CompletableFuture<Void> removeSaleMessage(
-    Sale sale, UUID conversationMessage
-  ) {
-    sale.removeConversationMessage(conversationMessage);
-    return updateSale(sale);
+      country, companyName, companySize, companyRole, title, expirationTime));
   }
 
   public CompletableFuture<Void> resetSaleExpirationTime(UUID id) {
@@ -115,11 +78,19 @@ public final class SaleDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> updateSale(Sale sale) {
-    return update(sale.requestMessage(),
-      DatabaseRow.of(sale.requestMessage(), sale.sender(), sale.firstName(),
-        sale.lastName(), sale.phoneNumber(), sale.country(), sale.companyName(),
-        sale.companySize(), sale.companyRole(), sale.title(),
-        sale.expirationTime(), sale.conversationMessages()));
+    return update(sale.id(), DatabaseRow.of(sale.id(), sale.sender(),
+      sale.firstName(), sale.lastName(), sale.phoneNumber(), sale.country(),
+      sale.companyName(), sale.companySize(), sale.companyRole(), sale.title(),
+      sale.expirationTime()));
+  }
+
+  public CompletableFuture<UUID> generateAvailableSaleId() {
+    var futureResponse = new CompletableFuture<UUID>();
+    var id = UUID.randomUUID();
+    saleExists(id).thenApply(exists -> exists ?
+      generateAvailableSaleId().thenApply(futureResponse::complete) :
+      CompletableFuture.completedFuture(futureResponse.complete(id)));
+    return futureResponse;
   }
 
   public CompletableFuture<Void> deleteSale(UUID id) {

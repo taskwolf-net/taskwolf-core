@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import com.dulno.core.database.DatabaseRow;
 
-import java.util.List;
 import java.util.UUID;
 
 @Accessors(fluent = true)
@@ -17,11 +16,11 @@ public final class Sale {
       row.findCell(4).stringValue(), row.findCell(5).stringValue(),
       row.findCell(6).stringValue(), row.findCell(7).stringValue(),
       row.findCell(8).stringValue(), row.findCell(9).stringValue(),
-      row.findCell(10).longValue(), row.findCell(11).listValue());
+      row.findCell(10).longValue());
   }
 
   @Getter
-  private final UUID requestMessage;
+  private final UUID id;
   @Getter
   private final String sender;
   @Getter
@@ -42,15 +41,6 @@ public final class Sale {
   private final String title;
   @Getter
   private long expirationTime;
-  private final List<UUID> conversationMessages;
-
-  public void addConversationMessage(UUID conversationMessage) {
-    conversationMessages.add(conversationMessage);
-  }
-
-  public void removeConversationMessage(UUID conversationMessage) {
-    conversationMessages.remove(conversationMessage);
-  }
 
   private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 14;
 
@@ -60,9 +50,5 @@ public final class Sale {
 
   public void disableExpirationTime() {
     expirationTime = -1;
-  }
-
-  public List<UUID> conversationMessages() {
-    return List.copyOf(conversationMessages);
   }
 }
