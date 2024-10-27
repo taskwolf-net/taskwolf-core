@@ -20,6 +20,7 @@ public final class QuestionDatabaseTable extends DatabaseTable {
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("sender", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("title", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT));
     return new QuestionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
@@ -33,13 +34,29 @@ public final class QuestionDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> insertQuestion(Question question) {
     return insertQuestion(question.id(), question.sender(),
-      question.title(), question.expirationTime());
+      question.title(), question.status().toString(), question.expirationTime());
   }
 
   public CompletableFuture<Void> insertQuestion(
-    UUID id,  String sender, String title, long expirationTime
+    UUID id,  String sender, String title, String status, long expirationTime
   ) {
-    return insert(DatabaseRow.of(id, sender, title, expirationTime));
+    return insert(DatabaseRow.of(id, sender, title, status, expirationTime));
+  }
+
+  public CompletableFuture<Void> updateQuestionStatus(
+    UUID id, Question.Status status
+  ) {
+    var futureResponse = new CompletableFuture<Void>();
+    findQuestion(id).thenAccept(question -> updateQuestionStatus(question, status)
+      .thenAccept(futureResponse::complete));
+    return futureResponse;
+  }
+
+  private CompletableFuture<Void> updateQuestionStatus(
+    Question question, Question.Status status
+  ) {
+    question.updateStatus(status);
+    return updateQuestion(question);
   }
 
   public CompletableFuture<Void> resetQuestionExpirationTime(UUID id) {
@@ -97,8 +114,8 @@ public final class QuestionDatabaseTable extends DatabaseTable {
       .thenApply(rows -> rows.stream().map(Question::of).toList());
   }
 
-  public CompletableFuture<List<Question>> findAllQuestions() {
-    return selectAllRows().thenApply(rows ->
-      rows.stream().map(Question::of).collect(Collectors.toList()));
+  public CompletableFuture<List<Question>> findOpenQuestions() {
+    return selectRows(DatabaseCondition.of("status", Question.Status.OPEN.toString()))
+      .thenApply(rows -> rows.stream().map(Question::of).collect(Collectors.toList()));
   }
 }
