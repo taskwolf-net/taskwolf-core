@@ -142,8 +142,8 @@
   "activity.ticket.new.description": "You have opened a new ticket",
   "activity.ticket.answer.title": "Ticket reply received",
   "activity.ticket.answer.description": "You have a new reply to one of your tickets",
-  "activity.ticket.delete.title": "Ticket deleted",
-  "activity.ticket.delete.description": "You have deleted one of your tickets",
+  "activity.ticket.close.title": "Ticket closed",
+  "activity.ticket.close.description": "You have closed one of your tickets",
 
   "organization.default.name": "Organization of %s",
   "organization.team.target.global": "Entire organization"

@@ -7,6 +7,7 @@ import com.dulno.core.database.DatabaseRow;
 
 import java.util.UUID;
 
+@Getter
 @Accessors(fluent = true)
 @AllArgsConstructor(staticName = "create")
 public final class Sale {
@@ -16,31 +17,31 @@ public final class Sale {
       row.findCell(4).stringValue(), row.findCell(5).stringValue(),
       row.findCell(6).stringValue(), row.findCell(7).stringValue(),
       row.findCell(8).stringValue(), row.findCell(9).stringValue(),
-      row.findCell(10).longValue());
+      Status.valueOf(row.findCell(10).stringValue()),
+      row.findCell(11).longValue());
   }
 
-  @Getter
+  public enum Status {
+    OPEN,
+    CLOSED
+  }
+
   private final UUID id;
-  @Getter
   private final String sender;
-  @Getter
   private final String firstName;
-  @Getter
   private final String lastName;
-  @Getter
   private final String phoneNumber;
-  @Getter
   private final String country;
-  @Getter
   private final String companyName;
-  @Getter
   private final String companySize;
-  @Getter
   private final String companyRole;
-  @Getter
   private final String title;
-  @Getter
+  private Status status;
   private long expirationTime;
+
+  public void updateStatus(Status newStatus) {
+    status = newStatus;
+  }
 
   private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 14;
 

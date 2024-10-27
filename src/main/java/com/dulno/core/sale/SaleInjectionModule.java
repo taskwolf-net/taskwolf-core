@@ -18,6 +18,7 @@ public final class SaleInjectionModule extends AbstractModule {
       databaseConnection, databaseKeyspace);
     saleDatabaseTable.createIfNotExists();
     saleDatabaseTable.createIndexIfNotExists("sender");
+    saleDatabaseTable.createIndexIfNotExists("status");
     return saleDatabaseTable;
   }
 

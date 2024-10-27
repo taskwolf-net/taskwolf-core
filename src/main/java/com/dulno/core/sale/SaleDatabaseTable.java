@@ -1,6 +1,7 @@
 package com.dulno.core.sale;
 
 import com.dulno.core.database.*;
+import com.dulno.core.question.Question;
 import com.google.common.collect.Lists;
 import com.dulno.core.database.condition.DatabaseCondition;
 
@@ -27,6 +28,7 @@ public final class SaleDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("companySize", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("companyRole", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("title", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT));
     return new SaleDatabaseTable(connection, keyspace, TABLE_NAME, columns);
   }
@@ -41,16 +43,30 @@ public final class SaleDatabaseTable extends DatabaseTable {
   public CompletableFuture<Void> insertSale(Sale sale) {
     return insertSale(sale.id(), sale.sender(), sale.firstName(),
       sale.lastName(), sale.phoneNumber(), sale.country(), sale.companyName(),
-      sale.companySize(), sale.companyRole(), sale.title(), sale.expirationTime());
+      sale.companySize(), sale.companyRole(), sale.title(),
+      sale.status().toString(), sale.expirationTime());
   }
 
   public CompletableFuture<Void> insertSale(
     UUID id, String sender, String firstName, String lastName,
     String phoneNumber, String country, String companyName, String companySize,
-    String companyRole, String title, long expirationTime
+    String companyRole, String title, String status, long expirationTime
   ) {
     return insert(DatabaseRow.of(id, sender, firstName, lastName, phoneNumber,
-      country, companyName, companySize, companyRole, title, expirationTime));
+      country, companyName, companySize, companyRole, title, status,
+      expirationTime));
+  }
+
+  public CompletableFuture<Void> updateSaleStatus(UUID id, Sale.Status status) {
+    var futureResponse = new CompletableFuture<Void>();
+    findSale(id).thenAccept(sale -> updateSaleStatus(sale, status)
+      .thenAccept(futureResponse::complete));
+    return futureResponse;
+  }
+
+  private CompletableFuture<Void> updateSaleStatus(Sale sale, Sale.Status status) {
+    sale.updateStatus(status);
+    return updateSale(sale);
   }
 
   public CompletableFuture<Void> resetSaleExpirationTime(UUID id) {
@@ -110,8 +126,8 @@ public final class SaleDatabaseTable extends DatabaseTable {
       .thenApply(rows -> rows.stream().map(Sale::of).toList());
   }
 
-  public CompletableFuture<List<Sale>> findAllSales() {
-    return selectAllRows().thenApply(rows ->
-      rows.stream().map(Sale::of).collect(Collectors.toList()));
+  public CompletableFuture<List<Sale>> findOpenSales() {
+    return selectRows(DatabaseCondition.of("status", Question.Status.OPEN.toString()))
+      .thenApply(rows -> rows.stream().map(Sale::of).collect(Collectors.toList()));
   }
 }
