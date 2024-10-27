@@ -97,7 +97,7 @@ public final class SaleDatabaseTable extends DatabaseTable {
     return update(sale.id(), DatabaseRow.of(sale.id(), sale.sender(),
       sale.firstName(), sale.lastName(), sale.phoneNumber(), sale.country(),
       sale.companyName(), sale.companySize(), sale.companyRole(), sale.title(),
-      sale.expirationTime()));
+      sale.status().toString(), sale.expirationTime()));
   }
 
   public CompletableFuture<UUID> generateAvailableSaleId() {

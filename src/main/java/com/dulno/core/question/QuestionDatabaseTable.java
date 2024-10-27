@@ -85,7 +85,7 @@ public final class QuestionDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> updateQuestion(Question question) {
     return update(question.id(), DatabaseRow.of(question.id(), question.sender(),
-      question.title(), question.expirationTime()));
+      question.title(), question.status().toString(), question.expirationTime()));
   }
 
   public CompletableFuture<UUID> generateAvailableQuestionId() {
