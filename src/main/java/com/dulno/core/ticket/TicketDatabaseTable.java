@@ -33,7 +33,7 @@ public final class TicketDatabaseTable extends DatabaseTable {
     table.createIfNotExists();
     table.createIndexIfNotExists("id");
     table.createIndexIfNotExists("status");
-    table.createIndexIfNotExists("name",
+    table.createIndexIfNotExists("title",
       "'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = " +
         "{'mode': 'CONTAINS', 'analyzer_class': " +
         "'org.apache.cassandra.index.sasi.analyzer.NonTokenizingAnalyzer', " +
@@ -148,7 +148,7 @@ public final class TicketDatabaseTable extends DatabaseTable {
   ) {
     if (!search.isEmpty()) {
       var condition = DatabaseCondition.of(DatabaseComparison.create("owner", ownerId),
-        DatabaseComparison.create("name", "%" + search + "%", DatabaseComparison.Type.LIKE));
+        DatabaseComparison.create("title", "%" + search + "%", DatabaseComparison.Type.LIKE));
       return selectRows(condition, PAGE_SIZE)
         .thenApply(rows -> createTicketPage(DatabasePage.create(rows, "", 1), this));
     }
@@ -199,6 +199,11 @@ public final class TicketDatabaseTable extends DatabaseTable {
     return DatabasePage.create(
       page.content().stream().map(row -> Ticket.of(row, table)).toList(),
       page.pageState(), page.pageNumber());
+  }
+
+  public CompletableFuture<List<Ticket>> findAllTicketsOfCreator(UUID creatorId) {
+    return selectRows(DatabaseCondition.of("creator", creatorId))
+      .thenApply(rows -> rows.stream().map(row -> Ticket.of(row, this)).toList());
   }
 
   public CompletableFuture<Long> findTicketCount(UUID creatorId) {
