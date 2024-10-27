@@ -3,6 +3,9 @@ package com.dulno.core.ticket;
 import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseComparison;
 import com.dulno.core.database.condition.DatabaseCondition;
+import com.dulno.core.database.paging.DatabaseDirection;
+import com.dulno.core.database.paging.DatabaseOrder;
+import com.dulno.core.database.paging.DatabasePage;
 import com.dulno.core.question.Question;
 import com.google.common.collect.Lists;
 
@@ -14,25 +17,46 @@ public final class TicketDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "ticket";
 
   public static TicketDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
+    columns.add(DatabaseColumn.create("creator", DatabaseDataType.UUID,
+      DatabaseColumn.Type.PARTITION_KEY));
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
-      DatabaseColumn.Type.PRIMARY_KEY));
-    columns.add(DatabaseColumn.create("creator", DatabaseDataType.UUID));
+      DatabaseColumn.Type.CLUSTERING_KEY));
     columns.add(DatabaseColumn.create("title", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT));
     columns.add(DatabaseListColumn.create("messages", DatabaseDataType.UUID));
-    return new TicketDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    var table = new TicketDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    table.createIfNotExists();
+    table.createIndexIfNotExists("id");
+    table.createIndexIfNotExists("status");
+    table.createIndexIfNotExists("name",
+      "'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = " +
+        "{'mode': 'CONTAINS', 'analyzer_class': " +
+        "'org.apache.cassandra.index.sasi.analyzer.NonTokenizingAnalyzer', " +
+        "'case_sensitive': 'false'}");
+    table.initializeViews();
+    return table;
   }
+
+  private DatabaseTable titleView;
+  private DatabaseTable typeView;
+  private DatabaseTable statusView;
 
   private TicketDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
     List<DatabaseColumn> columns
   ) {
     super(connection, keyspace, name, columns);
+  }
+
+  private void initializeViews() {
+    titleView = createMaterializedViewIfNotExists("title_view", "title");
+    typeView = createMaterializedViewIfNotExists("type_view", "type");
+    statusView = createMaterializedViewIfNotExists("status_view", "status");
   }
 
   public void insertTicket(Ticket ticket) {
@@ -45,7 +69,7 @@ public final class TicketDatabaseTable extends DatabaseTable {
     UUID id, UUID creator, String title, String type, String status,
     long expirationTime, List<UUID> messageIds
   ) {
-    insert(DatabaseRow.of(id, creator, title, type, status, expirationTime,
+    insert(DatabaseRow.of(creator, id, title, type, status, expirationTime,
       messageIds));
   }
 
@@ -90,9 +114,9 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   public void updateTicket(Ticket ticket) {
-    update(ticket.id(), DatabaseRow.of(ticket.id(),
-      ticket.creator(), ticket.title(), ticket.type().toString(),
-      ticket.status().toString(), ticket.expirationTime(), ticket.messages()));
+    update(ticket.id(), DatabaseRow.of(  ticket.creator(), ticket.id(),
+      ticket.title(), ticket.type().toString(), ticket.status().toString(),
+      ticket.expirationTime(), ticket.messages()));
   }
 
   public CompletableFuture<UUID> generateAvailableTicketId() {
@@ -113,12 +137,68 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Ticket> findTicket(UUID ticketId) {
-    return selectRow(ticketId).thenApply(Ticket::of);
+    return selectRow(ticketId).thenApply(row -> Ticket.of(row, this));
   }
 
-  public CompletableFuture<List<Ticket>> findTicketsByCreator(UUID creatorId) {
-    return selectRows(DatabaseCondition.of("creator", creatorId)).thenApply(rows ->
-      rows.stream().map(Ticket::of).toList());
+  private static final int PAGE_SIZE = 5;
+
+  public CompletableFuture<DatabasePage<Ticket>> findTicketsOfCreator(
+    UUID ownerId, int targetPage, String sortingColumn, DatabaseOrder sortingOrder,
+    String search, String type, String status
+  ) {
+    if (!search.isEmpty()) {
+      var condition = DatabaseCondition.of(DatabaseComparison.create("owner", ownerId),
+        DatabaseComparison.create("name", "%" + search + "%", DatabaseComparison.Type.LIKE));
+      return selectRows(condition, PAGE_SIZE)
+        .thenApply(rows -> createTicketPage(DatabasePage.create(rows, "", 1), this));
+    }
+    var view = findTargetView(sortingColumn);
+    return view.selectPage(ownerId, createTicketConditions(type, status),
+        sortingOrder, PAGE_SIZE, targetPage)
+      .thenApply(page -> createTicketPage(page, view));
+  }
+
+  public CompletableFuture<DatabasePage<Ticket>> findTicketsOfCreator(
+    UUID ownerId, String pageState, DatabaseDirection startingPoint,
+    DatabaseDirection direction, String sortingColumn, DatabaseOrder sortingOrder,
+    String type, String status
+  ) {
+    var view = findTargetView(sortingColumn);
+    return view.shiftPage(ownerId, createTicketConditions(type, status),
+        sortingOrder, PAGE_SIZE, pageState, startingPoint, direction)
+      .thenApply(page -> createTicketPage(page, view));
+  }
+
+  private DatabaseTable findTargetView(String sortingColumn) {
+    if (sortingColumn.equals("title")) {
+      return titleView;
+    } else if (sortingColumn.equals("type")) {
+      return typeView;
+    } else if (sortingColumn.equals("status")) {
+      return statusView;
+    }
+    return null;
+  }
+
+  private DatabaseCondition createTicketConditions(
+    String type, String status
+  ) {
+    var comparisons = Lists.<DatabaseComparison>newArrayList();
+    if (type != null) {
+      comparisons.add(DatabaseComparison.create("type", type));
+    }
+    if (status != null) {
+      comparisons.add(DatabaseComparison.create("status", status));
+    }
+    return DatabaseCondition.create(comparisons);
+  }
+
+  private DatabasePage<Ticket> createTicketPage(
+    DatabasePage<DatabaseRow> page, DatabaseTable table
+  ) {
+    return DatabasePage.create(
+      page.content().stream().map(row -> Ticket.of(row, table)).toList(),
+      page.pageState(), page.pageNumber());
   }
 
   public CompletableFuture<Long> findTicketCount(UUID creatorId) {
@@ -129,6 +209,6 @@ public final class TicketDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<List<Ticket>> findOpenTickets() {
     return selectRows(DatabaseCondition.of("status", Question.Status.OPEN.toString()))
-      .thenApply(rows -> rows.stream().map(Ticket::of).toList());
+      .thenApply(rows -> rows.stream().map(row -> Ticket.of(row, this)).toList());
   }
 }

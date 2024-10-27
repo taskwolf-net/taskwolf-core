@@ -1,6 +1,8 @@
 package com.dulno.core.ticket;
 
+import com.dulno.core.database.DatabaseColumn;
 import com.dulno.core.database.DatabaseRow;
+import com.dulno.core.database.DatabaseTable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -11,11 +13,18 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @AllArgsConstructor(staticName = "create")
 public final class Ticket {
-  public static Ticket of(DatabaseRow row) {
-    return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
-      row.findCell(2).stringValue(), Type.valueOf(row.findCell(3).stringValue()),
-      Status.valueOf(row.findCell(4).stringValue()), row.findCell(5).longValue(),
-      row.findCell(6).listValue());
+  public static Ticket of(DatabaseRow row, DatabaseTable table) {
+    return of(row, table.columns().stream().map(DatabaseColumn::name).toList());
+  }
+
+  public static Ticket of(DatabaseRow row, List<String> columns) {
+    return create(row.findCell(columns.indexOf("creator")).uuidValue(),
+      row.findCell(columns.indexOf("id")).uuidValue(),
+      row.findCell(columns.indexOf("title")).stringValue(),
+      Type.valueOf(row.findCell(columns.indexOf("type")).stringValue()),
+      Status.valueOf(row.findCell(columns.indexOf("status")).stringValue()),
+      row.findCell(columns.indexOf("expirationTime")).longValue(),
+      row.findCell(columns.indexOf("messages")).listValue());
   }
 
   public enum Type {
@@ -29,9 +38,9 @@ public final class Ticket {
   }
 
   @Getter
-  private final UUID id;
-  @Getter
   private final UUID creator;
+  @Getter
+  private final UUID id;
   @Getter
   private String title;
   @Getter

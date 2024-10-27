@@ -14,11 +14,7 @@ public final class TicketInjectionModule extends AbstractModule {
   TicketDatabaseTable provideTicketDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
-    var ticketDatabaseTable = TicketDatabaseTable.create(connection, keyspace);
-    ticketDatabaseTable.createIfNotExists();
-    ticketDatabaseTable.createIndexIfNotExists("creator");
-    ticketDatabaseTable.createIndexIfNotExists("status");
-    return ticketDatabaseTable;
+    return TicketDatabaseTable.create(connection, keyspace);
   }
 
   @Provides
