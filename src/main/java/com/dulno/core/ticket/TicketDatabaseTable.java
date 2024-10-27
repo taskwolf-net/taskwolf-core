@@ -3,6 +3,7 @@ package com.dulno.core.ticket;
 import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseComparison;
 import com.dulno.core.database.condition.DatabaseCondition;
+import com.dulno.core.question.Question;
 import com.google.common.collect.Lists;
 
 import java.util.List;
@@ -49,8 +50,8 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   public void addTicketMessage(UUID ticketId, UUID messageId) {
-    findTicket(ticketId).thenAccept(organization ->
-      addTicketMessage(organization, messageId));
+    findTicket(ticketId).thenAccept(ticket ->
+      addTicketMessage(ticket, messageId));
   }
 
   private void addTicketMessage(Ticket ticket, UUID messageId) {
@@ -59,8 +60,8 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   public void removeTicketMessage(UUID ticketId, UUID messageId) {
-    findTicket(ticketId).thenAccept(organization ->
-      removeTicketMessage(organization, messageId));
+    findTicket(ticketId).thenAccept(ticket ->
+      removeTicketMessage(ticket, messageId));
   }
 
   private void removeTicketMessage(Ticket ticket, UUID messageId) {
@@ -68,9 +69,19 @@ public final class TicketDatabaseTable extends DatabaseTable {
     updateTicket(ticket);
   }
 
+  public void updateTicketStatus(UUID ticketId, Ticket.Status title) {
+    findTicket(ticketId).thenAccept(ticket ->
+      updateTicketStatus(ticket, title));
+  }
+
+  private void updateTicketStatus(Ticket ticket, Ticket.Status title) {
+    ticket.updateStatus(title);
+    updateTicket(ticket);
+  }
+
   public void renameTicket(UUID ticketId, String title) {
-    findTicket(ticketId).thenAccept(organization ->
-      renameTicket(organization, title));
+    findTicket(ticketId).thenAccept(ticket ->
+      renameTicket(ticket, title));
   }
 
   private void renameTicket(Ticket ticket, String title) {
@@ -116,8 +127,8 @@ public final class TicketDatabaseTable extends DatabaseTable {
       DatabaseComparison.create("status", Ticket.Status.OPEN.toString())));
   }
 
-  public CompletableFuture<List<Ticket>> findAllTickets() {
-    return selectAllRows().thenApply(rows ->
-      rows.stream().map(Ticket::of).toList());
+  public CompletableFuture<List<Ticket>> findOpenTickets() {
+    return selectRows(DatabaseCondition.of("status", Question.Status.OPEN.toString()))
+      .thenApply(rows -> rows.stream().map(Ticket::of).toList());
   }
 }

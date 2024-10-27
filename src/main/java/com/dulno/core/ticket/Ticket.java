@@ -37,13 +37,17 @@ public final class Ticket {
   @Getter
   private final Type type;
   @Getter
-  private final Status status;
+  private Status status;
   @Getter
   private long expirationTime;
   private final List<UUID> messages;
 
   public void rename(String newTitle) {
     title = newTitle;
+  }
+
+  public void updateStatus(Status newStatus) {
+    status = newStatus;
   }
 
   public void addMessage(UUID message) {
