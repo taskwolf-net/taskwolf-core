@@ -24,7 +24,8 @@ public final class Ticket {
       Type.valueOf(row.findCell(columns.indexOf("type")).stringValue()),
       Status.valueOf(row.findCell(columns.indexOf("status")).stringValue()),
       row.findCell(columns.indexOf("expirationTime")).longValue(),
-      row.findCell(columns.indexOf("messages")).listValue());
+      row.findCell(columns.indexOf("messages")).listValue(),
+      row.findCell(columns.indexOf("lastMessageSeen")).booleanValue());
   }
 
   public enum Type {
@@ -50,6 +51,8 @@ public final class Ticket {
   @Getter
   private long expirationTime;
   private final List<UUID> messages;
+  @Getter
+  private boolean lastMessageSeen;
 
   public void rename(String newTitle) {
     title = newTitle;
@@ -79,5 +82,9 @@ public final class Ticket {
 
   public List<UUID> messages() {
     return List.copyOf(messages);
+  }
+
+  public void updateLastMessageSeen(boolean newLastMessageSeen) {
+    lastMessageSeen = newLastMessageSeen;
   }
 }

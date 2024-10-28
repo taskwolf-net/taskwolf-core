@@ -29,10 +29,12 @@ public final class TicketDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT));
     columns.add(DatabaseListColumn.create("messages", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("lastMessageSeen", DatabaseDataType.BOOLEAN));
     var table = new TicketDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
     table.createIndexIfNotExists("id");
     table.createIndexIfNotExists("status");
+    table.createIndexIfNotExists("lastMessageSeen");
     table.createIndexIfNotExists("title",
       "'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = " +
         "{'mode': 'CONTAINS', 'analyzer_class': " +
@@ -62,15 +64,15 @@ public final class TicketDatabaseTable extends DatabaseTable {
   public void insertTicket(Ticket ticket) {
     insertTicket(ticket.id(), ticket.creator(), ticket.title(),
       ticket.type().toString(), ticket.status().toString(),
-      ticket.expirationTime(), ticket.messages());
+      ticket.expirationTime(), ticket.messages(), ticket.lastMessageSeen());
   }
 
   public void insertTicket(
     UUID id, UUID creator, String title, String type, String status,
-    long expirationTime, List<UUID> messageIds
+    long expirationTime, List<UUID> messageIds, boolean lastMessageSeen
   ) {
     insert(DatabaseRow.of(creator, id, title, type, status, expirationTime,
-      messageIds));
+      messageIds, lastMessageSeen));
   }
 
   public void addTicketMessage(UUID ticketId, UUID messageId) {
@@ -113,11 +115,21 @@ public final class TicketDatabaseTable extends DatabaseTable {
     updateTicket(ticket);
   }
 
+  public void updateTicketLastMessageSeen(UUID ticketId, boolean lastMessageSeen) {
+    findTicket(ticketId).thenAccept(ticket ->
+      updateTicketLastMessageSeen(ticket, lastMessageSeen));
+  }
+
+  private void updateTicketLastMessageSeen(Ticket ticket, boolean lastMessageSeen) {
+    ticket.updateLastMessageSeen(lastMessageSeen);
+    updateTicket(ticket);
+  }
+
   public void updateTicket(Ticket ticket) {
     update(DatabaseCondition.of("creator", ticket.creator(), "id", ticket.id()),
       DatabaseRow.of(ticket.creator(), ticket.id(), ticket.title(),
         ticket.type().toString(), ticket.status().toString(),
-        ticket.expirationTime(), ticket.messages()));
+        ticket.expirationTime(), ticket.messages(), ticket.lastMessageSeen()));
   }
 
   public CompletableFuture<UUID> generateAvailableTicketId() {
@@ -210,9 +222,15 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Long> findTicketCount(UUID creatorId) {
-    return count(DatabaseCondition.of(DatabaseCondition.Filtering.ALLOWED,
+    return count(DatabaseCondition.of(
       DatabaseComparison.create("creator", creatorId),
       DatabaseComparison.create("status", Ticket.Status.OPEN.toString())));
+  }
+
+  public CompletableFuture<Boolean> hasUnseenTickets(UUID creatorId) {
+    return exists(DatabaseCondition.of(
+      DatabaseComparison.create("creator", creatorId),
+      DatabaseComparison.create("lastMessageSeen", false)));
   }
 
   public CompletableFuture<List<Ticket>> findOpenTickets() {
