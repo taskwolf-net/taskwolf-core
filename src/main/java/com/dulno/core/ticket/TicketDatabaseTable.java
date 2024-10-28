@@ -114,9 +114,10 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   public void updateTicket(Ticket ticket) {
-    update(ticket.id(), DatabaseRow.of(  ticket.creator(), ticket.id(),
-      ticket.title(), ticket.type().toString(), ticket.status().toString(),
-      ticket.expirationTime(), ticket.messages()));
+    update(DatabaseCondition.of("creator", ticket.creator(), "id", ticket.id()),
+      DatabaseRow.of(ticket.creator(), ticket.id(), ticket.title(),
+        ticket.type().toString(), ticket.status().toString(),
+        ticket.expirationTime(), ticket.messages()));
   }
 
   public CompletableFuture<UUID> generateAvailableTicketId() {
@@ -129,42 +130,44 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> ticketExists(UUID ticketId) {
-    return exists(ticketId);
+    return exists(DatabaseCondition.of("id", ticketId));
   }
 
   public void deleteTicket(UUID ticketId) {
-    delete(ticketId);
+    findTicket(ticketId).thenAccept(ticket ->
+      delete(DatabaseCondition.of("creator", ticket.creator(), "id", ticket.id())));
   }
 
   public CompletableFuture<Ticket> findTicket(UUID ticketId) {
-    return selectRow(ticketId).thenApply(row -> Ticket.of(row, this));
+    return selectRow(DatabaseCondition.of("id", ticketId))
+      .thenApply(row -> Ticket.of(row, this));
   }
 
   private static final int PAGE_SIZE = 5;
 
   public CompletableFuture<DatabasePage<Ticket>> findTicketsOfCreator(
-    UUID ownerId, int targetPage, String sortingColumn, DatabaseOrder sortingOrder,
+    UUID creatorId, int targetPage, String sortingColumn, DatabaseOrder sortingOrder,
     String search, String type, String status
   ) {
     if (!search.isEmpty()) {
-      var condition = DatabaseCondition.of(DatabaseComparison.create("owner", ownerId),
+      var condition = DatabaseCondition.of(DatabaseComparison.create("creator", creatorId),
         DatabaseComparison.create("title", "%" + search + "%", DatabaseComparison.Type.LIKE));
       return selectRows(condition, PAGE_SIZE)
         .thenApply(rows -> createTicketPage(DatabasePage.create(rows, "", 1), this));
     }
     var view = findTargetView(sortingColumn);
-    return view.selectPage(ownerId, createTicketConditions(type, status),
+    return view.selectPage(creatorId, createTicketConditions(type, status),
         sortingOrder, PAGE_SIZE, targetPage)
       .thenApply(page -> createTicketPage(page, view));
   }
 
   public CompletableFuture<DatabasePage<Ticket>> findTicketsOfCreator(
-    UUID ownerId, String pageState, DatabaseDirection startingPoint,
+    UUID creatorId, String pageState, DatabaseDirection startingPoint,
     DatabaseDirection direction, String sortingColumn, DatabaseOrder sortingOrder,
     String type, String status
   ) {
     var view = findTargetView(sortingColumn);
-    return view.shiftPage(ownerId, createTicketConditions(type, status),
+    return view.shiftPage(creatorId, createTicketConditions(type, status),
         sortingOrder, PAGE_SIZE, pageState, startingPoint, direction)
       .thenApply(page -> createTicketPage(page, view));
   }
