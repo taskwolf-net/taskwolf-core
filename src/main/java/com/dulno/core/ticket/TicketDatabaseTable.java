@@ -221,6 +221,14 @@ public final class TicketDatabaseTable extends DatabaseTable {
       .thenApply(rows -> rows.stream().map(row -> Ticket.of(row, this)).toList());
   }
 
+  public CompletableFuture<List<Ticket>> findAllOpenTicketsOfCreator(UUID creatorId) {
+    var condition = DatabaseCondition.of(
+      DatabaseComparison.create("creator", creatorId),
+      DatabaseComparison.create("status", Ticket.Status.OPEN.toString()));
+    return selectRows(condition)
+      .thenApply(rows -> rows.stream().map(row -> Ticket.of(row, this)).toList());
+  }
+
   public CompletableFuture<Long> findTicketCount(UUID creatorId) {
     return count(DatabaseCondition.of(
       DatabaseComparison.create("creator", creatorId),
