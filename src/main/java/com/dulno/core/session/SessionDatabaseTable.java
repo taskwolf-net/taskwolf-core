@@ -2,7 +2,6 @@ package com.dulno.core.session;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseCondition;
 
 import java.util.Comparator;
@@ -14,7 +13,7 @@ public final class SessionDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "session";
 
   public static SessionDatabaseTable create(
-          DatabaseConnection connection, DatabaseKeyspace keyspace
+    DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
@@ -27,6 +26,7 @@ public final class SessionDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("city", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("openTime", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("refreshToken", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("lastRefresh", DatabaseDataType.BIGINT));
     var table = new SessionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
     table.createIndexIfNotExists("user");
@@ -44,16 +44,17 @@ public final class SessionDatabaseTable extends DatabaseTable {
   public CompletableFuture<Void> insertSession(Session session) {
     return insertSession(session.id(), session.userId(), session.status(),
       session.devicePlatform(), session.ipAddress(), session.country(),
-      session.city(), session.openTime(), session.lastRefreshToken());
+      session.city(), session.openTime(), session.lastRefreshToken(),
+      session.lastRefresh());
   }
 
   public CompletableFuture<Void> insertSession(
     UUID id, UUID userId, SessionStatus status, String devicePlatform,
     String ipAddress, String country, String city, long openTime,
-    String refreshToken
+    String refreshToken, long lastRefresh
   ) {
     return insert(DatabaseRow.of(id, userId, status.toString(), devicePlatform,
-      ipAddress, country, city, openTime, refreshToken));
+      ipAddress, country, city, openTime, refreshToken, lastRefresh));
   }
 
   public CompletableFuture<Void> updateSessionRefreshToken(
@@ -89,7 +90,7 @@ public final class SessionDatabaseTable extends DatabaseTable {
     return update(session.id(), DatabaseRow.of(session.id(), session.userId(),
       session.status().toString(), session.devicePlatform(), session.ipAddress(),
       session.country(), session.city(), session.openTime(),
-      session.lastRefreshToken()));
+      session.lastRefreshToken(), session.lastRefresh()));
   }
 
   public CompletableFuture<Void> deleteSession(UUID id) {

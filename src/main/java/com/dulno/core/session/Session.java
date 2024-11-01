@@ -27,7 +27,8 @@ public final class Session {
       row.findCell(columns.indexOf("country")).stringValue(),
       row.findCell(columns.indexOf("city")).stringValue(),
       row.findCell(columns.indexOf("openTime")).longValue(),
-      row.findCell(columns.indexOf("refreshToken")).stringValue());
+      row.findCell(columns.indexOf("refreshToken")).stringValue(),
+      row.findCell(columns.indexOf("lastRefresh")).longValue());
   }
 
   private final UUID id;
@@ -39,6 +40,7 @@ public final class Session {
   private final String city;
   private final long openTime;
   private String lastRefreshToken;
+  private long lastRefresh;
 
   public void close() {
     status = SessionStatus.CLOSED;
@@ -46,5 +48,6 @@ public final class Session {
 
   public void updateRefreshToken(String refreshToken) {
     lastRefreshToken = refreshToken;
+    lastRefresh = System.currentTimeMillis();
   }
 }
