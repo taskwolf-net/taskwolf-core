@@ -1,7 +1,9 @@
 package com.dulno.core.sale;
 
 import com.dulno.core.database.*;
+import com.dulno.core.database.condition.DatabaseComparison;
 import com.dulno.core.question.Question;
+import com.dulno.core.ticket.Ticket;
 import com.google.common.collect.Lists;
 import com.dulno.core.database.condition.DatabaseCondition;
 
@@ -129,5 +131,11 @@ public final class SaleDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<Sale>> findOpenSales() {
     return selectRows(DatabaseCondition.of("status", Question.Status.OPEN.toString()))
       .thenApply(rows -> rows.stream().map(Sale::of).collect(Collectors.toList()));
+  }
+
+  public CompletableFuture<Long> countPendingSales() {
+    return count(DatabaseCondition.of(DatabaseCondition.Filtering.ALLOWED,
+      DatabaseComparison.create("expirationTime", -1L),
+      DatabaseComparison.create("status", Ticket.Status.OPEN.toString())));
   }
 }

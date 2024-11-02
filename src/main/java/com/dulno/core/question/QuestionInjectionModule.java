@@ -19,6 +19,7 @@ public final class QuestionInjectionModule extends AbstractModule {
     questionDatabaseTable.createIfNotExists();
     questionDatabaseTable.createIndexIfNotExists("sender");
     questionDatabaseTable.createIndexIfNotExists("status");
+    questionDatabaseTable.createIndexIfNotExists("expirationTime");
     return questionDatabaseTable;
   }
 

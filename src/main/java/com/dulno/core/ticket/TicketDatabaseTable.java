@@ -34,6 +34,7 @@ public final class TicketDatabaseTable extends DatabaseTable {
     table.createIfNotExists();
     table.createIndexIfNotExists("id");
     table.createIndexIfNotExists("status");
+    table.createIndexIfNotExists("expirationTime");
     table.createIndexIfNotExists("lastMessageSeen");
     table.createIndexIfNotExists("title",
       "'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = " +
@@ -244,5 +245,11 @@ public final class TicketDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<Ticket>> findOpenTickets() {
     return selectRows(DatabaseCondition.of("status", Question.Status.OPEN.toString()))
       .thenApply(rows -> rows.stream().map(row -> Ticket.of(row, this)).toList());
+  }
+
+  public CompletableFuture<Long> countPendingTickets() {
+    return count(DatabaseCondition.of(DatabaseCondition.Filtering.ALLOWED,
+      DatabaseComparison.create("expirationTime", -1L),
+      DatabaseComparison.create("status", Ticket.Status.OPEN.toString())));
   }
 }
