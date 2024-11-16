@@ -1,5 +1,6 @@
 package com.dulno.core.workflow;
 
+import com.dulno.core.error.ErrorDatabaseTable;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -33,6 +34,7 @@ public final class WorkflowFactory {
   private final NotificationDatabaseTable notificationDatabaseTable;
   private final MaintenanceSchedule maintenanceSchedule;
   private final Translation translation;
+  private final ErrorDatabaseTable errorDatabaseTable;
   private final Mail notificationMail;
 
   @Inject
@@ -46,6 +48,7 @@ public final class WorkflowFactory {
     TeamDatabaseTable teamDatabaseTable,
     NotificationDatabaseTable notificationDatabaseTable,
     MaintenanceSchedule maintenanceSchedule, Translation translation,
+    ErrorDatabaseTable errorDatabaseTable,
     @Named("notificationMail") Mail notificationMail
   ) {
     this.workflowDatabaseTable = workflowDatabaseTable;
@@ -59,6 +62,7 @@ public final class WorkflowFactory {
     this.notificationDatabaseTable = notificationDatabaseTable;
     this.maintenanceSchedule = maintenanceSchedule;
     this.translation = translation;
+    this.errorDatabaseTable = errorDatabaseTable;
     this.notificationMail = notificationMail;
   }
 
@@ -70,6 +74,6 @@ public final class WorkflowFactory {
       userDatabaseTable, bundleDatabaseTable, operationDatabaseTable,
       workflowThrottleDatabaseTable, organizationDatabaseTable, teamDatabaseTable,
       notificationDatabaseTable, maintenanceSchedule, translation,
-      notificationMail, workflowEntry, actions, conditions);
+      errorDatabaseTable, notificationMail, workflowEntry, actions, conditions);
   }
 }

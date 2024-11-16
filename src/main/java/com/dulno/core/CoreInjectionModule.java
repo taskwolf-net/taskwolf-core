@@ -8,6 +8,7 @@ import com.dulno.core.condition.ConditionInjectionModule;
 import com.dulno.core.database.DatabaseConnection;
 import com.dulno.core.database.DatabaseInjectionModule;
 import com.dulno.core.database.DatabaseKeyspace;
+import com.dulno.core.error.ErrorInjectionModule;
 import com.dulno.core.intro.IntroInjectionModule;
 import com.dulno.core.locale.LocaleInjectionModule;
 import com.dulno.core.log.Log;
@@ -76,6 +77,7 @@ public class CoreInjectionModule extends AbstractModule {
     install(TrialInjectionModule.create());
     install(OfferInjectionModule.create());
     install(MaintenanceInjectionModule.create());
+    install(ErrorInjectionModule.create());
   }
 
   @Provides

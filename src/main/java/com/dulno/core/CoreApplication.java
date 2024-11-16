@@ -2,6 +2,8 @@ package com.dulno.core;
 
 import com.dulno.core.command.implementation.*;
 import com.dulno.core.condition.ConditionInformationRepository;
+import com.dulno.core.database.DatabaseConnection;
+import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.event.EventExecutor;
 import com.dulno.core.event.HookRegistry;
 import com.dulno.core.intro.Intro;
@@ -52,11 +54,12 @@ public class CoreApplication {
    * @param args The arguments that are passed into the application
    */
   public static void main(String[] args) {
+    var injector = Guice.createInjector(CoreInjectionModule.create());
+    var errorRepository = injector.getInstance(ErrorRepository.class);
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->
-      processApplicationException(throwable));
+      errorRepository.processError(throwable));
+    injector.getInstance(DatabaseConnection.class).errorRepository(errorRepository);
     try {
-      var injector = Guice.createInjector(CoreInjectionModule.create());
-      injector.getInstance(Intro.class).print();
       var log = injector.getInstance(Log.class);
       log.info("Initializing Dulno - Core");
       registerHooks(injector.getInstance(HookRegistry.class), injector);
@@ -84,13 +87,8 @@ public class CoreApplication {
           .sendPacket(new PacketOutgoingDisconnect())));
       eventExecutor.execute(CoreApplicationPostRunEvent.create());
     } catch (Exception exception) {
-      processApplicationException(exception);
+      errorRepository.processError(exception);
     }
-  }
-
-  private static void processApplicationException(Throwable throwable) {
-    //TODO: PROCESS ERROR
-    throwable.printStackTrace();
   }
 
   private static void registerHooks(HookRegistry registry, Injector injector) {

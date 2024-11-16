@@ -36,8 +36,7 @@ public final class DatabaseDiscrepancyHook implements Hook {
   private void sendDiscrepancyNotices() {
     try {
       Thread.sleep(10000);
-    } catch (Exception exception) {
-      exception.printStackTrace();
+    } catch (Exception ignored) {
     }
     for (var table : keyspace.tables()) {
       senDiscrepancyNotice(table);

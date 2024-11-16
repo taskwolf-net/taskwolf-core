@@ -1,5 +1,6 @@
 package com.dulno.core.mail;
 
+import com.dulno.core.error.ErrorRepository;
 import com.google.common.collect.Lists;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -21,15 +22,18 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class Mail {
   public static Mail create(
-    OutgoingMailDatabaseTable outgoingMailDatabaseTable, String mail,
-    String smtpMailHost, int smtpMailPort, String imapMailHost, int imapMailPort,
-    String mailUser, String mailPassword
+    OutgoingMailDatabaseTable outgoingMailDatabaseTable,
+    ErrorRepository errorRepository, String mail, String smtpMailHost,
+    int smtpMailPort, String imapMailHost, int imapMailPort, String mailUser,
+    String mailPassword
   ) {
-    return new Mail(outgoingMailDatabaseTable, mail, smtpMailHost,
-      smtpMailPort, imapMailHost, imapMailPort, mailUser, mailPassword);
+    return new Mail(outgoingMailDatabaseTable, errorRepository, mail,
+      smtpMailHost, smtpMailPort, imapMailHost, imapMailPort, mailUser,
+      mailPassword);
   }
 
   private final OutgoingMailDatabaseTable outgoingMailDatabaseTable;
+  private final ErrorRepository errorRepository;
   private final String mail;
   private final String smtpMailHost;
   private final int smtpMailPort;
@@ -66,7 +70,7 @@ public class Mail {
       store.close();
       return messages;
     } catch (Exception exception) {
-      exception.printStackTrace();
+      errorRepository.processError(exception);
       return null;
     }
   }
@@ -123,7 +127,7 @@ public class Mail {
           mail, System.currentTimeMillis(), title, serializeMessage(message))
           .thenAccept(value -> futureResponse.complete(messageId)));
     } catch (Exception exception) {
-      exception.printStackTrace();
+      errorRepository.processError(exception);
     }
   }
 
@@ -131,7 +135,7 @@ public class Mail {
     try {
       return new InternetAddress(email);
     } catch (Exception exception) {
-      exception.printStackTrace();
+      errorRepository.processError(exception);
       return null;
     }
   }
@@ -198,7 +202,7 @@ public class Mail {
       message.writeTo(byteArrayOutputStream);
       return byteArrayOutputStream.toByteArray();
     } catch (Exception exception) {
-      exception.printStackTrace();
+      errorRepository.processError(exception);
       return null;
     }
   }
@@ -217,7 +221,7 @@ public class Mail {
           outgoingMail.receiver(), mail, System.currentTimeMillis(),
           outgoingMail.title(), serializeMessage(message)));
     } catch (Exception exception) {
-      exception.printStackTrace();
+      errorRepository.processError(exception);
     }
   }
 
@@ -226,7 +230,7 @@ public class Mail {
       var byteArrayInputStream = new ByteArrayInputStream(content);
       return new MimeMessage(session, byteArrayInputStream);
     } catch (Exception exception) {
-      exception.printStackTrace();
+      errorRepository.processError(exception);
       return null;
     }
   }

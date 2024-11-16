@@ -1,5 +1,6 @@
 package com.dulno.core.event;
 
+import com.dulno.core.error.ErrorRepository;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
@@ -10,6 +11,7 @@ import lombok.SneakyThrows;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
 public final class EventExecutor {
   private final HookRegistry registry;
+  private final ErrorRepository errorRepository;
 
   /**
    * Executes an event
@@ -20,8 +22,7 @@ public final class EventExecutor {
     try {
       event.call(registry);
     } catch (Exception exception) {
-      //TODO: PROCESS ERROR
-      exception.printStackTrace();
+      errorRepository.processError(exception);
     }
   }
 

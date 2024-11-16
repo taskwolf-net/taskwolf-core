@@ -9,8 +9,11 @@ import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.datastax.oss.driver.api.core.metadata.Metadata;
+import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.log.Log;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
@@ -18,11 +21,14 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
+@Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public final class DatabaseConnection {
   private final DatabaseConfiguration databaseConfiguration;
   private final Log log;
   private CqlSession session;
+  @Setter
+  private ErrorRepository errorRepository;
 
   /**
    * Used to connect to cassandra database
@@ -96,9 +102,8 @@ public final class DatabaseConnection {
   private AsyncResultSet exceptionally(
     Throwable throwable, String query, Object... values
   ) {
-    //TODO: PROCESS ERROR
-    System.out.println(query + " -> " + Arrays.toString(values));
-    throwable.printStackTrace();
+    log.severe(query + " -> " + Arrays.toString(values));
+    errorRepository.processError(throwable);
     return null;
   }
 
@@ -154,9 +159,8 @@ public final class DatabaseConnection {
   private ResultSet exceptionallySynchronously(
     Throwable throwable, String query, Object... values
   ) {
-    //TODO: PROCESS ERROR
-    System.out.println(query + " -> " + Arrays.toString(values));
-    throwable.printStackTrace();
+    log.severe(query + " -> " + Arrays.toString(values));
+    errorRepository.processError(throwable);
     return null;
   }
 

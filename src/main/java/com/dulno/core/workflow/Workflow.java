@@ -5,6 +5,7 @@ import com.dulno.core.action.ActionResult;
 import com.dulno.core.bundle.Bundle;
 import com.dulno.core.bundle.BundleDatabaseTable;
 import com.dulno.core.condition.Condition;
+import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.mail.Mail;
 import com.dulno.core.maintenance.MaintenanceSchedule;
 import com.dulno.core.notification.NotificationDatabaseTable;
@@ -46,6 +47,7 @@ public final class Workflow {
   private final NotificationDatabaseTable notificationDatabaseTable;
   private final MaintenanceSchedule maintenanceSchedule;
   private final Translation translation;
+  private final ErrorRepository errorRepository;
   private final Mail notificationMail;
   private final WorkflowEntry workflowEntry;
   private final Map<Integer, ActionExecutor> actions;
@@ -54,7 +56,6 @@ public final class Workflow {
   private int currentActionIndex = 0;
   private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
   private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
-
 
   /**
    * Triggers the workflow
@@ -72,8 +73,7 @@ public final class Workflow {
   }
 
   private Boolean processWorkflowException(Throwable throwable) {
-    //TODO: PROCESS ERROR
-    throwable.printStackTrace();
+    errorRepository.processError(throwable);
     return false;
   }
 
