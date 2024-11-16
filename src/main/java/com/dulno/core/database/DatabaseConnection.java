@@ -96,6 +96,7 @@ public final class DatabaseConnection {
   private AsyncResultSet exceptionally(
     Throwable throwable, String query, Object... values
   ) {
+    //TODO: PROCESS ERROR
     System.out.println(query + " -> " + Arrays.toString(values));
     throwable.printStackTrace();
     return null;
@@ -153,6 +154,7 @@ public final class DatabaseConnection {
   private ResultSet exceptionallySynchronously(
     Throwable throwable, String query, Object... values
   ) {
+    //TODO: PROCESS ERROR
     System.out.println(query + " -> " + Arrays.toString(values));
     throwable.printStackTrace();
     return null;

@@ -17,7 +17,6 @@ import com.dulno.core.application.CoreApplicationPostRunEvent;
 import com.dulno.core.application.CoreApplicationPreRunEvent;
 import com.dulno.core.command.CommandRegistry;
 import com.dulno.core.command.CommandTask;
-import com.dulno.core.command.implementation.*;
 import com.dulno.core.condition.number.ConditionNumberGreaterThan;
 import com.dulno.core.condition.number.ConditionNumberSmallerThan;
 import com.dulno.core.condition.text.ConditionTextEndsWith;
@@ -51,37 +50,47 @@ public class CoreApplication {
   /**
    * The starting point where the application is executed
    * @param args The arguments that are passed into the application
-   * @throws Exception
    */
-  public static void main(String[] args) throws Exception {
-    var injector = Guice.createInjector(CoreInjectionModule.create());
-    injector.getInstance(Intro.class).print();
-    var log = injector.getInstance(Log.class);
-    log.info("Initializing Dulno - Core");
-    registerHooks(injector.getInstance(HookRegistry.class), injector);
-    var eventExecutor = injector.getInstance(EventExecutor.class);
-    eventExecutor.execute(CoreApplicationLaunchEvent.create());
-    var application = injector.getInstance(SpringApplication.class);
-    registerConditions(injector.getInstance(ConditionInformationRepository.class));
-    registerTutorialLevels(injector.getInstance(TutorialLevelRegistry.class));
-    var distributionConfiguration = injector.getInstance(WorkerConfiguration.class);
-    var distribution = injector.getInstance(WorkerDistribution.class);
-    distribution.initialize();
-    var coreModule = injector.getInstance(CoreModule.class);
-    coreModule.initialize();
-    var commandRegistry = injector.getInstance(CommandRegistry.class);
-    registerCommands(commandRegistry, injector);
-    application.setDefaultProperties(Collections.singletonMap("server.port",
-      distributionConfiguration.restPort()));
-    eventExecutor.execute(CoreApplicationPreRunEvent.create());
-    application.run(args);
-    new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
-    injector.getInstance(MaintenanceSchedule.class).start();
-    log.info("Successfully booted Dulno - Core");
-    Runtime.getRuntime().addShutdownHook(new Thread(() ->
-      injector.getInstance(WorkerProxyClient.class)
-        .sendPacket(new PacketOutgoingDisconnect())));
-    eventExecutor.execute(CoreApplicationPostRunEvent.create());
+  public static void main(String[] args) {
+    Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->
+      processApplicationException(throwable));
+    try {
+      var injector = Guice.createInjector(CoreInjectionModule.create());
+      injector.getInstance(Intro.class).print();
+      var log = injector.getInstance(Log.class);
+      log.info("Initializing Dulno - Core");
+      registerHooks(injector.getInstance(HookRegistry.class), injector);
+      var eventExecutor = injector.getInstance(EventExecutor.class);
+      eventExecutor.execute(CoreApplicationLaunchEvent.create());
+      var application = injector.getInstance(SpringApplication.class);
+      registerConditions(injector.getInstance(ConditionInformationRepository.class));
+      registerTutorialLevels(injector.getInstance(TutorialLevelRegistry.class));
+      var distributionConfiguration = injector.getInstance(WorkerConfiguration.class);
+      var distribution = injector.getInstance(WorkerDistribution.class);
+      distribution.initialize();
+      var coreModule = injector.getInstance(CoreModule.class);
+      coreModule.initialize();
+      var commandRegistry = injector.getInstance(CommandRegistry.class);
+      registerCommands(commandRegistry, injector);
+      application.setDefaultProperties(Collections.singletonMap("server.port",
+        distributionConfiguration.restPort()));
+      eventExecutor.execute(CoreApplicationPreRunEvent.create());
+      application.run(args);
+      new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
+      injector.getInstance(MaintenanceSchedule.class).start();
+      log.info("Successfully booted Dulno - Core");
+      Runtime.getRuntime().addShutdownHook(new Thread(() ->
+        injector.getInstance(WorkerProxyClient.class)
+          .sendPacket(new PacketOutgoingDisconnect())));
+      eventExecutor.execute(CoreApplicationPostRunEvent.create());
+    } catch (Exception exception) {
+      processApplicationException(exception);
+    }
+  }
+
+  private static void processApplicationException(Throwable throwable) {
+    //TODO: PROCESS ERROR
+    throwable.printStackTrace();
   }
 
   private static void registerHooks(HookRegistry registry, Injector injector) {

@@ -68,7 +68,13 @@ public final class Workflow {
       .thenCompose(value -> bundleDatabaseTable.findBundle(bundleOwner)
         .thenCompose(bundle -> checkOperationLimit(bundle)
           .thenCompose(limitReached -> triggerLimit(information, bundle,
-            limitReached))));
+            limitReached)))).exceptionally(this::processWorkflowException);
+  }
+
+  private Boolean processWorkflowException(Throwable throwable) {
+    //TODO: PROCESS ERROR
+    throwable.printStackTrace();
+    return false;
   }
 
   private CompletableFuture<Boolean> triggerLimit(

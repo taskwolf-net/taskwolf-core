@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
 @Singleton
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
@@ -14,10 +15,12 @@ public final class EventExecutor {
    * Executes an event
    * @param event The event that is to be executed
    */
+  @SneakyThrows
   public void execute(Event event) {
     try {
       event.call(registry);
     } catch (Exception exception) {
+      //TODO: PROCESS ERROR
       exception.printStackTrace();
     }
   }
