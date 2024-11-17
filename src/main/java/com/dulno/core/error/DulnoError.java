@@ -14,21 +14,24 @@ import java.util.UUID;
 @AllArgsConstructor(staticName = "create")
 public final class DulnoError {
   public static DulnoError of(
-    UUID id, String origin, String pod, String node, Throwable throwable
+    UUID id, String origin, String pod, String podControllerName,
+    String podControllerType, String node, Throwable throwable
   ) {
     var stringWriter = new StringWriter();
     var printWriter = new PrintWriter(stringWriter);
     throwable.printStackTrace(printWriter);
-    return create(id, throwable.getMessage(), stringWriter.toString(),
-      origin, pod, node, System.currentTimeMillis(), DulnoErrorState.UNSOLVED);
+    return create(id, throwable.toString(), stringWriter.toString(),
+      origin, pod, podControllerName, podControllerType, node,
+      System.currentTimeMillis(), DulnoErrorState.UNSOLVED);
   }
 
   public static DulnoError of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).stringValue(),
       row.findCell(2).stringValue(), row.findCell(3).stringValue(),
       row.findCell(4).stringValue(), row.findCell(5).stringValue(),
-      row.findCell(6).longValue(),
-      DulnoErrorState.valueOf(row.findCell(7).stringValue()));
+      row.findCell(6).stringValue(), row.findCell(7).stringValue(),
+      row.findCell(8).longValue(),
+      DulnoErrorState.valueOf(row.findCell(9).stringValue()));
   }
 
   private final UUID id;
@@ -36,6 +39,8 @@ public final class DulnoError {
   private final String trace;
   private final String origin;
   private final String pod;
+  private final String podControllerName;
+  private final String podControllerType;
   private final String node;
   private final long time;
   private DulnoErrorState state;

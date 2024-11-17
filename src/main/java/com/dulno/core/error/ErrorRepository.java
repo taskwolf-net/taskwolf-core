@@ -18,7 +18,8 @@ public final class ErrorRepository {
   public void processError(Throwable throwable) {
     errorDatabaseTable.generateAvailableErrorId().thenCompose(id ->
       errorDatabaseTable.insertError(DulnoError.of(id, log.name(),
-        System.getenv("POD_NAME"), System.getenv("NODE_NAME"), throwable)));
+        System.getenv("POD_NAME"), System.getenv("CONTROLLER_NAME"),
+        System.getenv("CONTROLLER_TYPE"), System.getenv("NODE_NAME"), throwable)));
     var stringWriter = new StringWriter();
     var printWriter = new PrintWriter(stringWriter);
     throwable.printStackTrace(printWriter);

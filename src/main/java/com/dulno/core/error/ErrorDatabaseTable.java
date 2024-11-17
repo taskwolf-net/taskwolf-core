@@ -21,6 +21,8 @@ public final class ErrorDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("trace", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("origin", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("pod", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("controllerName", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("controllerType", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("node", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("time", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("state", DatabaseDataType.TEXT));
@@ -36,18 +38,20 @@ public final class ErrorDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> insertError(DulnoError error) {
     return insert(DatabaseRow.of(error.id(), error.title(),
-      error.trace(), error.origin(), error.pod(), error.node(), error.time(),
+      error.trace(), error.origin(), error.pod(), error.podControllerName(),
+      error.podControllerType(), error.node(), error.time(),
       error.state().toString()));
   }
 
-  public void updateOfferState(DulnoError error, DulnoErrorState state) {
+  public void updateErrorState(DulnoError error, DulnoErrorState state) {
     error.updateState(state);
     updateError(error);
   }
 
   public CompletableFuture<Void> updateError(DulnoError error) {
     return update(error.id(), DatabaseRow.of(error.id(), error.title(),
-      error.trace(), error.origin(), error.pod(), error.node(), error.time(),
+      error.trace(), error.origin(), error.pod(), error.podControllerName(),
+      error.podControllerType(), error.node(), error.time(),
       error.state().toString()));
   }
 
