@@ -19,6 +19,9 @@ public final class ErrorDatabaseTable extends DatabaseTable {
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("title", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("trace", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("origin", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("pod", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("node", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("time", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("state", DatabaseDataType.TEXT));
     return new ErrorDatabaseTable(connection, keyspace, TABLE_NAME, columns);
@@ -31,14 +34,10 @@ public final class ErrorDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  public CompletableFuture<Void> insertError(Throwable throwable) {
-    return generateAvailableErrorId().thenCompose(id ->
-      insertError(DulnoError.of(id, throwable)));
-  }
-
   public CompletableFuture<Void> insertError(DulnoError error) {
     return insert(DatabaseRow.of(error.id(), error.title(),
-      error.trace(), error.time(), error.state().toString()));
+      error.trace(), error.origin(), error.pod(), error.node(), error.time(),
+      error.state().toString()));
   }
 
   public void updateOfferState(DulnoError error, DulnoErrorState state) {
@@ -48,7 +47,8 @@ public final class ErrorDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> updateError(DulnoError error) {
     return update(error.id(), DatabaseRow.of(error.id(), error.title(),
-      error.trace(), error.time(), error.state().toString()));
+      error.trace(), error.origin(), error.pod(), error.node(), error.time(),
+      error.state().toString()));
   }
 
   public CompletableFuture<UUID> generateAvailableErrorId() {

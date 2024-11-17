@@ -34,6 +34,8 @@ public final class Log extends Logger {
     return logPath;
   }
 
+  @Getter
+  private final String name;
   private final Log parentLog;
   private final ConsoleHandler consoleHandler;
   private final FileHandler fileHandler;
@@ -45,6 +47,7 @@ public final class Log extends Logger {
     FileHandler fileHandler
   ) {
     super(name, null);
+    this.name = name;
     this.parentLog = parentLog;
     this.consoleHandler = consoleHandler;
     this.fileHandler = fileHandler;

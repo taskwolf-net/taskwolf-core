@@ -60,6 +60,7 @@ public class CoreApplication {
       errorRepository.processError(throwable));
     injector.getInstance(DatabaseConnection.class).errorRepository(errorRepository);
     try {
+      injector.getInstance(Intro.class).print();
       var log = injector.getInstance(Log.class);
       log.info("Initializing Dulno - Core");
       registerHooks(injector.getInstance(HookRegistry.class), injector);
@@ -79,7 +80,8 @@ public class CoreApplication {
         distributionConfiguration.restPort()));
       eventExecutor.execute(CoreApplicationPreRunEvent.create());
       application.run(args);
-      new Thread(() -> CommandTask.create(log, commandRegistry).start()).start();
+      new Thread(() -> CommandTask.create(log, errorRepository, commandRegistry)
+        .start()).start();
       injector.getInstance(MaintenanceSchedule.class).start();
       log.info("Successfully booted Dulno - Core");
       Runtime.getRuntime().addShutdownHook(new Thread(() ->

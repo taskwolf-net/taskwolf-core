@@ -1,5 +1,6 @@
 package com.dulno.core.command;
 
+import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.log.Log;
 import lombok.RequiredArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.util.logging.Level;
 @RequiredArgsConstructor(staticName = "create")
 public final class CommandTask {
   private final Log log;
+  private final ErrorRepository errorRepository;
   private final CommandRegistry commandRegistry;
 
   /**
@@ -20,7 +22,7 @@ public final class CommandTask {
     try {
       monitorInput(reader);
     } catch (Exception exception) {
-      exception.printStackTrace();
+      errorRepository.processError(exception);
     }
   }
 
@@ -52,7 +54,7 @@ public final class CommandTask {
         printOutSyntax(command);
       }
     } catch (Exception exception) {
-      exception.printStackTrace();
+      errorRepository.processError(exception);
     }
   }
 

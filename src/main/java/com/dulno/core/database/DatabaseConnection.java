@@ -102,7 +102,7 @@ public final class DatabaseConnection {
   private AsyncResultSet exceptionally(
     Throwable throwable, String query, Object... values
   ) {
-    log.severe(query + " -> " + Arrays.toString(values));
+    log.warning(query + " -> " + Arrays.toString(values));
     errorRepository.processError(throwable);
     return null;
   }
@@ -159,7 +159,7 @@ public final class DatabaseConnection {
   private ResultSet exceptionallySynchronously(
     Throwable throwable, String query, Object... values
   ) {
-    log.severe(query + " -> " + Arrays.toString(values));
+    log.warning(query + " -> " + Arrays.toString(values));
     errorRepository.processError(throwable);
     return null;
   }

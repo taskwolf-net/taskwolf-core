@@ -30,7 +30,6 @@ public final class MailMessage {
         message.getSubject(), body.toString(), message.getFrom()[0],
         message.getReceivedDate());
     } catch (Exception exception) {
-      exception.printStackTrace();
       return null;
     }
   }
