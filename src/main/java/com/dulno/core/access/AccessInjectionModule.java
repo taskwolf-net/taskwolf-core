@@ -39,7 +39,7 @@ public final class AccessInjectionModule extends AbstractModule {
   @Singleton
   @Named("refreshKey")
   Key provideRefreshKey(VerificationConfiguration configuration) {
-    return new SecretKeySpec(configuration.productSecret()
+    return new SecretKeySpec(configuration.refreshSecret()
       .getBytes(StandardCharsets.UTF_8), SignatureAlgorithm.HS256.getJcaName());
   }
 }
