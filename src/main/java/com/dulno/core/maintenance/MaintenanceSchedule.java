@@ -41,7 +41,7 @@ public final class MaintenanceSchedule {
 
   private void execute() {
     maintenanceDatabaseTable.findMaintenanceByStatus(MaintenanceStatus.RUNNING)
-      .thenAccept(this::applyMaintenance);
+      .exceptionally(value -> null).thenAccept(this::applyMaintenance);
   }
 
   private void applyMaintenance(List<Maintenance> maintenanceList) {
