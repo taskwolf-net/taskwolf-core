@@ -7,10 +7,13 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
+import javax.annotation.Nullable;
+
 @Singleton
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
 public final class EventExecutor {
   private final HookRegistry registry;
+  @Nullable
   private final ErrorRepository errorRepository;
 
   /**

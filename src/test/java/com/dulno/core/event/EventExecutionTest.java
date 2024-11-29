@@ -1,7 +1,10 @@
 package com.dulno.core.event;
 
+import com.dulno.core.error.ErrorRepository;
+import com.dulno.core.log.Log;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
-import com.dulno.core.CoreInjectionModule;
+import com.google.inject.util.Providers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -25,9 +28,17 @@ final class EventExecutionTest {
     }
   }
 
+  private class ExampleModule extends AbstractModule {
+    @Override
+    protected void configure() {
+      bind(Log.class).toProvider(Providers.of(null));
+      bind(ErrorRepository.class).toProvider(Providers.of(null));
+    }
+  }
+
   @Test
   void testEventExecution() throws Exception {
-    var injector = Guice.createInjector(CoreInjectionModule.create());
+    var injector = Guice.createInjector(new ExampleModule());
     var registry = injector.getInstance(HookRegistry.class);
     var hook = new ExampleHook();
     registry.register(hook);
