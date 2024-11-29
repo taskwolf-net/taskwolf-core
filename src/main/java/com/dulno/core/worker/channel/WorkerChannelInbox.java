@@ -16,7 +16,7 @@ public final class WorkerChannelInbox extends SimpleChannelInboundHandler<Packet
   private final PacketEventRepository packetEventRepository;
 
   @Override
-  protected void channelRead0(
+  protected void messageReceived(
     ChannelHandlerContext context, PacketIncoming incomingPacket
   ) {
     if (context.channel() != workerProxyClient.channel()) {
