@@ -8,6 +8,167 @@ Core of the backend of Dulno. Each module relies on the core. It bundles central
 |-------------|---------------------------------------------------------------------------------------------|
 | Master      | ![Java CI with Gradle](https://git.dulno.com/root/dulno-core/badges/master/pipeline.svg) |
 
+## Architecture
+
+```mermaid
+architecture-beta
+    service request(internet)[Request]
+
+    group hoster(server)[Hoster]
+    service loadBalancer(cloud)[Load Balancer] in hoster
+
+    group cluster(cloud)[Cluster] in hoster
+
+    group server1Group[Server 1] in cluster
+    service server1(server)[Server 1] in server1Group
+    service server1Ingress(cloud)[Ingress 1] in server1Group
+    service server1Nginx(cloud)[Nginx 1] in server1Group
+    service server1Database(database)[Database 1] in server1Group
+    service server1Core1(server)[Core 1] in server1Group
+    service server1Core2(server)[Core 2] in server1Group
+    service server1Core3(server)[Core 3] in server1Group
+
+    group server2Group[Server 2] in cluster
+    service server2(server)[Server 2] in server2Group
+    service server2Ingress(cloud)[Ingress 2] in server2Group
+    service server2Nginx(cloud)[Nginx 2] in server2Group
+    service server2Database(database)[Database 2] in server2Group
+    service server2Proxy(cloud)[Proxy] in server2Group
+    service server2Core1(server)[Core 1] in server2Group
+    service server2Core2(server)[Core 2] in server2Group
+    service server2Core3(server)[Core 3] in server2Group
+
+    group server3Group[Server 3] in cluster
+    service server3(server)[Server 3] in server3Group
+    service server3Ingress(cloud)[Ingress 3] in server3Group
+    service server3Nginx(cloud)[Nginx 3] in server3Group
+    service server3Database(database)[Database 3] in server3Group
+    service server3Core1(server)[Core 1] in server3Group
+    service server3Core2(server)[Core 2] in server3Group
+    service server3Core3(server)[Core 3] in server3Group
+
+    service databaseProxyServer(cloud)[Database or Proxy Service] in cluster
+
+    request:B --> T:loadBalancer
+
+    junction junctionLeft1 in hoster
+    junction junctionLeft2 in hoster
+    junction junctionLeft3 in hoster
+    junction junctionLeft4 in hoster
+    junction junctionLeft5 in hoster
+    junction junctionRight1 in hoster
+    junction junctionRight2 in hoster
+    junction junctionRight3 in hoster
+    junction junctionRight4 in hoster
+    junction junctionRight5 in hoster
+
+    junctionLeft1:R -- L:loadBalancer
+    junctionLeft2:R -- L:junctionLeft1
+    junctionLeft3:R -- L:junctionLeft2
+    junctionLeft4:R -- L:junctionLeft3
+    junctionLeft5:R -- L:junctionLeft4
+    junctionLeft5:B --> T:server1
+    server1:B -- T:server1Ingress
+    server1:R -- L:server1Database
+    server1Ingress:B -- T:server1Nginx
+    server1Nginx:L -- R:server1Core1
+    server1Nginx:B -- T:server1Core2
+    server1Nginx:R -- L:server1Core3
+
+    loadBalancer:B --> T:server2
+    server2:B -- T:server2Ingress
+    server2:L -- R:server2Database
+    server2:R -- L:server2Proxy
+    server2Ingress:B -- T:server2Nginx
+    server2Nginx:L -- R:server2Core1
+    server2Nginx:B -- T:server2Core2
+    server2Nginx:R -- L:server2Core3
+
+    junctionRight1:L -- R:loadBalancer
+    junctionRight2:L -- R:junctionRight1
+    junctionRight3:L -- R:junctionRight2
+    junctionRight4:L -- R:junctionRight3
+    junctionRight5:L -- R:junctionRight4
+    junctionRight5:B --> T:server3
+    server3:B -- T:server3Ingress
+    server3:L -- R:server3Database
+    server3Ingress:B -- T:server3Nginx
+    server3Nginx:L -- R:server3Core1
+    server3Nginx:B -- T:server3Core2
+    server3Nginx:R -- L:server3Core3
+
+    junction junction1Server1Core1 in cluster
+    junction junction2Server1Core1 in cluster
+    junction junction3Server1Core1 in cluster
+    junction junction4Server1Core1 in cluster
+    junction junction1Server1Core2 in cluster
+    junction junction1Server1Core3 in cluster
+    junction junction2Server1Core3 in cluster
+    junction junction3Server1Core3 in cluster
+    junction junction4Server1Core3 in cluster
+
+    server1Core1:L --> R:junction1Server1Core1
+    junction1Server1Core1:B -- T:junction2Server1Core1
+    junction2Server1Core1:B -- T:junction3Server1Core1
+    junction3Server1Core1:R -- L:junction4Server1Core1
+    server1Core2:B --> T:junction1Server1Core2
+    junction1Server1Core2:L -- R:junction4Server1Core1
+    junction1Server1Core2:R -- L:junction4Server1Core3
+    server1Core3:R --> L:junction1Server1Core3
+    junction1Server1Core3:B -- T:junction2Server1Core3
+    junction2Server1Core3:B -- T:junction3Server1Core3
+    junction3Server1Core3:L -- R:junction4Server1Core3
+
+    junction junction1Server2Core1 in cluster
+    junction junction2Server2Core1 in cluster
+    junction junction3Server2Core1 in cluster
+    junction junction4Server2Core1 in cluster
+    junction junction1Server2Core2 in cluster
+    junction junction1Server2Core3 in cluster
+    junction junction2Server2Core3 in cluster
+    junction junction3Server2Core3 in cluster
+    junction junction4Server2Core3 in cluster
+
+    server2Core1:L --> R:junction1Server2Core1
+    junction1Server2Core1:B -- T:junction2Server2Core1
+    junction2Server2Core1:B -- T:junction3Server2Core1
+    junction3Server2Core1:R -- L:junction4Server2Core1
+    server2Core2:B --> T:junction1Server2Core2
+    junction1Server2Core2:L -- R:junction4Server2Core1
+    junction1Server2Core2:R -- L:junction4Server2Core3
+    server2Core3:R --> L:junction1Server2Core3
+    junction1Server2Core3:B -- T:junction2Server2Core3
+    junction2Server2Core3:B -- T:junction3Server2Core3
+    junction3Server2Core3:L -- R:junction4Server2Core3
+
+    junction junction1Server3Core1 in cluster
+    junction junction2Server3Core1 in cluster
+    junction junction3Server3Core1 in cluster
+    junction junction4Server3Core1 in cluster
+    junction junction1Server3Core2 in cluster
+    junction junction1Server3Core3 in cluster
+    junction junction2Server3Core3 in cluster
+    junction junction3Server3Core3 in cluster
+    junction junction4Server3Core3 in cluster
+
+    server3Core1:L --> R:junction1Server3Core1
+    junction1Server3Core1:B -- T:junction2Server3Core1
+    junction2Server3Core1:B -- T:junction3Server3Core1
+    junction3Server3Core1:R -- L:junction4Server3Core1
+    server3Core2:B --> T:junction1Server3Core2
+    junction1Server3Core2:L -- R:junction4Server3Core1
+    junction1Server3Core2:R -- L:junction4Server3Core3
+    server3Core3:R --> L:junction1Server3Core3
+    junction1Server3Core3:B -- T:junction2Server3Core3
+    junction2Server3Core3:B -- T:junction3Server3Core3
+    junction3Server3Core3:L -- R:junction4Server3Core3
+
+    junction4Server1Core3:R --> L:junction3Server2Core1
+    junction3Server3Core1:L --> R:junction3Server2Core3
+
+    junction1Server2Core2:B --> T:databaseProxyServer
+```
+
 ## Integration
 This module can be integrated into a submodule.
 
