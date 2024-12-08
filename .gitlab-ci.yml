@@ -3,18 +3,15 @@ stages:
   - build
   - deploy
 
-before_script:
-  - export DULNO_GITLAB_PRIVATE_TOKEN="$DULNO_GITLAB_PRIVATE_TOKEN"
-
 test:
   stage: test
-  image: gradle:8.5-jdk21
+  image: gradle:8.11.1-jdk21
   script:
     - gradle test
 
 build:
   stage: build
-  image: gradle:8.5-jdk21
+  image: gradle:8.11.1-jdk21
   artifacts:
     paths:
       - build/libs/core-1.0.0-SNAPSHOT.jar

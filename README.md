@@ -6,7 +6,7 @@ Core of the backend of Dulno. Each module relies on the core. It bundles central
 
 |             | Build Status                                                                                |
 |-------------|---------------------------------------------------------------------------------------------|
-| Master      | ![Java CI with Gradle](https://git.dulno.com/root/dulno-core/badges/master/pipeline.svg) |
+| Master      | ![Java CI with Gradle](https://git.dulno.com/dulno/dulno-core/badges/master/pipeline.svg) |
 
 ## Architecture
 
