@@ -56,7 +56,7 @@ dependencies {
   implementation("org.json:json:20240303")
   implementation("commons-io:commons-io:2.18.0")
 
-  implementation("io.netty:netty-all:5.0.0.Alpha2")
+  implementation("io.netty:netty-all:4.1.115.Final")
 
   implementation("org.springframework.boot:spring-boot-starter-web:3.4.0")
 
@@ -64,7 +64,7 @@ dependencies {
 
   implementation("com.sun.mail:javax.mail:1.6.2")
 
-  implementation("com.stripe:stripe-java:28.2.0-beta.1")
+  implementation("com.stripe:stripe-java:26.1.0")
 
   implementation("dev.samstevens.totp:totp:1.7.1")
 
