@@ -102,7 +102,7 @@ public final class SessionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> updateSession(Session session) {
-    return update(DatabaseCondition.of("id", session.id()),
+    return update(DatabaseCondition.of("id", session.id(), "user", session.userId()),
       DatabaseRow.of(session.id(), session.userId(), session.status().toString(),
         session.devicePlatform(), session.ipAddress(), session.country(),
         session.city(), session.openTime(), session.lastRefreshToken(),
