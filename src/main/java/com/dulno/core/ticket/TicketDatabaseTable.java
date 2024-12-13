@@ -27,14 +27,14 @@ public final class TicketDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("title", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT));
+    columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT,
+      DatabaseColumn.Type.CLUSTERING_KEY));
     columns.add(DatabaseListColumn.create("messages", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("lastMessageSeen", DatabaseDataType.BOOLEAN));
     var table = new TicketDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
     table.createIndexIfNotExists("id");
     table.createIndexIfNotExists("status");
-    table.createIndexIfNotExists("expirationTime");
     table.createIndexIfNotExists("lastMessageSeen");
     table.createIndexIfNotExists("title",
       "'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = " +
@@ -48,6 +48,7 @@ public final class TicketDatabaseTable extends DatabaseTable {
   private DatabaseTable titleView;
   private DatabaseTable typeView;
   private DatabaseTable statusView;
+  private DatabaseTable statusExpirationView;
 
   private TicketDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
@@ -60,6 +61,17 @@ public final class TicketDatabaseTable extends DatabaseTable {
     titleView = createMaterializedViewIfNotExists("title_view", "title");
     typeView = createMaterializedViewIfNotExists("type_view", "type");
     statusView = createMaterializedViewIfNotExists("status_view", "status");
+    var columns = Lists.<DatabaseColumn>newArrayList();
+    columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT,
+      DatabaseColumn.Type.PARTITION_KEY));
+    columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT,
+      DatabaseColumn.Type.CLUSTERING_KEY));
+    columns.add(DatabaseColumn.create("creator", DatabaseDataType.UUID,
+      DatabaseColumn.Type.CLUSTERING_KEY));
+    columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
+      DatabaseColumn.Type.CLUSTERING_KEY));
+    statusExpirationView = createMaterializedViewIfNotExists(
+      "status_expiration_view", columns);
   }
 
   public void insertTicket(Ticket ticket) {
@@ -248,7 +260,7 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Long> countPendingTickets() {
-    return count(DatabaseCondition.of(DatabaseCondition.Filtering.ALLOWED,
+    return statusExpirationView.count(DatabaseCondition.of(
       DatabaseComparison.create("expirationTime", -1L),
       DatabaseComparison.create("status", Ticket.Status.OPEN.toString())));
   }
