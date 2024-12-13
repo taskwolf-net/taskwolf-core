@@ -55,6 +55,27 @@ public final class DatabaseCondition {
       DatabaseComparison.create(column3, value3)), filtering);
   }
 
+  public static DatabaseCondition of(
+    String column1, Object value1, String column2, Object value2,
+    String column3, Object value3, String column4, Object value4
+  ) {
+    return create(Lists.newArrayList(DatabaseComparison.create(column1, value1),
+      DatabaseComparison.create(column2, value2),
+      DatabaseComparison.create(column3, value3),
+      DatabaseComparison.create(column4, value4)));
+  }
+
+  public static DatabaseCondition of(
+    String column1, Object value1, String column2, Object value2,
+    String column3, Object value3, String column4, Object value4,
+    Filtering filtering
+  ) {
+    return create(Lists.newArrayList(DatabaseComparison.create(column1, value1),
+      DatabaseComparison.create(column2, value2),
+      DatabaseComparison.create(column3, value3),
+      DatabaseComparison.create(column4, value4)), filtering);
+  }
+
   public static DatabaseCondition of(DatabaseComparison... comparisons) {
     return create(Lists.newArrayList(comparisons));
   }
