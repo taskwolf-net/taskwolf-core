@@ -19,19 +19,39 @@ public final class QuestionDatabaseTable extends DatabaseTable {
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
-      DatabaseColumn.Type.PRIMARY_KEY));
+      DatabaseColumn.Type.PARTITION_KEY));
     columns.add(DatabaseColumn.create("sender", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("title", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT,
+      DatabaseColumn.Type.CLUSTERING_KEY));
     columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT));
-    return new QuestionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    var table = new QuestionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    table.createIfNotExists();
+    table.createIndexIfNotExists("sender");
+    table.createIndexIfNotExists("status");
+    table.initializeViews();
+    return table;
   }
+
+  private DatabaseTable statusExpirationView;
 
   private QuestionDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
     List<DatabaseColumn> columns
   ) {
     super(connection, keyspace, name, columns);
+  }
+
+  private void initializeViews() {
+    var columns = Lists.<DatabaseColumn>newArrayList();
+    columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT,
+      DatabaseColumn.Type.PARTITION_KEY));
+    columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT,
+      DatabaseColumn.Type.CLUSTERING_KEY));
+    columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
+      DatabaseColumn.Type.CLUSTERING_KEY));
+    statusExpirationView = createMaterializedViewIfNotExists(
+      "status_expiration_view", columns);
   }
 
   public CompletableFuture<Void> insertQuestion(Question question) {
@@ -86,7 +106,9 @@ public final class QuestionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> updateQuestion(Question question) {
-    return update(question.id(), DatabaseRow.of(question.id(), question.sender(),
+    var condition = DatabaseCondition.of("id", question.id(), "status",
+      question.status());
+    return update(condition, DatabaseRow.of(question.id(), question.sender(),
       question.title(), question.status().toString(), question.expirationTime()));
   }
 
@@ -100,15 +122,15 @@ public final class QuestionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteQuestion(UUID id) {
-    return delete(id);
+    return delete(DatabaseCondition.of("id", id));
   }
 
   public CompletableFuture<Boolean> questionExists(UUID id) {
-    return exists(id);
+    return exists(DatabaseCondition.of("id", id));
   }
 
   public CompletableFuture<Question> findQuestion(UUID id) {
-    return selectRow(id).thenApply(Question::of);
+    return selectRow(DatabaseCondition.of("id", id)).thenApply(Question::of);
   }
 
   public CompletableFuture<List<Question>> findQuestionsBySender(String sender) {
@@ -122,7 +144,7 @@ public final class QuestionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Long> countPendingQuestions() {
-    return count(DatabaseCondition.of(DatabaseCondition.Filtering.ALLOWED,
+    return statusExpirationView.count(DatabaseCondition.of(
       DatabaseComparison.create("expirationTime", -1L),
       DatabaseComparison.create("status", Ticket.Status.OPEN.toString())));
   }
