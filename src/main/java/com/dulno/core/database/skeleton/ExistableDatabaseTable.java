@@ -71,6 +71,7 @@ public interface ExistableDatabaseTable extends AbstractDatabaseTable,
       query.append(conditionValue);
     }
     query.append(condition.filteringAddition());
+    query.append(" LIMIT 1");
     query.append(";");
     return connection().execute(query, condition.values())
       .thenApply(result -> result.remaining() > 0);
