@@ -17,8 +17,9 @@ public final class SessionDatabaseTable extends DatabaseTable {
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
-      DatabaseColumn.Type.PRIMARY_KEY));
-    columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID));
+      DatabaseColumn.Type.PARTITION_KEY));
+    columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID,
+      DatabaseColumn.Type.CLUSTERING_KEY));
     columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("devicePlatform", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("ipAddress", DatabaseDataType.TEXT));
@@ -31,14 +32,28 @@ public final class SessionDatabaseTable extends DatabaseTable {
     table.createIfNotExists();
     table.createIndexIfNotExists("user");
     table.createIndexIfNotExists("status");
+    table.initializeViews();
     return table;
   }
+
+  private DatabaseTable userStatusView;
 
   private SessionDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
     List<DatabaseColumn> columns
   ) {
     super(connection, keyspace, name, columns);
+  }
+
+  private void initializeViews() {
+    var columns = Lists.<DatabaseColumn>newArrayList();
+    columns.add(DatabaseColumn.create("user", DatabaseDataType.UUID,
+      DatabaseColumn.Type.PARTITION_KEY));
+    columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT,
+      DatabaseColumn.Type.CLUSTERING_KEY));
+    columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
+      DatabaseColumn.Type.CLUSTERING_KEY));
+    userStatusView = createMaterializedViewIfNotExists("user_status_view", columns);
   }
 
   public CompletableFuture<Void> insertSession(Session session) {
@@ -87,14 +102,15 @@ public final class SessionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> updateSession(Session session) {
-    return update(session.id(), DatabaseRow.of(session.id(), session.userId(),
-      session.status().toString(), session.devicePlatform(), session.ipAddress(),
-      session.country(), session.city(), session.openTime(),
-      session.lastRefreshToken(), session.lastRefresh()));
+    return update(DatabaseCondition.of("id", session.id()),
+      DatabaseRow.of(session.id(), session.userId(), session.status().toString(),
+        session.devicePlatform(), session.ipAddress(), session.country(),
+        session.city(), session.openTime(), session.lastRefreshToken(),
+        session.lastRefresh()));
   }
 
   public CompletableFuture<Void> deleteSession(UUID id) {
-    return delete(id);
+    return delete(DatabaseCondition.of("id", id));
   }
 
   public CompletableFuture<UUID> generateAvailableSessionId() {
@@ -107,11 +123,12 @@ public final class SessionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> sessionExists(UUID id) {
-    return exists(id);
+    return exists(DatabaseCondition.of("id", id));
   }
 
   public CompletableFuture<Session> findSession(UUID id) {
-    return selectRow(id).thenApply(row -> Session.of(row, this));
+    return selectRow(DatabaseCondition.of("id", id))
+      .thenApply(row -> Session.of(row, this));
   }
 
   public CompletableFuture<List<Session>> findSessionsOfUser(UUID userId) {
@@ -122,10 +139,9 @@ public final class SessionDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<Session>> findSessionsOfUserByStatus(
     UUID userId, SessionStatus status
   ) {
-    var condition = DatabaseCondition.of("user", userId, "status", status.toString(),
-      DatabaseCondition.Filtering.ALLOWED);
-    return selectRows(condition).thenApply(rows ->
-      rows.stream().map(row -> Session.of(row, this))
+    var condition = DatabaseCondition.of("user", userId, "status", status.toString());
+    return userStatusView.selectRows(condition)
+      .thenApply(rows -> rows.stream().map(row -> Session.of(row, userStatusView))
         .sorted(Comparator.comparingLong(Session::openTime).reversed()).toList());
   }
 
