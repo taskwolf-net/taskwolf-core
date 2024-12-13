@@ -63,20 +63,17 @@ public interface ViewableDatabaseTable extends AbstractDatabaseTable {
     query.append(fullName() + "_" + name);
     query.append(" AS SELECT * FROM ");
     query.append(fullName());
-    query.append(" WHERE ");
-    for (var i = 0; i < columns.size(); i++) {
-      if (i > 0) {
-        query.append(" AND ");
-      }
-      query.append(columns.get(i).name());
-      query.append(" IS NOT NULL");
-    }
+    query.append(createNotNullCondition(columns));
     query.append(" PRIMARY KEY (");
     query.append(columnNameCompilation(columns.stream()
       .filter(column -> column.type().isPartitionKey() || column.type().isPrimaryKey())
-      .toList(), "(", "),"));
-    query.append(columnNameCompilation(columns.stream()
-      .filter(column -> column.type().isClusteringKey()).toList(), "", ""));
+      .toList(), "(", ")"));
+    var clustering = columnNameCompilation(columns.stream()
+      .filter(column -> column.type().isClusteringKey()).toList(), "", "");
+    if (!clustering.isEmpty()) {
+      query.append(",");
+      query.append(clustering);
+    }
     query.append(");");
     connection().executesSynchronously(query);
     var viewTableColumns = Lists.newArrayList(columns);
@@ -87,6 +84,18 @@ public interface ViewableDatabaseTable extends AbstractDatabaseTable {
       viewTableColumns);
   }
 
+  private String createNotNullCondition(List<DatabaseColumn> columns) {
+    var query = new StringBuilder();
+    query.append(" WHERE ");
+    for (var i = 0; i < columns.size(); i++) {
+      if (i > 0) {
+        query.append(" AND ");
+      }
+      query.append(columns.get(i).name());
+      query.append(" IS NOT NULL");
+    }
+    return query.toString();
+  }
 
   /**
    * Is used to find an existing materialized view by its name
