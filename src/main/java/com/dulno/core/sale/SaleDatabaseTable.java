@@ -20,7 +20,7 @@ public final class SaleDatabaseTable extends DatabaseTable {
   ) {
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
-      DatabaseColumn.Type.PRIMARY_KEY));
+      DatabaseColumn.Type.PARTITION_KEY));
     columns.add(DatabaseColumn.create("sender", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("firstName", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("lastName", DatabaseDataType.TEXT));
@@ -30,9 +30,15 @@ public final class SaleDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("companySize", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("companyRole", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("title", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT,
+      DatabaseColumn.Type.CLUSTERING_KEY));
     columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT));
-    return new SaleDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    var table = new SaleDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    table.createIfNotExists();
+    table.createIndexIfNotExists("sender");
+    table.createIndexIfNotExists("status");
+    table.initializeViews();
+    return table;
   }
 
   private SaleDatabaseTable(
@@ -40,6 +46,20 @@ public final class SaleDatabaseTable extends DatabaseTable {
     List<DatabaseColumn> columns
   ) {
     super(connection, keyspace, name, columns);
+  }
+
+  private DatabaseTable statusExpirationView;
+
+  private void initializeViews() {
+    var columns = Lists.<DatabaseColumn>newArrayList();
+    columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT,
+      DatabaseColumn.Type.PARTITION_KEY));
+    columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT,
+      DatabaseColumn.Type.CLUSTERING_KEY));
+    columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
+      DatabaseColumn.Type.CLUSTERING_KEY));
+    statusExpirationView = createMaterializedViewIfNotExists(
+      "status_expiration_view", columns);
   }
 
   public CompletableFuture<Void> insertSale(Sale sale) {
@@ -96,7 +116,8 @@ public final class SaleDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> updateSale(Sale sale) {
-    return update(sale.id(), DatabaseRow.of(sale.id(), sale.sender(),
+    var condition = DatabaseCondition.of("id", sale.id(), "status", sale.status());
+    return update(condition, DatabaseRow.of(sale.id(), sale.sender(),
       sale.firstName(), sale.lastName(), sale.phoneNumber(), sale.country(),
       sale.companyName(), sale.companySize(), sale.companyRole(), sale.title(),
       sale.status().toString(), sale.expirationTime()));
@@ -112,15 +133,15 @@ public final class SaleDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> deleteSale(UUID id) {
-    return delete(id);
+    return delete(DatabaseCondition.of("id", id));
   }
 
   public CompletableFuture<Boolean> saleExists(UUID id) {
-    return exists(id);
+    return exists(DatabaseCondition.of("id", id));
   }
 
   public CompletableFuture<Sale> findSale(UUID id) {
-    return selectRow(id).thenApply(Sale::of);
+    return selectRow(DatabaseCondition.of("id", id)).thenApply(Sale::of);
   }
 
   public CompletableFuture<List<Sale>> findSalesBySender(String sender) {
@@ -134,7 +155,7 @@ public final class SaleDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Long> countPendingSales() {
-    return count(DatabaseCondition.of(DatabaseCondition.Filtering.ALLOWED,
+    return statusExpirationView.count(DatabaseCondition.of(
       DatabaseComparison.create("expirationTime", -1L),
       DatabaseComparison.create("status", Ticket.Status.OPEN.toString())));
   }
