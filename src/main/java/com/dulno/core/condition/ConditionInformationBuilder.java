@@ -29,7 +29,7 @@ public final class ConditionInformationBuilder {
   }
 
   /**
-   * Gives the condition information a identifier
+   * Gives the condition information an identifier
    * @param identifier The identifier that is used to uniquely identifier condition
    * @return The information builder
    */

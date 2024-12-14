@@ -37,8 +37,8 @@ public final class ConditionInformationRepository {
   }
 
   /**
-   * Is used to find all registered condition informations
-   * @return The list of condition informations
+   * Is used to find all registered condition information
+   * @return The list of condition information
    */
   public List<ConditionInformation> findAll() {
     return List.copyOf(conditions);

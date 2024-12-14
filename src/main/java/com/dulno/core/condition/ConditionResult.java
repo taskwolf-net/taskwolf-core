@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 
 @Accessors(fluent = true)
-public class ConditionResult {
+public final class ConditionResult {
   public static ConditionResult success(boolean comparisonResult) {
     return new ConditionResult(Status.SUCCESS, comparisonResult);
   }
