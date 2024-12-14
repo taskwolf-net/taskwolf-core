@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Accessors(fluent = true)
-public class ActionResult {
+public final class ActionResult {
   /**
    * Creates a new future success action result
    * @param information The information that is passed to the next component
@@ -19,7 +19,6 @@ public class ActionResult {
   ) {
     return CompletableFuture.completedFuture(success(information));
   }
-
 
   /**
    * Creates a new future failure action result
