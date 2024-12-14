@@ -7,6 +7,8 @@ import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.event.EventExecutor;
 import com.dulno.core.event.HookRegistry;
 import com.dulno.core.intro.Intro;
+import com.dulno.core.loop.LoopInformationRepository;
+import com.dulno.core.loop.type.NumberLoop;
 import com.dulno.core.tutorial.level.bundle.BundleTutorialLevel;
 import com.dulno.core.tutorial.level.organization.OrganizationMembersTutorialLevel;
 import com.dulno.core.tutorial.level.organization.OrganizationTeamsTutorialLevel;
@@ -66,8 +68,8 @@ public class CoreApplication {
       registerHooks(injector.getInstance(HookRegistry.class), injector);
       var eventExecutor = injector.getInstance(EventExecutor.class);
       eventExecutor.execute(CoreApplicationLaunchEvent.create());
-      var application = injector.getInstance(SpringApplication.class);
       registerConditions(injector.getInstance(ConditionInformationRepository.class));
+      registerLoops(injector.getInstance(LoopInformationRepository.class));
       registerTutorialLevels(injector.getInstance(TutorialLevelRegistry.class));
       var distributionConfiguration = injector.getInstance(WorkerConfiguration.class);
       var distribution = injector.getInstance(WorkerDistribution.class);
@@ -76,6 +78,7 @@ public class CoreApplication {
       coreModule.initialize();
       var commandRegistry = injector.getInstance(CommandRegistry.class);
       registerCommands(commandRegistry, injector);
+      var application = injector.getInstance(SpringApplication.class);
       application.setDefaultProperties(Collections.singletonMap("server.port",
         distributionConfiguration.restPort()));
       eventExecutor.execute(CoreApplicationPreRunEvent.create());
@@ -103,6 +106,10 @@ public class CoreApplication {
     repository.register(ConditionTextEndsWith.information());
     repository.register(ConditionNumberGreaterThan.information());
     repository.register(ConditionNumberSmallerThan.information());
+  }
+
+  private static void registerLoops(LoopInformationRepository repository) {
+    repository.register(NumberLoop.information());
   }
 
   private static void registerTutorialLevels(TutorialLevelRegistry registry) {
