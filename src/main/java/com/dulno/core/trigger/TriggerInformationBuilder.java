@@ -61,7 +61,7 @@ public final class TriggerInformationBuilder {
 
   /**
    * Adds a new output variable to the trigger
-   * @param variable The new output varaible
+   * @param variable The new output variable
    * @return The information builder
    */
   public TriggerInformationBuilder withOutputVariable(OutputComponentVariable variable) {

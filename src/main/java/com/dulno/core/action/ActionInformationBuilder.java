@@ -52,7 +52,7 @@ public final class ActionInformationBuilder {
 
   /**
    * Adds a new input variable to the action information
-   * @param variable The new input varaible
+   * @param variable The new input variable
    * @return The information builder
    */
   public ActionInformationBuilder withInputVariable(InputComponentVariable variable) {
@@ -62,7 +62,7 @@ public final class ActionInformationBuilder {
 
   /**
    * Adds a new output variable to the action
-   * @param variable The new output varaible
+   * @param variable The new output variable
    * @return The information builder
    */
   public ActionInformationBuilder withOutputVariable(OutputComponentVariable variable) {
