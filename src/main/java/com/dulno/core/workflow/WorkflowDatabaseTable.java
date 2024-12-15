@@ -2,7 +2,6 @@ package com.dulno.core.workflow;
 
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
-import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseComparison;
 import com.dulno.core.database.condition.DatabaseCondition;
 import com.dulno.core.database.paging.DatabaseDirection;
@@ -35,8 +34,6 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("state", DatabaseDataType.TEXT));
     var table = new WorkflowDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
-    table.createIndexIfNotExists("id");
-    table.createIndexIfNotExists("trigger");
     table.createIndexIfNotExists("modules");
     table.createIndexIfNotExists("name",
       "'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = " +
@@ -47,6 +44,8 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     return table;
   }
 
+  private DatabaseTable idView;
+  private DatabaseTable triggerView;
   private DatabaseTable nameView;
   private DatabaseTable creatorView;
   private DatabaseTable createdView;
@@ -59,6 +58,10 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   private void initializeViews() {
+    idView = createMaterializedViewIfNotExists("id_view", "id",
+      DatabaseColumn.Type.PARTITION_KEY);
+    triggerView = createMaterializedViewIfNotExists("trigger_view", "trigger",
+      DatabaseColumn.Type.PARTITION_KEY);
     nameView = createMaterializedViewIfNotExists("name_view", "name");
     creatorView = createMaterializedViewIfNotExists("creator_view", "creator");
     createdView = createMaterializedViewIfNotExists("created_view", "created");
@@ -104,12 +107,12 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> workflowExists(UUID workflowId) {
-    return exists(DatabaseCondition.of("id", workflowId));
+    return idView.exists(DatabaseCondition.of("id", workflowId));
   }
 
   public CompletableFuture<WorkflowEntry> findWorkflow(UUID workflowId) {
-    return selectRow(DatabaseCondition.of("id", workflowId)).thenApply(row ->
-      WorkflowEntry.of(row, this));
+    return idView.selectRow(DatabaseCondition.of("id", workflowId))
+      .thenApply(row -> WorkflowEntry.of(row, idView));
   }
 
   private static final int PAGE_SIZE = 5;
@@ -210,7 +213,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<WorkflowEntry> findWorkflowByTrigger(UUID triggerId) {
-    return selectRow(DatabaseCondition.of("trigger", triggerId))
-      .thenApply(row -> WorkflowEntry.of(row, this));
+    return triggerView.selectRow(DatabaseCondition.of("trigger", triggerId))
+      .thenApply(row -> WorkflowEntry.of(row, triggerView));
   }
 }
