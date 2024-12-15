@@ -22,17 +22,15 @@ public final class ConditionEntry {
     return create(row.findCell(columns.indexOf("id")).uuidValue(),
       row.findCell(columns.indexOf("owner")).uuidValue(),
       row.findCell(columns.indexOf("workflow")).uuidValue(),
-      row.findCell(columns.indexOf("actionIndex")).integerValue(),
-      row.findCell(columns.indexOf("conditionIndex")).integerValue(),
       row.findCell(columns.indexOf("type")).stringValue(),
-      row.findCell(columns.indexOf("content")).stringValue());
+      row.findCell(columns.indexOf("content")).stringValue(),
+      row.findCell(columns.indexOf("index")).integerValue());
   }
 
   private final UUID id;
   private final UUID ownerId;
   private final UUID workflowId;
-  private final int actionIndex;
-  private final int conditionIndex;
   private final String type;
   private final String content;
+  private final int index;
 }

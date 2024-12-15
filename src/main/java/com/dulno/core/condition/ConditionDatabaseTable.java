@@ -20,10 +20,9 @@ public final class ConditionDatabaseTable extends DatabaseTable {
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("workflow", DatabaseDataType.UUID));
-    columns.add(DatabaseColumn.create("actionIndex", DatabaseDataType.INT));
-    columns.add(DatabaseColumn.create("conditionIndex", DatabaseDataType.INT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("index", DatabaseDataType.INT));
     var table = new ConditionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
     table.initializeViews();
@@ -46,15 +45,13 @@ public final class ConditionDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> insertCondition(ConditionEntry entry) {
     return insertCondition(entry.id(), entry.ownerId(), entry.workflowId(),
-      entry.actionIndex(), entry.conditionIndex(), entry.type(), entry.content());
+      entry.type(), entry.content(), entry.index());
   }
 
   public CompletableFuture<Void> insertCondition(
-    UUID id, UUID ownerId, UUID workflowId, int actionIndex, int conditionIndex,
-    String type, String content
+    UUID id, UUID ownerId, UUID workflowId, String type, String content, int index
   ) {
-    return insert(DatabaseRow.of(id, ownerId, workflowId, actionIndex,
-      conditionIndex, type, content));
+    return insert(DatabaseRow.of(id, ownerId, workflowId, type, content, index));
   }
 
   public CompletableFuture<Void> deleteCondition(UUID conditionId) {

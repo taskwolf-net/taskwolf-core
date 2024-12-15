@@ -2,7 +2,6 @@ package com.dulno.core.action;
 
 import com.dulno.core.database.DatabaseColumn;
 import com.dulno.core.database.DatabaseTable;
-import com.dulno.core.loop.LoopEntry;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -23,7 +22,7 @@ public final class ActionEntry {
     return create(row.findCell(columns.indexOf("id")).uuidValue(),
       row.findCell(columns.indexOf("owner")).uuidValue(),
       row.findCell(columns.indexOf("workflow")).uuidValue(),
-      row.findCell(columns.indexOf("actionIndex")).integerValue(),
+      row.findCell(columns.indexOf("index")).integerValue(),
       row.findCell(columns.indexOf("module")).stringValue(),
       row.findCell(columns.indexOf("type")).stringValue());
   }
@@ -31,7 +30,7 @@ public final class ActionEntry {
   private final UUID id;
   private final UUID ownerId;
   private final UUID workflowId;
-  private final int actionIndex;
+  private final int index;
   private final String module;
   private final String type;
 }

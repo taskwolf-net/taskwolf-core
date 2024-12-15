@@ -21,8 +21,7 @@ public final class LoopDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("workflow", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
-    columns.add(DatabaseListColumn.create("actions", DatabaseDataType.UUID));
-    columns.add(DatabaseListColumn.create("conditions", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("index", DatabaseDataType.INT));
     var table = new LoopDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
     table.initializeViews();
@@ -45,15 +44,13 @@ public final class LoopDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> insertLoop(LoopEntry entry) {
     return insertLoop(entry.id(), entry.ownerId(), entry.workflowId(),
-      entry.type(), entry.content(), entry.actionIds(), entry.conditionIds());
+      entry.type(), entry.content(), entry.index());
   }
 
   public CompletableFuture<Void> insertLoop(
-    UUID id, UUID ownerId, UUID workflowId, String type, String content,
-    List<UUID> actionIds, List<UUID> conditionIds
+    UUID id, UUID ownerId, UUID workflowId, String type, String content, int index
   ) {
-    return insert(DatabaseRow.of(id, ownerId, workflowId, type, content,
-      actionIds, conditionIds));
+    return insert(DatabaseRow.of(id, ownerId, workflowId, type, content, index));
   }
 
   public CompletableFuture<Void> deleteLoop(UUID loopId) {

@@ -24,8 +24,7 @@ public final class LoopEntry {
       row.findCell(columns.indexOf("workflow")).uuidValue(),
       row.findCell(columns.indexOf("type")).stringValue(),
       row.findCell(columns.indexOf("content")).stringValue(),
-      row.findCell(columns.indexOf("actions")).listValue(),
-      row.findCell(columns.indexOf("conditions")).listValue());
+      row.findCell(columns.indexOf("index")).integerValue());
   }
 
   private final UUID id;
@@ -33,6 +32,5 @@ public final class LoopEntry {
   private final UUID workflowId;
   private final String type;
   private final String content;
-  private final List<UUID> actionIds;
-  private final List<UUID> conditionIds;
+  private final int index;
 }
