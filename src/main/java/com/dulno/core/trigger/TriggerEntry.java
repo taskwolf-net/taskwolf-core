@@ -1,21 +1,30 @@
 package com.dulno.core.trigger;
 
+import com.dulno.core.database.DatabaseColumn;
+import com.dulno.core.database.DatabaseTable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import com.dulno.core.database.DatabaseRow;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
 @Accessors(fluent = true)
 @AllArgsConstructor(staticName = "create")
 public final class TriggerEntry {
-  public static TriggerEntry of(DatabaseRow row) {
-    return create(row.findCell(0).uuidValue(), row.findCell(1).uuidValue(),
-      row.findCell(2).uuidValue(), row.findCell(3).stringValue(),
-      row.findCell(4).stringValue(),
-      TriggerState.valueOf(row.findCell(5).stringValue()));
+  public static TriggerEntry of(DatabaseRow row, DatabaseTable table) {
+    return of(row, table.columns().stream().map(DatabaseColumn::name).toList());
+  }
+
+  public static TriggerEntry of(DatabaseRow row, List<String> columns) {
+    return create(row.findCell(columns.indexOf("id")).uuidValue(),
+      row.findCell(columns.indexOf("owner")).uuidValue(),
+      row.findCell(columns.indexOf("workflow")).uuidValue(),
+      row.findCell(columns.indexOf("module")).stringValue(),
+      row.findCell(columns.indexOf("type")).stringValue(),
+      TriggerState.valueOf(row.findCell(columns.indexOf("state")).stringValue()));
   }
 
   private final UUID id;

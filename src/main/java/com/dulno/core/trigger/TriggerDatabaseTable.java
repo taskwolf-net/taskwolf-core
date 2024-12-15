@@ -1,5 +1,6 @@
 package com.dulno.core.trigger;
 
+import com.dulno.core.condition.ConditionEntry;
 import com.dulno.core.database.*;
 import com.google.common.collect.Lists;
 import com.dulno.core.database.condition.DatabaseCondition;
@@ -22,14 +23,24 @@ public final class TriggerDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("module", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("state", DatabaseDataType.TEXT));
-    return new TriggerDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    var table = new TriggerDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    table.createIfNotExists();
+    table.initializeViews();
+    return table;
   }
+
+  private DatabaseTable workflowView;
 
   private TriggerDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
     List<DatabaseColumn> columns
   ) {
     super(connection, keyspace, name, columns);
+  }
+
+  private void initializeViews() {
+    workflowView = createMaterializedViewIfNotExists("workflow_view", "workflow",
+      DatabaseColumn.Type.PARTITION_KEY);
   }
 
   public CompletableFuture<Void> insertTrigger(TriggerEntry entry) {
@@ -76,11 +87,11 @@ public final class TriggerDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<TriggerEntry> findTrigger(UUID triggerId) {
-    return selectRow(triggerId).thenApply(TriggerEntry::of);
+    return selectRow(triggerId).thenApply(row -> TriggerEntry.of(row, this));
   }
 
   public CompletableFuture<TriggerEntry> findTriggerByWorkflow(UUID workflowId) {
-    return selectRow(DatabaseCondition.of("workflow", workflowId))
-      .thenApply(TriggerEntry::of);
+    return workflowView.selectRow(DatabaseCondition.of("workflow", workflowId))
+      .thenApply(row -> TriggerEntry.of(row, workflowView));
   }
 }
