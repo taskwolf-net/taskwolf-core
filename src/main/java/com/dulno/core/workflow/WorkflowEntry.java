@@ -25,6 +25,7 @@ public final class WorkflowEntry {
       row.findCell(columns.indexOf("trigger")).uuidValue(),
       row.findCell(columns.indexOf("actions")).listValue(),
       row.findCell(columns.indexOf("conditions")).listValue(),
+      row.findCell(columns.indexOf("loop")).uuidValue(),
       row.findCell(columns.indexOf("modules")).listValue(),
       row.findCell(columns.indexOf("created")).longValue(),
       row.findCell(columns.indexOf("name")).stringValue(),
@@ -38,6 +39,7 @@ public final class WorkflowEntry {
   private final UUID triggerId;
   private final List<UUID> actionIds;
   private final List<UUID> conditionIds;
+  private final UUID loopId;
   private final List<String> modules;
   private final long created;
   private final String name;

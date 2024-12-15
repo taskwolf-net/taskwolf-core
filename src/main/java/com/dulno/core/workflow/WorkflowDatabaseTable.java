@@ -27,6 +27,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("trigger", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("actions", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("conditions", DatabaseDataType.UUID));
+    columns.add(DatabaseColumn.create("loop", DatabaseDataType.UUID));
     columns.add(DatabaseListColumn.create("modules", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("created", DatabaseDataType.BIGINT));
     columns.add(DatabaseColumn.create("name", DatabaseDataType.TEXT));
@@ -69,17 +70,18 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> insertWorkflow(WorkflowEntry entry) {
     return insertWorkflow(entry.ownerId(), entry.id(), entry.creatorId(),
-      entry.triggerId(), entry.actionIds(), entry.conditionIds(), entry.modules(),
-      entry.created(), entry.name(), entry.description(), entry.state().toString());
+      entry.triggerId(), entry.actionIds(), entry.conditionIds(), entry.loopId(),
+      entry.modules(), entry.created(), entry.name(), entry.description(),
+      entry.state().toString());
   }
 
   public CompletableFuture<Void> insertWorkflow(
     UUID id, UUID ownerId, UUID creatorId, UUID triggerId, List<UUID> actionIds,
-    List<UUID> conditionIds, List<String> modules, long created, String name,
-    String description, String state
+    List<UUID> conditionIds, UUID loopId, List<String> modules, long created,
+    String name, String description, String state
   ) {
     return insert(DatabaseRow.of(ownerId, id, creatorId, triggerId, actionIds,
-      conditionIds, modules, created, name, description, state));
+      conditionIds, loopId, modules, created, name, description, state));
   }
 
   public CompletableFuture<Void> updateWorkflowState(
@@ -87,7 +89,7 @@ public final class WorkflowDatabaseTable extends DatabaseTable {
   ) {
     return update(DatabaseCondition.of("owner", entry.ownerId(), "id", entry.id()),
       DatabaseRow.of(entry.ownerId(), entry.id(), entry.creatorId(),
-        entry.triggerId(), entry.actionIds(), entry.conditionIds(),
+        entry.triggerId(), entry.actionIds(), entry.conditionIds(), entry.loopId(),
         entry.modules(), entry.created(), entry.name(), entry.description(),
         state.toString()));
   }
