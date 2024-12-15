@@ -24,14 +24,24 @@ public final class ConditionDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("conditionIndex", DatabaseDataType.INT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
-    return new ConditionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    var table = new ConditionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    table.createIfNotExists();
+    table.initializeViews();
+    return table;
   }
+
+  private DatabaseTable workflowView;
 
   private ConditionDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
     List<DatabaseColumn> columns
   ) {
     super(connection, keyspace, name, columns);
+  }
+
+  private void initializeViews() {
+    workflowView = createMaterializedViewIfNotExists("workflow_view", "workflow",
+      DatabaseColumn.Type.PARTITION_KEY);
   }
 
   public CompletableFuture<Void> insertCondition(ConditionEntry entry) {
@@ -65,14 +75,14 @@ public final class ConditionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<ConditionEntry> findCondition(UUID conditionId) {
-    return selectRow(conditionId).thenApply(ConditionEntry::of);
+    return selectRow(conditionId).thenApply(row -> ConditionEntry.of(row, this));
   }
 
   public CompletableFuture<List<ConditionEntry>> findConditionsByWorkflow(
     UUID workflowId
   ) {
-    return selectRows(DatabaseCondition.of("workflow", workflowId))
-      .thenApply(rows -> rows.stream().map(ConditionEntry::of)
+    return workflowView.selectRows(DatabaseCondition.of("workflow", workflowId))
+      .thenApply(rows -> rows.stream().map(row -> ConditionEntry.of(row, workflowView))
         .collect(Collectors.toList()));
   }
 }

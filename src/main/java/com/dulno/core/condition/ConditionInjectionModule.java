@@ -14,11 +14,7 @@ public final class ConditionInjectionModule extends AbstractModule {
   ConditionDatabaseTable provideConditionDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
-    var conditionDatabaseTable = ConditionDatabaseTable.create(connection,
-      keyspace);
-    conditionDatabaseTable.createIfNotExists();
-    conditionDatabaseTable.createIndexIfNotExists("workflow");
-    return conditionDatabaseTable;
+    return ConditionDatabaseTable.create(connection, keyspace);
   }
 
   @Provides
