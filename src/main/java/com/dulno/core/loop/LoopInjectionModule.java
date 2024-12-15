@@ -1,6 +1,5 @@
 package com.dulno.core.loop;
 
-import com.dulno.core.condition.ConditionDatabaseTable;
 import com.dulno.core.database.DatabaseConnection;
 import com.dulno.core.database.DatabaseKeyspace;
 import com.google.inject.AbstractModule;
@@ -12,10 +11,10 @@ import lombok.RequiredArgsConstructor;
 public final class LoopInjectionModule extends AbstractModule {
   @Provides
   @Singleton
-  ConditionDatabaseTable provideConditionDatabaseTable(
+  LoopDatabaseTable provideLoopDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
-    return ConditionDatabaseTable.create(connection, keyspace);
+    return LoopDatabaseTable.create(connection, keyspace);
   }
 
   @Provides
