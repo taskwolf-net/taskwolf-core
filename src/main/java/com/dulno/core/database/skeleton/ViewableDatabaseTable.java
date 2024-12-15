@@ -31,16 +31,40 @@ public interface ViewableDatabaseTable extends AbstractDatabaseTable {
   default DatabaseTable createMaterializedViewIfNotExists(
     String name, String clusteringColumnName
   ) {
-    var primaryColumns = Lists.newArrayList(columns().stream()
-      .filter(column -> column.type().isPartitionKey() || column.type().isPrimaryKey())
-      .toList());
-    primaryColumns.add(columns().stream()
-      .filter(column -> column.name().equalsIgnoreCase(clusteringColumnName))
+    return createMaterializedViewIfNotExists(name, clusteringColumnName,
+      DatabaseColumn.Type.CLUSTERING_KEY);
+  }
+
+  /**
+   * Creates a new materialized view from the table
+   * @param name The name of the materialized view
+   * @param columnName The name of the column used
+   * @param columnType The new type of the column
+   * @return The materialized view table
+   */
+  default DatabaseTable createMaterializedViewIfNotExists(
+    String name, String columnName, DatabaseColumn.Type columnType
+  ) {
+    var columns = Lists.<DatabaseColumn>newArrayList();
+    var primaryColumns = columns().stream().filter(column ->
+      column.type().isPartitionKey() || column.type().isPrimaryKey()).toList();
+    if (columnType.isClusteringKey()) {
+      columns.addAll(primaryColumns);
+    }
+    columns.add(columns().stream()
+      .filter(column -> column.name().equalsIgnoreCase(columnName))
       .map(column -> DatabaseColumn.create(column.name(), column.dataType(),
-        DatabaseColumn.Type.CLUSTERING_KEY)).findFirst().get());
-    primaryColumns.addAll(columns().stream()
+        columnType)).findFirst().get());
+    if (columnType.isPrimaryKey() || columnType.isPartitionKey()) {
+      columns.addAll(primaryColumns.stream()
+        .map(column -> DatabaseColumn.create(column.name(), column.dataType(),
+          DatabaseColumn.Type.CLUSTERING_KEY))
+        .toList());
+    }
+    columns.addAll(columns().stream()
+      .filter(column -> !column.name().equalsIgnoreCase(columnName))
       .filter(column -> column.type().isClusteringKey()).toList());
-    return createMaterializedViewIfNotExists(name, primaryColumns);
+    return createMaterializedViewIfNotExists(name, columns);
   }
 
   /**
