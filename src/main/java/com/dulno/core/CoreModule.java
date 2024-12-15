@@ -1,17 +1,10 @@
 package com.dulno.core;
 
 import com.dulno.core.action.*;
-import com.dulno.core.condition.Condition;
-import com.dulno.core.condition.ConditionDatabaseTable;
-import com.dulno.core.condition.ConditionEntry;
-import com.dulno.core.condition.ConditionFactory;
 import com.dulno.core.trigger.TriggerDatabaseTable;
 import com.dulno.core.trigger.TriggerEntry;
 import com.dulno.core.user.User;
 import com.dulno.core.workflow.WorkflowFactory;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.dulno.core.database.condition.DatabaseCondition;
@@ -38,30 +31,22 @@ import java.util.concurrent.CompletableFuture;
 public class CoreModule {
   private final ModuleLoader moduleLoader;
   private final TriggerDatabaseTable triggerDatabaseTable;
-  private final ActionDatabaseTable actionDatabaseTable;
-  private final ConditionDatabaseTable conditionDatabaseTable;
   private final WorkflowDatabaseTable workflowDatabaseTable;
   private final WorkerDistribution distribution;
-  private final ConditionFactory conditionFactory;
   private final WorkflowFactory workflowFactory;
   private final Translation translation;
 
   @Inject
   private CoreModule(
     ModuleLoader moduleLoader, TriggerDatabaseTable triggerDatabaseTable,
-    ActionDatabaseTable actionDatabaseTable,
-    ConditionDatabaseTable conditionDatabaseTable,
     WorkflowDatabaseTable workflowDatabaseTable,
-    WorkerDistribution distribution, ConditionFactory conditionFactory,
-    WorkflowFactory workflowFactory, Translation translation
+    WorkerDistribution distribution, WorkflowFactory workflowFactory,
+    Translation translation
   ) {
     this.moduleLoader = moduleLoader;
     this.triggerDatabaseTable = triggerDatabaseTable;
-    this.actionDatabaseTable = actionDatabaseTable;
-    this.conditionDatabaseTable = conditionDatabaseTable;
     this.workflowDatabaseTable = workflowDatabaseTable;
     this.distribution = distribution;
-    this.conditionFactory = conditionFactory;
     this.workflowFactory = workflowFactory;
     this.translation = translation;
   }
@@ -288,56 +273,7 @@ public class CoreModule {
    * @return A future that contains the workflow
    */
   public CompletableFuture<Workflow> createWorkflow(WorkflowEntry workflowEntry) {
-    return createActions(workflowEntry.id()).thenCompose(actions ->
-      createConditions(workflowEntry.id()).thenApply(conditions ->
-        workflowFactory.create(workflowEntry, actions, conditions)));
-  }
-
-  private CompletableFuture<Map<Integer, ActionExecutor>> createActions(UUID workflowId) {
-    return actionDatabaseTable.findActionsByWorkflow(workflowId)
-      .thenCompose(this::createActionsMap);
-  }
-
-  private CompletableFuture<Map<Integer, ActionExecutor>> createActionsMap(
-    List<ActionEntry> actions
-  ) {
-    var futureResponse = new CompletableFuture<Map<Integer, ActionExecutor>>();
-    var result = Maps.<Integer, ActionExecutor>newHashMap();
-    AsyncIterator.execute(actions, entry ->
-        createAction(entry.module(), entry.type(), entry.id())
-          .thenAccept(action -> result.put(entry.actionIndex(), action)))
-      .thenAccept(value -> futureResponse.complete(result));
-    return futureResponse;
-  }
-
-  /**
-   * Creates an {@link ActionExecutor}
-   * @param moduleName The name of the module in which the action is located
-   * @param actionType The type of the action
-   * @param actionId The id of the action
-   * @return A future that contains the action executor
-   */
-  public CompletableFuture<ActionExecutor> createAction(
-    String moduleName, String actionType, UUID actionId
-  ) {
-    var module = moduleLoader.findRegisteredModuleById(moduleName).get();
-    var action = module.module().actionRepository()
-      .findAction(actionType).get();
-    return (CompletableFuture<ActionExecutor>) action.build(actionId);
-  }
-
-  private CompletableFuture<Multimap<Integer, Condition>> createConditions(UUID workflowId) {
-    return conditionDatabaseTable.findConditionsByWorkflow(workflowId)
-      .thenApply(this::createConditionsMap);
-  }
-
-  private Multimap<Integer, Condition> createConditionsMap(List<ConditionEntry> conditions) {
-    var result = HashMultimap.<Integer, Condition>create();
-    for (var condition : conditions) {
-      result.put(condition.actionIndex(), conditionFactory.create(condition.type(),
-        condition.content()));
-    }
-    return result;
+    return workflowFactory.create(workflowEntry);
   }
 
   /**
