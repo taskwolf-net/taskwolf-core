@@ -6,6 +6,8 @@ import com.dulno.core.bundle.Bundle;
 import com.dulno.core.bundle.BundleDatabaseTable;
 import com.dulno.core.condition.Condition;
 import com.dulno.core.error.ErrorRepository;
+import com.dulno.core.loop.Loop;
+import com.dulno.core.loop.LoopResult;
 import com.dulno.core.mail.Mail;
 import com.dulno.core.maintenance.MaintenanceSchedule;
 import com.dulno.core.notification.NotificationDatabaseTable;
@@ -31,6 +33,7 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -52,6 +55,7 @@ public final class Workflow {
   private final WorkflowEntry workflowEntry;
   private final Map<Integer, ActionExecutor> actions;
   private final Multimap<Integer, Condition> conditions;
+  private final Optional<Loop> loop;
   private UUID bundleOwner;
   private int currentActionIndex = 0;
   private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
@@ -128,8 +132,7 @@ public final class Workflow {
       return CompletableFuture.completedFuture(false);
     }
     if (currentActionIndex >= actions.size()) {
-      postExecutionSuccess();
-      return CompletableFuture.completedFuture(true);
+      return runLoop(information);
     }
     if (!checkConditions(currentActionIndex, information)) {
       return CompletableFuture.completedFuture(true);
@@ -149,6 +152,23 @@ public final class Workflow {
     }
     information.putAll(result.information());
     return executeNextAction(information);
+  }
+
+  private CompletableFuture<Boolean> runLoop(Map<String, Object> information) {
+    if (loop.isEmpty()) {
+      return CompletableFuture.completedFuture(
+        processLoopResult(LoopResult.success()));
+    }
+    return loop.get().loop(information).thenApply(this::processLoopResult);
+  }
+
+  private boolean processLoopResult(LoopResult loopResult) {
+    if (loopResult.isFailure()) {
+      postExecutionFailure(loopResult.failureMessage());
+      return false;
+    }
+    postExecutionSuccess();
+    return true;
   }
 
   private void postExecutionSuccess() {
