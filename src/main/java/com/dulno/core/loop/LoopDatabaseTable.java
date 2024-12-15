@@ -39,12 +39,8 @@ public final class LoopDatabaseTable extends DatabaseTable {
   }
 
   private void initializeViews() {
-    var columns = Lists.<DatabaseColumn>newArrayList();
-    columns.add(DatabaseColumn.create("workflow", DatabaseDataType.UUID,
-      DatabaseColumn.Type.PARTITION_KEY));
-    columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
-      DatabaseColumn.Type.CLUSTERING_KEY));
-    workflowView = createMaterializedViewIfNotExists("workflow_view", columns);
+    workflowView = createMaterializedViewIfNotExists("workflow_view", "workflow",
+      DatabaseColumn.Type.PARTITION_KEY);
   }
 
   public CompletableFuture<Void> insertLoop(LoopEntry entry) {
