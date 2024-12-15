@@ -23,14 +23,24 @@ public final class ActionDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("actionIndex", DatabaseDataType.INT));
     columns.add(DatabaseColumn.create("module", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
-    return new ActionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    var table = new ActionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+    table.createIfNotExists();
+    table.initializeViews();
+    return table;
   }
+
+  private DatabaseTable workflowView;
 
   private ActionDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
     List<DatabaseColumn> columns
   ) {
     super(connection, keyspace, name, columns);
+  }
+
+  private void initializeViews() {
+    workflowView = createMaterializedViewIfNotExists("workflow_view", "workflow",
+      DatabaseColumn.Type.PARTITION_KEY);
   }
 
   public CompletableFuture<Void> insertAction(ActionEntry entry) {
@@ -63,14 +73,14 @@ public final class ActionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<ActionEntry> findAction(UUID actionId) {
-    return selectRow(actionId).thenApply(ActionEntry::of);
+    return selectRow(actionId).thenApply(row -> ActionEntry.of(row, this));
   }
 
   public CompletableFuture<List<ActionEntry>> findActionsByWorkflow(
     UUID workflowId
   ) {
-    return selectRows(DatabaseCondition.of("workflow", workflowId))
-      .thenApply(rows -> rows.stream().map(ActionEntry::of)
+    return workflowView.selectRows(DatabaseCondition.of("workflow", workflowId))
+      .thenApply(rows -> rows.stream().map(row -> ActionEntry.of(row, workflowView))
         .collect(Collectors.toList()));
   }
 }

@@ -14,9 +14,6 @@ public final class ActionInjectionModule extends AbstractModule {
   ActionDatabaseTable provideActionDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace
   ) {
-    var actionDatabaseTable = ActionDatabaseTable.create(connection, keyspace);
-    actionDatabaseTable.createIfNotExists();
-    actionDatabaseTable.createIndexIfNotExists("workflow");
-    return actionDatabaseTable;
+    return ActionDatabaseTable.create(connection, keyspace);
   }
 }
