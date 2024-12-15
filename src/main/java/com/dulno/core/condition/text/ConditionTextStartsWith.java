@@ -4,9 +4,10 @@ package com.dulno.core.condition.text;
 import com.dulno.core.condition.Condition;
 import com.dulno.core.condition.ConditionDataType;
 import com.dulno.core.condition.ConditionInformation;
-import com.dulno.core.condition.ConditionResult;
+import com.dulno.core.workflow.step.WorkflowStepResult;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public final class ConditionTextStartsWith extends Condition {
   public static ConditionInformation information() {
@@ -16,8 +17,10 @@ public final class ConditionTextStartsWith extends Condition {
       .withIdentifier("condition-text-starts-with").build();
   }
 
-  public static ConditionTextStartsWith create(String inputValue, String comparativeValue) {
-    return new ConditionTextStartsWith(inputValue, comparativeValue);
+  public static ConditionTextStartsWith create(
+    String inputValue, String comparativeValue) {
+    return new ConditionTextStartsWith(inputValue, comparativeValue
+    );
   }
 
   private ConditionTextStartsWith(String inputValue, String comparativeValue) {
@@ -25,8 +28,11 @@ public final class ConditionTextStartsWith extends Condition {
   }
 
   @Override
-  public ConditionResult compare(Map<String, Object> information) {
+  public CompletableFuture<WorkflowStepResult> execute(
+    Map<String, Object> information
+  ) {
     dissolve(information);
-    return ConditionResult.success(inputValue().startsWith(comparativeValue()));
+    return WorkflowStepResult.futureSuccess(
+      inputValue().startsWith(comparativeValue()));
   }
 }

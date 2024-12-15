@@ -1,9 +1,11 @@
 package com.dulno.core.action;
 
+import com.dulno.core.workflow.step.WorkflowStep;
+
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public interface ActionExecutor {
+public interface ActionExecutor extends WorkflowStep {
   /**
    * Is used to actually execute an action
    * @param information External information that are fed into the

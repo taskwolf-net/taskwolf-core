@@ -1,13 +1,7 @@
 package com.dulno.core.workflow;
 
-import com.dulno.core.action.ActionExecutor;
-import com.dulno.core.action.ActionResult;
 import com.dulno.core.bundle.Bundle;
-import com.dulno.core.bundle.BundleDatabaseTable;
-import com.dulno.core.condition.Condition;
 import com.dulno.core.error.ErrorRepository;
-import com.dulno.core.loop.Loop;
-import com.dulno.core.loop.LoopResult;
 import com.dulno.core.mail.Mail;
 import com.dulno.core.maintenance.MaintenanceSchedule;
 import com.dulno.core.notification.NotificationDatabaseTable;
@@ -19,22 +13,18 @@ import com.dulno.core.user.UserDatabaseTable;
 import com.dulno.core.workflow.notification.WorkflowFailureNotification;
 import com.dulno.core.workflow.operation.Operation;
 import com.dulno.core.workflow.operation.OperationDatabaseTable;
+import com.dulno.core.workflow.step.WorkflowStep;
+import com.dulno.core.workflow.step.WorkflowStepResult;
 import com.dulno.core.workflow.throttle.WorkflowThrottleDatabaseTable;
 import com.dulno.core.workflow.timeline.TimelineDatabaseTable;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import lombok.RequiredArgsConstructor;
 import com.dulno.core.locale.Translation;
-import com.dulno.core.organization.team.Team;
-import com.dulno.core.organization.team.TeamDatabaseTable;
 import com.dulno.core.workflow.throttle.WorkflowThrottle;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor(staticName = "create")
@@ -42,22 +32,18 @@ public final class Workflow {
   private final WorkflowDatabaseTable workflowDatabaseTable;
   private final TimelineDatabaseTable timelineDatabaseTable;
   private final UserDatabaseTable userDatabaseTable;
-  private final BundleDatabaseTable bundleDatabaseTable;
   private final OperationDatabaseTable operationDatabaseTable;
   private final WorkflowThrottleDatabaseTable workflowThrottleDatabaseTable;
   private final OrganizationDatabaseTable organizationDatabaseTable;
-  private final TeamDatabaseTable teamDatabaseTable;
   private final NotificationDatabaseTable notificationDatabaseTable;
   private final MaintenanceSchedule maintenanceSchedule;
   private final Translation translation;
   private final ErrorRepository errorRepository;
   private final Mail notificationMail;
   private final WorkflowEntry workflowEntry;
-  private final Map<Integer, ActionExecutor> actions;
-  private final Multimap<Integer, Condition> conditions;
-  private final Optional<Loop> loop;
-  private UUID bundleOwner;
-  private int currentActionIndex = 0;
+  private final List<WorkflowStep> steps;
+  private final Bundle bundle;
+  private int currentStepIndex = 0;
   private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
   private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
@@ -69,11 +55,23 @@ public final class Workflow {
     if (maintenanceSchedule.isMaintenanceRunning()) {
       return CompletableFuture.completedFuture(false);
     }
-    return findWorkflowBundleOwner().thenAccept(owner -> bundleOwner = owner)
-      .thenCompose(value -> bundleDatabaseTable.findBundle(bundleOwner)
-        .thenCompose(bundle -> checkOperationLimit(bundle)
-          .thenCompose(limitReached -> triggerLimit(information, bundle,
-            limitReached)))).exceptionally(this::processWorkflowException);
+    return checkOperationLimitExtension()
+      .thenCompose(extensionValue -> triggerLimit(information))
+      .exceptionally(this::processWorkflowException);
+  }
+
+  private CompletableFuture<Void> checkOperationLimitExtension() {
+    return operationDatabaseTable.findOperations(bundle.ownerId())
+      .thenCompose(this::checkOperationLimitExtension);
+  }
+
+  private CompletableFuture<Void> checkOperationLimitExtension(
+    Operation operations
+  ) {
+    if (System.currentTimeMillis() > operations.expiration()) {
+      return operationDatabaseTable.extendExpiration(bundle.ownerId());
+    }
+    return CompletableFuture.completedFuture(null);
   }
 
   private Boolean processWorkflowException(Throwable throwable) {
@@ -82,16 +80,12 @@ public final class Workflow {
   }
 
   private CompletableFuture<Boolean> triggerLimit(
-    Map<String, Object> information, Bundle bundle, boolean limitReached
+    Map<String, Object> information
   ) {
     if (System.currentTimeMillis() > bundle.expiration()) {
       return CompletableFuture.completedFuture(false);
     }
-    if (limitReached) {
-      postExecutionFailure("workflow.operations.limit.reached");
-      return CompletableFuture.completedFuture(false);
-    }
-    return WorkflowThrottle.create(workflowThrottleDatabaseTable, bundleOwner)
+    return WorkflowThrottle.create(workflowThrottleDatabaseTable, bundle.ownerId())
       .registerWorkflowExecution().thenCompose(throttleAllowsExecution ->
         triggerThrottle(information, throttleAllowsExecution));
   }
@@ -108,67 +102,54 @@ public final class Workflow {
     triggerInformation.put("formattedTime", timeFormat.format(new Date(time)));
     triggerInformation.put("formattedDate", dateFormat.format(time));
     triggerInformation.put("unixTime", time);
-    return executeNextAction(triggerInformation);
+    return checkOperationLimit().thenCompose(limitReached ->
+      executeNextStep(triggerInformation, limitReached));
   }
 
-  private CompletableFuture<Boolean> checkOperationLimit(Bundle bundle) {
-    return operationDatabaseTable.findOperations(bundleOwner)
-      .thenApply(operations -> checkOperationLimit(bundle, operations));
-  }
-
-  private boolean checkOperationLimit(Bundle bundle, Operation operations) {
-    if (System.currentTimeMillis() > operations.expiration()) {
-      operationDatabaseTable.extendExpiration(bundleOwner);
-      return false;
-    }
-    return operations.operations() + actions.size() >
-      bundle.workflowOperationLimit();
-  }
-
-  private CompletableFuture<Boolean> executeNextAction(
-    Map<String, Object> information
+  private CompletableFuture<Boolean> executeNextStep(
+    Map<String, Object> information, boolean limitReached
   ) {
-    if (maintenanceSchedule.isMaintenanceRunning()) {
+    if (maintenanceSchedule.isMaintenanceRunning() || limitReached) {
       return CompletableFuture.completedFuture(false);
     }
-    if (currentActionIndex >= actions.size()) {
-      return runLoop(information);
-    }
-    if (!checkConditions(currentActionIndex, information)) {
+    if (currentStepIndex >= steps.size()) {
+      postExecutionSuccess();
       return CompletableFuture.completedFuture(true);
     }
-    var action = actions.get(currentActionIndex);
-    currentActionIndex++;
-    return action.execute(information).thenCompose(result ->
-      processActionResult(result, information));
+    var step = steps.get(currentStepIndex);
+    currentStepIndex++;
+    return step.execute(information).thenCompose(result ->
+      processStepResult(result, information));
   }
 
-  private CompletableFuture<Boolean> processActionResult(
-    ActionResult result, Map<String, Object> information
+  private CompletableFuture<Boolean> processStepResult(
+    WorkflowStepResult result, Map<String, Object> information
   ) {
     if (result.isFailure()) {
       postExecutionFailure(result.failureMessage());
       return CompletableFuture.completedFuture(false);
     }
-    information.putAll(result.information());
-    return executeNextAction(information);
+    if (!result.mayContinue()) {
+      postExecutionSuccess();
+      return CompletableFuture.completedFuture(true);
+    }
+    information.putAll(result.passOnInformation());
+    return checkOperationLimit().thenCompose(limitReached ->
+      executeNextStep(information, limitReached));
   }
 
-  private CompletableFuture<Boolean> runLoop(Map<String, Object> information) {
-    if (loop.isEmpty()) {
-      return CompletableFuture.completedFuture(
-        processLoopResult(LoopResult.success()));
-    }
-    return loop.get().loop(information).thenApply(this::processLoopResult);
+  private CompletableFuture<Boolean> checkOperationLimit() {
+    return operationDatabaseTable.findOperations(bundle.ownerId())
+      .thenCompose(this::checkOperationLimit);
   }
 
-  private boolean processLoopResult(LoopResult loopResult) {
-    if (loopResult.isFailure()) {
-      postExecutionFailure(loopResult.failureMessage());
-      return false;
+  private CompletableFuture<Boolean> checkOperationLimit(Operation operation) {
+    if (operation.operations() + 1 > bundle.workflowOperationLimit()) {
+      postExecutionFailure("workflow.operations.limit.reached");
+      return CompletableFuture.completedFuture(true);
     }
-    postExecutionSuccess();
-    return true;
+    return operationDatabaseTable.addOperations(bundle.ownerId(), 1)
+      .thenApply(value -> false);
   }
 
   private void postExecutionSuccess() {
@@ -179,26 +160,6 @@ public final class Workflow {
     timelineDatabaseTable.generateAvailableEntryId().thenAccept(id ->
       timelineDatabaseTable.insertEntry(id, workflowEntry.id(), currentTime,
         "timeline-workflow-execute", "{}"));
-    operationDatabaseTable.addOperations(bundleOwner, actions.size());
-  }
-
-  private boolean checkConditions(int index, Map<String, Object> information) {
-    if (!conditions.containsKey(index)) {
-      return true;
-    }
-    var allFulfilled = true;
-    for (var condition : conditions.get(index)) {
-      var result = condition.compare(information);
-      if (result.isFailure()) {
-        postExecutionFailure(result.failureMessage());
-        return false;
-      }
-      if (!result.comparisonResult()) {
-        allFulfilled = false;
-        break;
-      }
-    }
-    return allFulfilled;
   }
 
   private void postExecutionFailure(String failureMessage) {
@@ -213,16 +174,13 @@ public final class Workflow {
     findNotificationTarget().thenAccept(target -> notificationDatabaseTable
       .findNotificationSettings(target.id()).thenAccept(setting ->
         sendExecutionFailureNotification(target, setting, failureMessage)));
-    if (currentActionIndex > 0) {
-      operationDatabaseTable.addOperations(bundleOwner, currentActionIndex);
-    }
   }
 
   private CompletableFuture<User> findNotificationTarget() {
-    return userDatabaseTable.userExists(bundleOwner)
+    return userDatabaseTable.userExists(bundle.ownerId())
       .thenCompose(exists -> exists ?
-        CompletableFuture.completedFuture(bundleOwner) :
-        organizationDatabaseTable.findOrganization(bundleOwner)
+        CompletableFuture.completedFuture(bundle.ownerId()) :
+        organizationDatabaseTable.findOrganization(bundle.ownerId())
           .thenApply(Organization::owner))
       .thenCompose(userDatabaseTable::findUser);
   }
@@ -235,14 +193,5 @@ public final class Workflow {
     }
     WorkflowFailureNotification.create(translation, notificationMail, target,
       failureMessage).send();
-  }
-
-  private CompletableFuture<UUID> findWorkflowBundleOwner() {
-    var owner = workflowEntry.ownerId();
-    return userDatabaseTable.userExists(owner)
-      .thenCompose(userExists -> organizationDatabaseTable.organizationExists(owner)
-        .thenCompose(organizationExists -> userExists || organizationExists ?
-          CompletableFuture.completedFuture(owner) :
-          teamDatabaseTable.findTeam(owner).thenApply(Team::organizationId)));
   }
 }

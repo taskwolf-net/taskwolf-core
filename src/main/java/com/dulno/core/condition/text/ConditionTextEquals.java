@@ -3,9 +3,10 @@ package com.dulno.core.condition.text;
 import com.dulno.core.condition.Condition;
 import com.dulno.core.condition.ConditionDataType;
 import com.dulno.core.condition.ConditionInformation;
-import com.dulno.core.condition.ConditionResult;
+import com.dulno.core.workflow.step.WorkflowStepResult;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public final class ConditionTextEquals extends Condition {
   public static ConditionInformation information() {
@@ -15,7 +16,9 @@ public final class ConditionTextEquals extends Condition {
       .withIdentifier("condition-text-equals").build();
   }
 
-  public static ConditionTextEquals create(String inputValue, String comparativeValue) {
+  public static ConditionTextEquals create(
+    String inputValue, String comparativeValue
+  ) {
     return new ConditionTextEquals(inputValue, comparativeValue);
   }
 
@@ -24,8 +27,11 @@ public final class ConditionTextEquals extends Condition {
   }
 
   @Override
-  public ConditionResult compare(Map<String, Object> information) {
+  public CompletableFuture<WorkflowStepResult> execute(
+    Map<String, Object> information
+  ) {
     dissolve(information);
-    return ConditionResult.success(inputValue().equals(comparativeValue()));
+    return WorkflowStepResult.futureSuccess(
+      inputValue().equals(comparativeValue()));
   }
 }

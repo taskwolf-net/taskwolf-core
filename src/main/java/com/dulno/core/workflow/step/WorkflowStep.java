@@ -10,5 +10,6 @@ public interface WorkflowStep {
    *                    execution process
    * @return A future {@link WorkflowStepResult}
    */
-  CompletableFuture<WorkflowStepResult> execute(Map<String, Object> information);
+  CompletableFuture<? extends WorkflowStepResult> execute(
+    Map<String, Object> information);
 }

@@ -1,15 +1,18 @@
 package com.dulno.core.condition;
 
+import com.dulno.core.workflow.step.WorkflowStep;
+import com.dulno.core.workflow.step.WorkflowStepResult;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import com.dulno.core.workflow.placeholder.PlaceholderDissolve;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Accessors(fluent = true)
 @Getter(AccessLevel.PROTECTED)
-public abstract class Condition {
+public abstract class Condition implements WorkflowStep {
   private String inputValue;
   private String comparativeValue;
 
@@ -23,7 +26,8 @@ public abstract class Condition {
    * @param information The information that can be used for comparison
    * @return The result of the comparison
    */
-  public abstract ConditionResult compare(Map<String, Object> information);
+  public abstract CompletableFuture<WorkflowStepResult> execute(
+    Map<String, Object> information);
 
   /**
    * Is used to dissolve the inputValue and comparativeValue

@@ -3,9 +3,10 @@ package com.dulno.core.condition.number;
 import com.dulno.core.condition.Condition;
 import com.dulno.core.condition.ConditionDataType;
 import com.dulno.core.condition.ConditionInformation;
-import com.dulno.core.condition.ConditionResult;
+import com.dulno.core.workflow.step.WorkflowStepResult;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public final class ConditionNumberSmallerThan extends Condition {
   public static ConditionInformation information() {
@@ -15,7 +16,9 @@ public final class ConditionNumberSmallerThan extends Condition {
       .withIdentifier("condition-number-is-smaller").build();
   }
 
-  public static ConditionNumberSmallerThan create(String inputValue, String comparativeValue) {
+  public static ConditionNumberSmallerThan create(
+    String inputValue, String comparativeValue
+  ) {
     return new ConditionNumberSmallerThan(inputValue, comparativeValue);
   }
 
@@ -24,12 +27,16 @@ public final class ConditionNumberSmallerThan extends Condition {
   }
 
   @Override
-  public ConditionResult compare(Map<String, Object> information) {
+  public CompletableFuture<WorkflowStepResult> execute(
+    Map<String, Object> information
+  ) {
     dissolve(information);
-    if (!inputValue().matches("-?\\d+(\\.\\d+)?") || !comparativeValue().matches("-?\\d+(\\.\\d+)?")) {
-      return ConditionResult.failure("condition.not.a.number");
+    if (!inputValue().matches("-?\\d+(\\.\\d+)?") ||
+      !comparativeValue().matches("-?\\d+(\\.\\d+)?")
+    ) {
+      return WorkflowStepResult.futureFailure("condition.not.a.number");
     }
-    return ConditionResult.success(Integer.parseInt(inputValue()) <
+    return WorkflowStepResult.futureSuccess(Integer.parseInt(inputValue()) <
       Integer.parseInt(comparativeValue()));
   }
 }

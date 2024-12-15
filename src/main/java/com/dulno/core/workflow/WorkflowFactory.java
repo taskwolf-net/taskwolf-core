@@ -1,26 +1,23 @@
 package com.dulno.core.workflow;
 
+import com.beust.jcommander.internal.Lists;
 import com.dulno.core.action.ActionDatabaseTable;
 import com.dulno.core.action.ActionEntry;
+import com.dulno.core.bundle.Bundle;
 import com.dulno.core.condition.ConditionDatabaseTable;
 import com.dulno.core.condition.ConditionEntry;
 import com.dulno.core.condition.ConditionFactory;
 import com.dulno.core.error.ErrorRepository;
-import com.dulno.core.iterator.AsyncIterator;
-import com.dulno.core.loop.Loop;
 import com.dulno.core.loop.LoopDatabaseTable;
 import com.dulno.core.loop.LoopEntry;
 import com.dulno.core.loop.LoopFactory;
 import com.dulno.core.module.ModuleLoader;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import com.dulno.core.organization.team.Team;
+import com.dulno.core.workflow.step.WorkflowStep;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import com.dulno.core.action.ActionExecutor;
 import com.dulno.core.bundle.BundleDatabaseTable;
-import com.dulno.core.condition.Condition;
 import com.dulno.core.locale.Translation;
 import com.dulno.core.mail.Mail;
 import com.dulno.core.maintenance.MaintenanceSchedule;
@@ -33,7 +30,6 @@ import com.dulno.core.workflow.throttle.WorkflowThrottleDatabaseTable;
 import com.dulno.core.workflow.timeline.TimelineDatabaseTable;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -101,84 +97,90 @@ public final class WorkflowFactory {
   }
 
   public CompletableFuture<Workflow> create(WorkflowEntry workflowEntry) {
+    return findWorkflowBundleOwner(workflowEntry)
+      .thenCompose(bundleOwner -> bundleDatabaseTable.findBundle(bundleOwner)
+        .thenCompose(bundle -> assembleWorkflowSteps(workflowEntry, bundle)
+          .thenApply(steps -> assemblyWorkflow(workflowEntry, steps, bundle))));
+  }
+
+  private CompletableFuture<List<WorkflowStep>> assembleWorkflowSteps(
+    WorkflowEntry workflowEntry, Bundle bundle
+  ) {
     return actionDatabaseTable.findActionsByWorkflow(workflowEntry.id())
       .thenCompose(actions ->
         conditionDatabaseTable.findConditionsByWorkflow(workflowEntry.id())
           .thenCompose(conditions -> findLoop(workflowEntry.id())
-            .thenCompose(loopEntry -> processWorkflowLoop(workflowEntry,
-              actions, conditions, loopEntry))));
+            .thenApplyAsync(loop -> assembleWorkflowSteps(actions, conditions,
+              loop, bundle, 0))));
   }
 
-  private CompletableFuture<Workflow> processWorkflowLoop(
-    WorkflowEntry workflowEntry, List<ActionEntry> actions,
-    List<ConditionEntry> conditions, Optional<LoopEntry> loopEntryOptional
+  private List<WorkflowStep> assembleWorkflowSteps(
+    List<ActionEntry> actions, List<ConditionEntry> conditions,
+    Optional<LoopEntry> loop, Bundle bundle, int startingIndex
   ) {
-    if (loopEntryOptional.isEmpty()) {
-      return constructWorkflow(workflowEntry, actions, conditions, Optional.empty());
+    //TODO: DO IT PARALLEL FOR FASTER ASSEMBLY TIME
+    var result = Lists.<WorkflowStep>newArrayList();
+    var currentIndex = startingIndex;
+    var currentStep = findWorkflowStep(actions, conditions, loop, bundle,
+      currentIndex).join();
+    while (currentStep != null) {
+      result.add(currentStep);
+      currentIndex++;
+      currentStep = findWorkflowStep(actions, conditions, loop, bundle,
+        currentIndex).join();
     }
-    var loopEntry = loopEntryOptional.get();
-    var workflowActions = actions.stream()
-      .filter(action -> loopEntry.actionIds().stream()
-        .noneMatch(entry -> entry.equals(action.id()))).toList();
-    var workflowConditions = conditions.stream()
-      .filter(condition -> loopEntry.conditionIds().stream()
-        .noneMatch(entry -> entry.equals(condition.id()))).toList();
-    return createLoop(actions, conditions, loopEntry)
-      .thenCompose(loop -> constructWorkflow(workflowEntry, workflowActions,
-        workflowConditions, Optional.of(loop)));
+    return result;
   }
 
-  private CompletableFuture<Workflow> constructWorkflow(
-    WorkflowEntry workflowEntry, List<ActionEntry> actions,
-    List<ConditionEntry> conditions, Optional<Loop> loop
+  private CompletableFuture<WorkflowStep> findWorkflowStep(
+    List<ActionEntry> actions, List<ConditionEntry> conditions,
+    Optional<LoopEntry> loop, Bundle bundle, int index
   ) {
-    return createActionsMap(actions)
-      .thenApply(actionsMap -> assemblyWorkflow(workflowEntry, actionsMap,
-        createConditionsMap(conditions), loop));
+    var action = actions.stream().filter(entry -> entry.index() == index)
+      .findFirst();
+    if (action.isPresent()) {
+      return prepareAction(action.get());
+    }
+    var condition = conditions.stream().filter(entry -> entry.index() == index)
+      .findFirst();
+    if (condition.isPresent()) {
+      return prepareCondition(condition.get());
+    }
+    if (loop.isPresent() && loop.get().index() == index) {
+      return prepareLoop(loop.get(), bundle, index, actions, conditions);
+    }
+    return CompletableFuture.completedFuture(null);
+  }
+
+  private CompletableFuture<WorkflowStep> prepareAction(ActionEntry entry) {
+    var module = moduleLoader.findRegisteredModuleById(entry.module()).get();
+    var action = module.module().actionRepository()
+      .findAction(entry.type()).get();
+    return (CompletableFuture<WorkflowStep>) action.build(entry.id());
+  }
+
+  private CompletableFuture<WorkflowStep> prepareCondition(ConditionEntry entry) {
+    return CompletableFuture.completedFuture(conditionFactory.create(
+      entry.type(), entry.content()));
+  }
+
+  private CompletableFuture<WorkflowStep> prepareLoop(
+    LoopEntry entry, Bundle bundle, int index, List<ActionEntry> actions,
+    List<ConditionEntry> conditions
+  ) {
+    var steps = assembleWorkflowSteps(actions, conditions, Optional.empty(),
+      bundle, index);
+    return CompletableFuture.completedFuture(loopFactory.create(entry.type(),
+      entry.content(), steps, bundle));
   }
 
   private Workflow assemblyWorkflow(
-    WorkflowEntry workflowEntry, Map<Integer, ActionExecutor> actions,
-    Multimap<Integer, Condition> conditions, Optional<Loop> loop
+    WorkflowEntry workflowEntry, List<WorkflowStep> steps, Bundle bundle
   ) {
     return Workflow.create(workflowDatabaseTable, timelineDatabaseTable,
-      userDatabaseTable, bundleDatabaseTable, operationDatabaseTable,
-      workflowThrottleDatabaseTable, organizationDatabaseTable, teamDatabaseTable,
-      notificationDatabaseTable, maintenanceSchedule, translation,
-      errorRepository, notificationMail, workflowEntry, actions, conditions,
-      loop);
-  }
-
-  private CompletableFuture<Map<Integer, ActionExecutor>> createActionsMap(
-    List<ActionEntry> actions
-  ) {
-    var futureResponse = new CompletableFuture<Map<Integer, ActionExecutor>>();
-    var result = Maps.<Integer, ActionExecutor>newHashMap();
-    AsyncIterator.execute(actions, entry ->
-        createAction(entry.module(), entry.type(), entry.id())
-          .thenAccept(action -> result.put(entry.actionIndex(), action)))
-      .thenAccept(value -> futureResponse.complete(result));
-    return futureResponse;
-  }
-
-  private CompletableFuture<ActionExecutor> createAction(
-    String moduleName, String actionType, UUID actionId
-  ) {
-    var module = moduleLoader.findRegisteredModuleById(moduleName).get();
-    var action = module.module().actionRepository()
-      .findAction(actionType).get();
-    return (CompletableFuture<ActionExecutor>) action.build(actionId);
-  }
-
-  private Multimap<Integer, Condition> createConditionsMap(
-    List<ConditionEntry> conditions
-  ) {
-    var result = HashMultimap.<Integer, Condition>create();
-    for (var condition : conditions) {
-      result.put(condition.actionIndex(), conditionFactory.create(condition.type(),
-        condition.content()));
-    }
-    return result;
+      userDatabaseTable, operationDatabaseTable, workflowThrottleDatabaseTable,
+      organizationDatabaseTable, notificationDatabaseTable, maintenanceSchedule,
+      translation, errorRepository, notificationMail, workflowEntry, steps, bundle);
   }
 
   private CompletableFuture<Optional<LoopEntry>> findLoop(UUID workflowId) {
@@ -188,17 +190,12 @@ public final class WorkflowFactory {
         CompletableFuture.completedFuture(Optional.empty()));
   }
 
-  private CompletableFuture<Loop> createLoop(
-    List<ActionEntry> actions, List<ConditionEntry> conditions, LoopEntry loopEntry
-  ) {
-    var loopActions = actions.stream()
-      .filter(action -> loopEntry.actionIds().stream()
-        .anyMatch(entry -> entry.equals(action.id()))).toList();
-    var loopConditions = conditions.stream()
-      .filter(condition -> loopEntry.conditionIds().stream()
-        .anyMatch(entry -> entry.equals(condition.id()))).toList();
-    return createActionsMap(loopActions)
-      .thenApply(loopActionsMap -> loopFactory.create(loopEntry.type(),
-        loopEntry.content(), loopActionsMap, createConditionsMap(loopConditions)));
+  private CompletableFuture<UUID> findWorkflowBundleOwner(WorkflowEntry workflow) {
+    var owner = workflow.ownerId();
+    return userDatabaseTable.userExists(owner)
+      .thenCompose(userExists -> organizationDatabaseTable.organizationExists(owner)
+        .thenCompose(organizationExists -> userExists || organizationExists ?
+          CompletableFuture.completedFuture(owner) :
+          teamDatabaseTable.findTeam(owner).thenApply(Team::organizationId)));
   }
 }

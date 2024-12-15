@@ -1,18 +1,18 @@
 package com.dulno.core.loop.type;
 
-import com.dulno.core.action.ActionExecutor;
-import com.dulno.core.condition.Condition;
+import com.dulno.core.bundle.Bundle;
 import com.dulno.core.loop.Loop;
 import com.dulno.core.loop.LoopInformation;
-import com.dulno.core.loop.LoopResult;
 import com.dulno.core.maintenance.MaintenanceSchedule;
 import com.dulno.core.workflow.component.input.InputComponentDataType;
 import com.dulno.core.workflow.component.input.InputComponentVariable;
 import com.dulno.core.workflow.component.output.OutputComponentVariable;
 import com.dulno.core.workflow.operation.OperationDatabaseTable;
-import com.google.common.collect.Multimap;
+import com.dulno.core.workflow.step.WorkflowStep;
+import com.dulno.core.workflow.step.WorkflowStepResult;
 import org.json.JSONObject;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -36,21 +36,21 @@ public final class NumberLoop extends Loop {
 
   public static NumberLoop of(
     OperationDatabaseTable operationDatabaseTable,
-    MaintenanceSchedule maintenanceSchedule, Map<Integer, ActionExecutor> actions,
-    Multimap<Integer, Condition> conditions, JSONObject content
+    MaintenanceSchedule maintenanceSchedule, List<WorkflowStep> steps,
+    Bundle bundle, JSONObject content
   ) {
-    return create(operationDatabaseTable, maintenanceSchedule, actions,
-      conditions, content.getInt("loopStart"), content.getInt("loopEnd"),
+    return create(operationDatabaseTable, maintenanceSchedule, steps,
+      bundle, content.getInt("loopStart"), content.getInt("loopEnd"),
       content.getInt("loopLimit"));
   }
 
   public static NumberLoop create(
     OperationDatabaseTable operationDatabaseTable,
-    MaintenanceSchedule maintenanceSchedule, Map<Integer, ActionExecutor> actions,
-    Multimap<Integer, Condition> conditions, int start, int end, int limit
+    MaintenanceSchedule maintenanceSchedule, List<WorkflowStep> steps,
+    Bundle bundle, int start, int end, int limit
   ) {
-    return new NumberLoop(operationDatabaseTable, maintenanceSchedule, actions,
-      conditions, start, end, limit);
+    return new NumberLoop(operationDatabaseTable, maintenanceSchedule, steps,
+      bundle, start, end, limit);
   }
 
   private final int start;
@@ -59,24 +59,26 @@ public final class NumberLoop extends Loop {
 
   private NumberLoop(
     OperationDatabaseTable operationDatabaseTable,
-    MaintenanceSchedule maintenanceSchedule, Map<Integer, ActionExecutor> actions,
-    Multimap<Integer, Condition> conditions, int start, int end, int limit
+    MaintenanceSchedule maintenanceSchedule, List<WorkflowStep> steps,
+    Bundle bundle, int start, int end, int limit
   ) {
-    super(operationDatabaseTable, maintenanceSchedule, actions, conditions);
+    super(operationDatabaseTable, maintenanceSchedule, steps, bundle);
     this.start = start;
     this.end = end;
     this.limit = limit;
   }
 
   @Override
-  public CompletableFuture<LoopResult> loop(Map<String, Object> information) {
-    var futureResponse = new CompletableFuture<LoopResult>();
+  public CompletableFuture<WorkflowStepResult> execute(
+    Map<String, Object> information
+  ) {
+    var futureResponse = new CompletableFuture<WorkflowStepResult>();
     new Thread(() -> futureResponse.complete(loopSynchronously(information)))
       .start();
     return futureResponse;
   }
 
-  private LoopResult loopSynchronously(Map<String, Object> information) {
+  private WorkflowStepResult loopSynchronously(Map<String, Object> information) {
     for (var i = start; i < Math.min(end, start + limit); i++) {
       var iterationInformation = createIterationInformation(i, information);
       var iterationResult = iterate(iterationInformation).join();
@@ -84,7 +86,7 @@ public final class NumberLoop extends Loop {
         return iterationResult;
       }
     }
-    return LoopResult.success();
+    return WorkflowStepResult.success();
   }
 
   private Map<String, Object> createIterationInformation(
