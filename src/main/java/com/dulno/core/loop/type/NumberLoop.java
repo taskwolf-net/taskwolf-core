@@ -6,22 +6,32 @@ import com.dulno.core.loop.Loop;
 import com.dulno.core.loop.LoopInformation;
 import com.dulno.core.loop.LoopResult;
 import com.dulno.core.maintenance.MaintenanceSchedule;
+import com.dulno.core.workflow.component.input.InputComponentDataType;
+import com.dulno.core.workflow.component.input.InputComponentVariable;
+import com.dulno.core.workflow.component.output.OutputComponentVariable;
 import com.dulno.core.workflow.operation.OperationDatabaseTable;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.json.JSONObject;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 
 public final class NumberLoop extends Loop {
   public static LoopInformation information() {
-    //TODO: ADD LOCALES AND SPECIFY VARIABLES
     return LoopInformation.builder()
       .withName("loop.number.name")
       .withDescription("loop.number.description")
-      .withIdentifier("loop-number").build();
+      .withIdentifier("loop-number")
+      .withInputVariable(InputComponentVariable.createRequired("loop.number.input.start.name",
+        "loopStart", "loop.number.input.start.description", InputComponentDataType.TEXT))
+      .withInputVariable(InputComponentVariable.createRequired("loop.number.input.end.name",
+        "loopEnd", "loop.number.input.end.description", InputComponentDataType.TEXT))
+      .withInputVariable(InputComponentVariable.createRequired("loop.number.input.limit.name",
+        "loopLimit", "loop.number.input.limit.description", InputComponentDataType.TEXT))
+      .withOutputVariable(OutputComponentVariable.create("loop.number.output.index", "loopIndex"))
+      .withOutputVariable(OutputComponentVariable.create("loop.number.output.start", "loopStart"))
+      .withOutputVariable(OutputComponentVariable.create("loop.number.output.end", "loopEnd"))
+      .build();
   }
 
   public static NumberLoop of(
@@ -30,8 +40,8 @@ public final class NumberLoop extends Loop {
     Multimap<Integer, Condition> conditions, JSONObject content
   ) {
     return create(operationDatabaseTable, maintenanceSchedule, actions,
-      conditions, content.getInt("start"), content.getInt("end"),
-      content.getInt("limit"));
+      conditions, content.getInt("loopStart"), content.getInt("loopEnd"),
+      content.getInt("loopLimit"));
   }
 
   public static NumberLoop create(
@@ -60,14 +70,21 @@ public final class NumberLoop extends Loop {
 
   @Override
   public CompletableFuture<LoopResult> loop(Map<String, Object> information) {
-    //IDEA: USE A EXECUTOR SERVICE?
-    //IDEA: DO EVERYTHING SYNC AND DO IT INSIDE A THREAD?
-    var executorService = Executors.newSingleThreadExecutor();
-    for (var i = start; i < Math.min(limit, end); i++) {
+    var futureResponse = new CompletableFuture<LoopResult>();
+    new Thread(() -> futureResponse.complete(loopSynchronously(information)))
+      .start();
+    return futureResponse;
+  }
+
+  private LoopResult loopSynchronously(Map<String, Object> information) {
+    for (var i = start; i < Math.min(end, start + limit); i++) {
       var iterationInformation = createIterationInformation(i, information);
-      executorService.submit(() -> iterate(iterationInformation).join());
+      var iterationResult = iterate(iterationInformation).join();
+      if (iterationResult.isFailure()) {
+        return iterationResult;
+      }
     }
-    return null;
+    return LoopResult.success();
   }
 
   private Map<String, Object> createIterationInformation(
@@ -75,7 +92,7 @@ public final class NumberLoop extends Loop {
   ) {
     information.put("loopIndex", index);
     information.put("loopStart", start);
-    information.put("loopEnd", Math.min(limit, end));
+    information.put("loopEnd", Math.min(end, start + limit));
     return information;
   }
 }
