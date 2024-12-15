@@ -110,6 +110,10 @@
   "workflow.timeline.entry.condition.add.description": "Eine Bedingung wurde von %ACTOR% zum Workflow hinzugefügt.",
   "workflow.timeline.entry.condition.remove.title": "Workflow Bedingung entfernt",
   "workflow.timeline.entry.condition.remove.description": "Eine Bedingung wurde von %ACTOR% vom Workflow entfernt.",
+  "workflow.timeline.entry.loop.add.title": "Workflow Schleife hinzugefügt",
+  "workflow.timeline.entry.loop.add.description": "Eine Schleife wurde von %ACTOR% zum Workflow hinzugefügt.",
+  "workflow.timeline.entry.loop.remove.title": "Workflow Schleife entfernt",
+  "workflow.timeline.entry.loop.remove.description": "Eine Schleife wurde von %ACTOR% vom Workflow entfernt.",
 
   "workflow.failure.notification.title": "Workflow fehlgeschlagen",
   "workflow.failure.notification.body": "Hallo!\n\nLeider haben wir eine schlechte Nachricht.\n\nEiner deiner Dulno-Workflows ist fehlgeschlagen und erfordert deine Aufmerksamkeit.\n\nDer Grund für den Fehler:\n\n%s\nBitte logge dich in dein Dulno-Konto ein, um den Fehler zu beheben.\n\nWenn Sie Fragen zu Ihrem Problem haben, können Sie sich jederzeit an support@dulno.com wenden oder ein Ticket erstellen.\n\nWir können Ihnen dann helfen, den Fehler zu beheben.",

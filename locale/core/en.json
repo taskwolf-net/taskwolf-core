@@ -110,6 +110,10 @@
   "workflow.timeline.entry.condition.add.description": "A condition was added to the workflow by %ACTOR%.",
   "workflow.timeline.entry.condition.remove.title": "Workflow condition removed",
   "workflow.timeline.entry.condition.remove.description": "A condition was removed from the workflow by %ACTOR%.",
+  "workflow.timeline.entry.loop.add.title": "Workflow loop added",
+  "workflow.timeline.entry.loop.add.description": "A loop was added to the workflow by %ACTOR%.",
+  "workflow.timeline.entry.loop.remove.title": "Workflow loop removed",
+  "workflow.timeline.entry.loop.remove.description": "A loop was removed from the workflow by %ACTOR%.",
 
   "workflow.failure.notification.title": "Workflow failed",
   "workflow.failure.notification.body": "Hey,\n\nUnfortunately we have some bad news.\n\nOne of your Dulno workflows has failed and requires your attention.\n\nThe reason for the error:\n\n%s\nPlease log in to your Dulno account to fix the error.\n\nIf you have any questions about your problem, you can contact support@dulno.com at any time or create a ticket.\n\nWe can then help you to rectify the error.",
