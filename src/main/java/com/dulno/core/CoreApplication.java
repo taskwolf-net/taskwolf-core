@@ -82,6 +82,7 @@ public class CoreApplication {
       application.setDefaultProperties(Collections.singletonMap("server.port",
         distributionConfiguration.restPort()));
       eventExecutor.execute(CoreApplicationPreRunEvent.create());
+      log.info("Booting Spring...");
       application.run(args);
       new Thread(() -> CommandTask.create(log, errorRepository, commandRegistry)
         .start()).start();
