@@ -5,9 +5,52 @@ import com.dulno.core.workflow.step.WorkflowStepStatus;
 import lombok.experimental.Accessors;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Accessors(fluent = true)
 public final class ActionResult extends WorkflowStepResult {
+  /**
+   * Creates a new future success action result
+   * @param information The information that is passed to the next component
+   * @return The future result
+   */
+  public static CompletableFuture<ActionResult> futureSuccess(
+    Map<String, Object> information
+  ) {
+    return CompletableFuture.completedFuture(success(information));
+  }
+
+  /**
+   * Creates a new future failure action result
+   * @param failureMessage The failure message that is displayed in the
+   *                       workflow timeline (It is best to pass the locales key)
+   * @return The future result
+   */
+  public static CompletableFuture<ActionResult> futureFailure(
+    String failureMessage
+  ) {
+    return CompletableFuture.completedFuture(failure(failureMessage));
+  }
+
+  /**
+   * Creates a new success action result
+   * @param information The information that is passed to the next component
+   * @return The result
+   */
+  public static ActionResult success(Map<String, Object> information) {
+    return (ActionResult) WorkflowStepResult.success(information);
+  }
+
+  /**
+   * Creates a new failure action result
+   * @param failureMessage The failure message that is displayed in the
+   *                      workflow timeline (It is best to pass the locales key)
+   * @return The result
+   */
+  public static ActionResult failure(String failureMessage) {
+    return (ActionResult) WorkflowStepResult.failure(failureMessage);
+  }
+
   private ActionResult(
     WorkflowStepStatus status, boolean mayContinue,
     Map<String, Object> passOnInformation

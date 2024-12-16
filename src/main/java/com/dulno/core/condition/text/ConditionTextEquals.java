@@ -31,7 +31,7 @@ public final class ConditionTextEquals extends Condition {
     Map<String, Object> information
   ) {
     dissolve(information);
-    return WorkflowStepResult.futureSuccess(
-      inputValue().equals(comparativeValue()));
+    return CompletableFuture.completedFuture(WorkflowStepResult.success(
+      inputValue().startsWith(comparativeValue())));
   }
 }

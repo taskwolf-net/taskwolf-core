@@ -34,9 +34,10 @@ public final class ConditionNumberSmallerThan extends Condition {
     if (!inputValue().matches("-?\\d+(\\.\\d+)?") ||
       !comparativeValue().matches("-?\\d+(\\.\\d+)?")
     ) {
-      return WorkflowStepResult.futureFailure("condition.not.a.number");
+      return CompletableFuture.completedFuture(WorkflowStepResult.failure(
+        "condition.not.a.number"));
     }
-    return WorkflowStepResult.futureSuccess(Integer.parseInt(inputValue()) <
-      Integer.parseInt(comparativeValue()));
+    return CompletableFuture.completedFuture(WorkflowStepResult.success(
+      Integer.parseInt(inputValue()) < Integer.parseInt(comparativeValue())));
   }
 }

@@ -31,7 +31,7 @@ public final class ConditionTextEndsWith extends Condition {
     Map<String, Object> information
   ) {
     dissolve(information);
-    return WorkflowStepResult.futureSuccess(
-      inputValue().endsWith(comparativeValue()));
+    return CompletableFuture.completedFuture(WorkflowStepResult.success(
+      inputValue().startsWith(comparativeValue())));
   }
 }
