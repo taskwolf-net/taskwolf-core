@@ -20,9 +20,9 @@ public final class ActionDatabaseTable extends DatabaseTable {
       DatabaseColumn.Type.PRIMARY_KEY));
     columns.add(DatabaseColumn.create("owner", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("workflow", DatabaseDataType.UUID));
-    columns.add(DatabaseColumn.create("index", DatabaseDataType.INT));
     columns.add(DatabaseColumn.create("module", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
+    columns.add(DatabaseColumn.create("stepIndex", DatabaseDataType.INT));
     var table = new ActionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
     table.initializeViews();
@@ -45,14 +45,15 @@ public final class ActionDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> insertAction(ActionEntry entry) {
     return insertAction(entry.id(), entry.ownerId(), entry.workflowId(),
-      entry.index(), entry.module(), entry.type());
+      entry.module(), entry.type(), entry.index());
   }
 
   public CompletableFuture<Void> insertAction(
-    UUID id, UUID ownerId, UUID workflowId, int index, String module,
-    String type
+    UUID id, UUID ownerId, UUID workflowId, String module,
+    String type, int index
   ) {
-    return insert(DatabaseRow.of(id, ownerId, workflowId, index, module, type));
+    return insert(DatabaseRow.of(id, ownerId, workflowId, index, module, type,
+      index));
   }
 
   public CompletableFuture<Void> deleteAction(UUID actionId) {

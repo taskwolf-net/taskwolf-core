@@ -22,15 +22,15 @@ public final class ActionEntry {
     return create(row.findCell(columns.indexOf("id")).uuidValue(),
       row.findCell(columns.indexOf("owner")).uuidValue(),
       row.findCell(columns.indexOf("workflow")).uuidValue(),
-      row.findCell(columns.indexOf("index")).integerValue(),
       row.findCell(columns.indexOf("module")).stringValue(),
-      row.findCell(columns.indexOf("type")).stringValue());
+      row.findCell(columns.indexOf("type")).stringValue(),
+      row.findCell(columns.indexOf("index")).integerValue());
   }
 
   private final UUID id;
   private final UUID ownerId;
   private final UUID workflowId;
-  private final int index;
   private final String module;
   private final String type;
+  private final int index;
 }

@@ -22,7 +22,7 @@ public final class ConditionDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("workflow", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("index", DatabaseDataType.INT));
+    columns.add(DatabaseColumn.create("stepIndex", DatabaseDataType.INT));
     var table = new ConditionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
     table.initializeViews();

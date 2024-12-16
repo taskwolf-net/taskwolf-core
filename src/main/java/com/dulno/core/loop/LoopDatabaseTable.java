@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.dulno.core.database.condition.DatabaseCondition;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -21,7 +22,7 @@ public final class LoopDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("workflow", DatabaseDataType.UUID));
     columns.add(DatabaseColumn.create("type", DatabaseDataType.TEXT));
     columns.add(DatabaseColumn.create("content", DatabaseDataType.TEXT));
-    columns.add(DatabaseColumn.create("index", DatabaseDataType.INT));
+    columns.add(DatabaseColumn.create("stepIndex", DatabaseDataType.INT));
     var table = new LoopDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
     table.initializeViews();
@@ -81,6 +82,12 @@ public final class LoopDatabaseTable extends DatabaseTable {
   public CompletableFuture<LoopEntry> findLoopByWorkflow(UUID workflowId) {
     return workflowView.selectRow(DatabaseCondition.of("workflow", workflowId))
       .thenApply(row -> LoopEntry.of(row, workflowView));
+  }
+
+  public CompletableFuture<Optional<LoopEntry>> findLoopIfExists(UUID workflowId) {
+    return loopExistsByWorkflow(workflowId).thenCompose(exists -> exists ?
+      findLoopByWorkflow(workflowId).thenApply(Optional::of) :
+      CompletableFuture.completedFuture(Optional.empty()));
   }
 }
 
