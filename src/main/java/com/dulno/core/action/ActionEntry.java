@@ -24,7 +24,7 @@ public final class ActionEntry {
       row.findCell(columns.indexOf("workflow")).uuidValue(),
       row.findCell(columns.indexOf("module")).stringValue(),
       row.findCell(columns.indexOf("type")).stringValue(),
-      row.findCell(columns.indexOf("index")).integerValue());
+      row.findCell(columns.indexOf("stepIndex")).integerValue());
   }
 
   private final UUID id;

@@ -38,7 +38,7 @@ public final class ActionResult extends WorkflowStepResult {
    * @return The result
    */
   public static ActionResult success(Map<String, Object> information) {
-    return (ActionResult) WorkflowStepResult.success(information);
+    return new ActionResult(WorkflowStepStatus.SUCCESS, true, information);
   }
 
   /**
@@ -48,7 +48,7 @@ public final class ActionResult extends WorkflowStepResult {
    * @return The result
    */
   public static ActionResult failure(String failureMessage) {
-    return (ActionResult) WorkflowStepResult.failure(failureMessage);
+    return new ActionResult(WorkflowStepStatus.FAILURE, failureMessage);
   }
 
   private ActionResult(

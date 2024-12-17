@@ -52,8 +52,7 @@ public final class ActionDatabaseTable extends DatabaseTable {
     UUID id, UUID ownerId, UUID workflowId, String module,
     String type, int index
   ) {
-    return insert(DatabaseRow.of(id, ownerId, workflowId, index, module, type,
-      index));
+    return insert(DatabaseRow.of(id, ownerId, workflowId, module, type, index));
   }
 
   public CompletableFuture<Void> deleteAction(UUID actionId) {
