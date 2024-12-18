@@ -13,6 +13,7 @@ import lombok.experimental.Accessors;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
 @Accessors(fluent = true)
@@ -21,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 public abstract class Loop implements WorkflowStep {
   private final OperationDatabaseTable operationDatabaseTable;
   private final MaintenanceSchedule maintenanceSchedule;
-  private final List<WorkflowStep> steps;
+  private final Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator;
   private final Bundle bundle;
 
   /**
@@ -40,12 +41,20 @@ public abstract class Loop implements WorkflowStep {
   protected CompletableFuture<WorkflowStepResult> iterate(
     Map<String, Object> information
   ) {
-    return checkOperationLimit().thenCompose(limitReached ->
-      executeNextStep(0, information, limitReached));
+    try {
+      return stepGenerator.call()
+        .thenCompose(steps -> checkOperationLimit()
+          .thenCompose(limitReached -> executeNextStep(0, steps, information,
+            limitReached)));
+    } catch (Exception exception) {
+      exception.printStackTrace();
+      return CompletableFuture.completedFuture(WorkflowStepResult.failure(""));
+    }
   }
 
   private CompletableFuture<WorkflowStepResult> executeNextStep(
-    int currentIndex, Map<String, Object> information, boolean limitReached
+    int currentIndex, List<WorkflowStep> steps, Map<String, Object> information,
+    boolean limitReached
   ) {
     if (maintenanceSchedule.isMaintenanceRunning()) {
       return CompletableFuture.completedFuture(WorkflowStepResult.success());
@@ -59,11 +68,12 @@ public abstract class Loop implements WorkflowStep {
     }
     var step = steps.get(currentIndex);
     return step.execute(information).thenCompose(result ->
-      processStepResult(currentIndex, result, information));
+      processStepResult(currentIndex, result, steps, information));
   }
 
   private CompletableFuture<WorkflowStepResult> processStepResult(
-    int currentIndex, WorkflowStepResult result, Map<String, Object> information
+    int currentIndex, WorkflowStepResult result, List<WorkflowStep> steps,
+    Map<String, Object> information
   ) {
     if (result.isFailure()) {
       return CompletableFuture.completedFuture(
@@ -74,7 +84,7 @@ public abstract class Loop implements WorkflowStep {
     }
     information.putAll(result.passOnInformation());
     return checkOperationLimit().thenCompose(limitReached ->
-      executeNextStep(currentIndex + 1, information, limitReached));
+      executeNextStep(currentIndex + 1, steps, information, limitReached));
   }
 
   private CompletableFuture<Boolean> checkOperationLimit() {

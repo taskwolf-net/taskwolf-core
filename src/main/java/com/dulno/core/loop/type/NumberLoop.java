@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
 public final class NumberLoop extends Loop {
@@ -37,10 +38,11 @@ public final class NumberLoop extends Loop {
 
   public static NumberLoop of(
     OperationDatabaseTable operationDatabaseTable,
-    MaintenanceSchedule maintenanceSchedule, List<WorkflowStep> steps,
-    Bundle bundle, JSONObject content
+    MaintenanceSchedule maintenanceSchedule,
+    Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle,
+    JSONObject content
   ) {
-    return create(operationDatabaseTable, maintenanceSchedule, steps,
+    return create(operationDatabaseTable, maintenanceSchedule, stepGenerator,
       bundle, content.getString("loopStart"), content.getString("loopEnd"),
       content.has("loopLimit") ? Optional.of(content.getString("loopLimit")) :
         Optional.empty());
@@ -48,11 +50,12 @@ public final class NumberLoop extends Loop {
 
   public static NumberLoop create(
     OperationDatabaseTable operationDatabaseTable,
-    MaintenanceSchedule maintenanceSchedule, List<WorkflowStep> steps,
-    Bundle bundle, String start, String end, Optional<String> limit
+    MaintenanceSchedule maintenanceSchedule,
+    Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle,
+    String start, String end, Optional<String> limit
   ) {
-    return new NumberLoop(operationDatabaseTable, maintenanceSchedule, steps,
-      bundle, start, end, limit);
+    return new NumberLoop(operationDatabaseTable, maintenanceSchedule,
+      stepGenerator, bundle, start, end, limit);
   }
 
   private final String start;
@@ -61,10 +64,11 @@ public final class NumberLoop extends Loop {
 
   private NumberLoop(
     OperationDatabaseTable operationDatabaseTable,
-    MaintenanceSchedule maintenanceSchedule, List<WorkflowStep> steps,
-    Bundle bundle, String start, String end, Optional<String> limit
+    MaintenanceSchedule maintenanceSchedule,
+    Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle,
+    String start, String end, Optional<String> limit
   ) {
-    super(operationDatabaseTable, maintenanceSchedule, steps, bundle);
+    super(operationDatabaseTable, maintenanceSchedule, stepGenerator, bundle);
     this.start = start;
     this.end = end;
     this.limit = limit;

@@ -182,10 +182,9 @@ public final class WorkflowFactory {
     LoopEntry entry, Bundle bundle, int index, List<ActionEntry> actions,
     List<ConditionEntry> conditions
   ) {
-    return assembleWorkflowSteps(actions, conditions,
-      Optional.empty(), bundle, index + 1)
-      .thenApply(steps -> loopFactory.create(entry.type(),
-        entry.content(), steps, bundle));
+    return CompletableFuture.completedFuture(loopFactory.create(entry.type(),
+      entry.content(), () -> assembleWorkflowSteps(actions, conditions,
+        Optional.empty(), bundle, index + 1), bundle));
   }
 
   private Workflow assemblyWorkflow(

@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 
 @Singleton
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
@@ -20,12 +22,13 @@ public final class LoopFactory {
   private final MaintenanceSchedule maintenanceSchedule;
 
   public Loop create(
-    String type, String content, List<WorkflowStep> steps, Bundle bundle
+    String type, String content,
+    Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle
   ) {
     var json = new JSONObject(content);
     if (type.equals("loop-number")) {
       return NumberLoop.of(operationDatabaseTable, maintenanceSchedule,
-        steps, bundle, json);
+        stepGenerator, bundle, json);
     }
     return null;
   }
