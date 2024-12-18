@@ -9,6 +9,7 @@ import com.dulno.core.event.HookRegistry;
 import com.dulno.core.intro.Intro;
 import com.dulno.core.loop.LoopInformationRepository;
 import com.dulno.core.loop.type.NumberLoop;
+import com.dulno.core.loop.type.TextLoop;
 import com.dulno.core.tutorial.level.bundle.BundleTutorialLevel;
 import com.dulno.core.tutorial.level.organization.OrganizationMembersTutorialLevel;
 import com.dulno.core.tutorial.level.organization.OrganizationTeamsTutorialLevel;
@@ -111,6 +112,7 @@ public class CoreApplication {
 
   private static void registerLoops(LoopInformationRepository repository) {
     repository.register(NumberLoop.information());
+    repository.register(TextLoop.information());
   }
 
   private static void registerTutorialLevels(TutorialLevelRegistry registry) {
