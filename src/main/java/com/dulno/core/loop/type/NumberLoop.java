@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public final class NumberLoop extends Loop {
@@ -26,7 +27,7 @@ public final class NumberLoop extends Loop {
         "loopStart", "loop.number.input.start.description", InputComponentDataType.TEXT))
       .withInputVariable(InputComponentVariable.createRequired("loop.number.input.end.name",
         "loopEnd", "loop.number.input.end.description", InputComponentDataType.TEXT))
-      .withInputVariable(InputComponentVariable.createRequired("loop.number.input.limit.name",
+      .withInputVariable(InputComponentVariable.createOptional("loop.number.input.limit.name",
         "loopLimit", "loop.number.input.limit.description", InputComponentDataType.TEXT))
       .withOutputVariable(OutputComponentVariable.create("loop.number.output.index", "loopIndex"))
       .withOutputVariable(OutputComponentVariable.create("loop.number.output.start", "loopStart"))
@@ -40,27 +41,28 @@ public final class NumberLoop extends Loop {
     Bundle bundle, JSONObject content
   ) {
     return create(operationDatabaseTable, maintenanceSchedule, steps,
-      bundle, content.getInt("loopStart"), content.getInt("loopEnd"),
-      content.getInt("loopLimit"));
+      bundle, content.getString("loopStart"), content.getString("loopEnd"),
+      content.has("loopLimit") ? Optional.of(content.getString("loopLimit")) :
+        Optional.empty());
   }
 
   public static NumberLoop create(
     OperationDatabaseTable operationDatabaseTable,
     MaintenanceSchedule maintenanceSchedule, List<WorkflowStep> steps,
-    Bundle bundle, int start, int end, int limit
+    Bundle bundle, String start, String end, Optional<String> limit
   ) {
     return new NumberLoop(operationDatabaseTable, maintenanceSchedule, steps,
       bundle, start, end, limit);
   }
 
-  private final int start;
-  private final int end;
-  private final int limit;
+  private final String start;
+  private final String end;
+  private final Optional<String> limit;
 
   private NumberLoop(
     OperationDatabaseTable operationDatabaseTable,
     MaintenanceSchedule maintenanceSchedule, List<WorkflowStep> steps,
-    Bundle bundle, int start, int end, int limit
+    Bundle bundle, String start, String end, Optional<String> limit
   ) {
     super(operationDatabaseTable, maintenanceSchedule, steps, bundle);
     this.start = start;
@@ -72,15 +74,32 @@ public final class NumberLoop extends Loop {
   public CompletableFuture<WorkflowStepResult> execute(
     Map<String, Object> information
   ) {
+    try {
+      var start = Integer.parseInt(this.start);
+      var end = Integer.parseInt(this.end);
+      var limit = this.limit.map(Integer::parseInt).orElseGet(() -> end - start);
+      return loopAsynchronously(start, end, limit, information);
+    } catch (Exception exception) {
+      return CompletableFuture.completedFuture(
+        WorkflowStepResult.failure("loop.number.failure.wrong.format"));
+    }
+  }
+
+  private CompletableFuture<WorkflowStepResult> loopAsynchronously(
+    int start, int end, int limit, Map<String, Object> information
+  ) {
     var futureResponse = new CompletableFuture<WorkflowStepResult>();
-    new Thread(() -> futureResponse.complete(loopSynchronously(information)))
-      .start();
+    new Thread(() -> futureResponse.complete(
+      loopSynchronously(start, end, limit, information))).start();
     return futureResponse;
   }
 
-  private WorkflowStepResult loopSynchronously(Map<String, Object> information) {
+  private WorkflowStepResult loopSynchronously(
+    int start, int end, int limit, Map<String, Object> information
+  ) {
     for (var i = start; i < Math.min(end, start + limit); i++) {
-      var iterationInformation = createIterationInformation(i, information);
+      var iterationInformation = createIterationInformation(start, end, limit,
+        i, information);
       var iterationResult = iterate(iterationInformation).join();
       if (iterationResult.isFailure()) {
         return iterationResult;
@@ -90,7 +109,7 @@ public final class NumberLoop extends Loop {
   }
 
   private Map<String, Object> createIterationInformation(
-    int index, Map<String, Object> information
+    int start, int end, int limit, int index, Map<String, Object> information
   ) {
     information.put("loopIndex", index);
     information.put("loopStart", start);

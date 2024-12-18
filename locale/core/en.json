@@ -1,13 +1,6 @@
 {
   "target.you": "You / Personal",
 
-  "condition.text.equals": "Is equals",
-  "condition.text.ends.with": "Ends with",
-  "condition.text.starts.with": "Starts with",
-  "condition.number.greater.than": "Is greater",
-  "condition.number.smaller.than": "Is smaller",
-  "condition.not.a.number": "An error occurred while checking a condition. The error occurred because the input or comparison value did not correspond to a number.",
-
   "tutorial.continue": "Continue",
   "tutorial.cancel": "Cancel",
   "tutorial.finish": "Finish",
@@ -119,6 +112,26 @@
   "workflow.failure.notification.body": "Hey,\n\nUnfortunately we have some bad news.\n\nOne of your Dulno workflows has failed and requires your attention.\n\nThe reason for the error:\n\n%s\nPlease log in to your Dulno account to fix the error.\n\nIf you have any questions about your problem, you can contact support@dulno.com at any time or create a ticket.\n\nWe can then help you to rectify the error.",
 
   "workflow.duplicated": "Duplicated",
+
+  "condition.text.equals": "Is equals",
+  "condition.text.ends.with": "Ends with",
+  "condition.text.starts.with": "Starts with",
+  "condition.number.greater.than": "Is greater",
+  "condition.number.smaller.than": "Is smaller",
+  "condition.not.a.number": "An error occurred while checking a condition. The error occurred because the input or comparison value did not correspond to a number.",
+
+  "loop.number.name": "Number loop",
+  "loop.number.description": "Enables iteration from a start value to a final value",
+  "loop.number.input.start.name": "Start",
+  "loop.number.input.start.description": "The value at which to start counting",
+  "loop.number.input.end.name": "End",
+  "loop.number.input.end.description": "The end to which you want to count",
+  "loop.number.input.limit.name": "Limit (optional)",
+  "loop.number.input.limit.description": "A maximum number of repetitions that is not exceeded",
+  "loop.number.output.index": "Current index",
+  "loop.number.output.start": "Loop start",
+  "loop.number.output.end": "Loop end",
+  "loop.number.failure.wrong.format": "An error occurred while executing the loop. The error occurred because the specified start, end and limit values were not specified in the correct format. Only integer numbers are allowed.",
 
   "activity.setting.registration.title": "Account creation",
   "activity.setting.registration.description": "You have created this Dulno account",

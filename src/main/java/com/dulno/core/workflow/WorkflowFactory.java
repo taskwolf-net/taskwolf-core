@@ -118,20 +118,32 @@ public final class WorkflowFactory {
     List<ActionEntry> actions, List<ConditionEntry> conditions,
     Optional<LoopEntry> loop, Bundle bundle, int startingIndex
   ) {
+    var steps = collateWorkflowSteps(actions, conditions, loop, bundle,
+      startingIndex);
+    return AsyncIterator.execute(steps,
+      step -> step.getValue().thenApply(result ->
+        new AbstractMap.SimpleEntry<>(step.getKey(), result)))
+      .thenApply(result -> result.stream().sorted(Map.Entry.comparingByKey())
+        .map(AbstractMap.SimpleEntry::getValue).toList());
+  }
+
+  private List<Map.Entry<Integer, CompletableFuture<WorkflowStep>>> collateWorkflowSteps(
+    List<ActionEntry> actions, List<ConditionEntry> conditions,
+    Optional<LoopEntry> loop, Bundle bundle, int startingIndex
+  ) {
     var steps = Lists.<Map.Entry<Integer,
       CompletableFuture<WorkflowStep>>>newArrayList();
     var index = startingIndex;
     var currentStep = findWorkflowStep(actions, conditions, loop, bundle, index);
     while (currentStep != null) {
       steps.add(new AbstractMap.SimpleEntry<>(index, currentStep));
+      if (loop.isPresent() && loop.get().index() == index) {
+        break;
+      }
       index++;
       currentStep = findWorkflowStep(actions, conditions, loop, bundle, index);
     }
-    return AsyncIterator.execute(steps,
-      step -> step.getValue().thenApply(result ->
-        new AbstractMap.SimpleEntry<>(step.getKey(), result)))
-      .thenApply(result -> result.stream().sorted(Map.Entry.comparingByKey())
-        .map(AbstractMap.SimpleEntry::getValue).toList());
+    return steps;
   }
 
   private CompletableFuture<WorkflowStep> findWorkflowStep(
@@ -158,7 +170,7 @@ public final class WorkflowFactory {
     var module = moduleLoader.findRegisteredModuleById(entry.module()).get();
     var action = module.module().actionRepository()
       .findAction(entry.type()).get();
-    return (CompletableFuture<WorkflowStep>) action.build(entry.id());
+    return action.build(entry.id()).thenApply(value -> (WorkflowStep) value);
   }
 
   private CompletableFuture<WorkflowStep> prepareCondition(ConditionEntry entry) {
@@ -171,7 +183,7 @@ public final class WorkflowFactory {
     List<ConditionEntry> conditions
   ) {
     return assembleWorkflowSteps(actions, conditions,
-      Optional.empty(), bundle, index)
+      Optional.empty(), bundle, index + 1)
       .thenApply(steps -> loopFactory.create(entry.type(),
         entry.content(), steps, bundle));
   }

@@ -1,13 +1,6 @@
 {
   "target.you": "Du / Persönlich",
 
-  "condition.text.equals": "Ist gleich",
-  "condition.text.ends.with": "Endet mit",
-  "condition.text.starts.with": "Startet mit",
-  "condition.number.greater.than": "Ist größer",
-  "condition.number.smaller.than": "Ist kleiner",
-  "condition.not.a.number": "Bei der Überprüfung einer Bedingung ist ein Fehler aufgetreten. Der Fehler trat auf, weil der Eingabe- oder Vergleichswert keiner Zahl entsprachen.",
-
   "tutorial.continue": "Weiter",
   "tutorial.cancel": "Abbrechen",
   "tutorial.finish": "Fertigstellen",
@@ -119,6 +112,26 @@
   "workflow.failure.notification.body": "Hallo!\n\nLeider haben wir eine schlechte Nachricht.\n\nEiner deiner Dulno-Workflows ist fehlgeschlagen und erfordert deine Aufmerksamkeit.\n\nDer Grund für den Fehler:\n\n%s\nBitte logge dich in dein Dulno-Konto ein, um den Fehler zu beheben.\n\nWenn Sie Fragen zu Ihrem Problem haben, können Sie sich jederzeit an support@dulno.com wenden oder ein Ticket erstellen.\n\nWir können Ihnen dann helfen, den Fehler zu beheben.",
 
   "workflow.duplicated": "Dupliziert",
+
+  "condition.text.equals": "Ist gleich",
+  "condition.text.ends.with": "Endet mit",
+  "condition.text.starts.with": "Startet mit",
+  "condition.number.greater.than": "Ist größer",
+  "condition.number.smaller.than": "Ist kleiner",
+  "condition.not.a.number": "Bei der Überprüfung einer Bedingung ist ein Fehler aufgetreten. Der Fehler trat auf, weil der Eingabe- oder Vergleichswert keiner Zahl entsprachen.",
+
+  "loop.number.name": "Zahlenschleife",
+  "loop.number.description": "Ermöglicht Iteration von einem Startwert zu einem Endwert",
+  "loop.number.input.start.name": "Start",
+  "loop.number.input.start.description": "Der Wert, bei dem die Zählung beginnen soll",
+  "loop.number.input.end.name": "Ende",
+  "loop.number.input.end.description": "Das Ende, bis zu dem Sie zählen möchten",
+  "loop.number.input.limit.name": "Limit (optional)",
+  "loop.number.input.limit.description": "Eine maximale Anzahl von Wiederholungen, die nicht überschritten wird",
+  "loop.number.output.index": "Aktueller Index",
+  "loop.number.output.start": "Schleifenstart",
+  "loop.number.output.end": "Schleifenende",
+  "loop.number.failure.wrong.format": "Beim Ausführen der Schleife ist ein Fehler aufgetreten. Der Fehler trat auf, weil die angegebenen Start-, End- und Grenzwerte nicht im richtigen Format angegeben wurden. Es sind nur ganzzahlige Werte zulässig.",
 
   "activity.setting.registration.title": "Erstellung des Kontos",
   "activity.setting.registration.description": "Sie haben dieses Dulno-Konto erstellt",
