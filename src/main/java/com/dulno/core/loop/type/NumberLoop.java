@@ -8,6 +8,7 @@ import com.dulno.core.workflow.component.input.InputComponentDataType;
 import com.dulno.core.workflow.component.input.InputComponentVariable;
 import com.dulno.core.workflow.component.output.OutputComponentVariable;
 import com.dulno.core.workflow.operation.OperationDatabaseTable;
+import com.dulno.core.workflow.placeholder.PlaceholderDissolve;
 import com.dulno.core.workflow.step.WorkflowStep;
 import com.dulno.core.workflow.step.WorkflowStepResult;
 import org.json.JSONObject;
@@ -58,9 +59,9 @@ public final class NumberLoop extends Loop {
       stepGenerator, bundle, start, end, limit);
   }
 
-  private final String start;
-  private final String end;
-  private final Optional<String> limit;
+  private String start;
+  private String end;
+  private Optional<String> limit;
 
   private NumberLoop(
     OperationDatabaseTable operationDatabaseTable,
@@ -79,8 +80,14 @@ public final class NumberLoop extends Loop {
     Map<String, Object> information
   ) {
     try {
+      var placeholderDissolve = PlaceholderDissolve.create(information);
+      start = placeholderDissolve.dissolve(start);
       var start = Integer.parseInt(this.start);
+      end = placeholderDissolve.dissolve(end);
       var end = Integer.parseInt(this.end);
+      if (limit.isPresent()) {
+        limit = Optional.of(placeholderDissolve.dissolve(limit.get()));
+      }
       var limit = this.limit.map(Integer::parseInt).orElseGet(() -> end - start);
       return loopAsynchronously(start, end, limit, information);
     } catch (Exception exception) {

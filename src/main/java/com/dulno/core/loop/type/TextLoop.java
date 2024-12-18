@@ -8,6 +8,7 @@ import com.dulno.core.workflow.component.input.InputComponentDataType;
 import com.dulno.core.workflow.component.input.InputComponentVariable;
 import com.dulno.core.workflow.component.output.OutputComponentVariable;
 import com.dulno.core.workflow.operation.OperationDatabaseTable;
+import com.dulno.core.workflow.placeholder.PlaceholderDissolve;
 import com.dulno.core.workflow.step.WorkflowStep;
 import com.dulno.core.workflow.step.WorkflowStepResult;
 import org.json.JSONObject;
@@ -60,9 +61,9 @@ public final class TextLoop extends Loop {
       bundle, text, divider, limit);
   }
 
-  private final String text;
-  private final String divider;
-  private final Optional<String> limit;
+  private String text;
+  private String divider;
+  private Optional<String> limit;
 
   private TextLoop(
     OperationDatabaseTable operationDatabaseTable,
@@ -81,6 +82,12 @@ public final class TextLoop extends Loop {
     Map<String, Object> information
   ) {
     try {
+      var placeholderDissolve = PlaceholderDissolve.create(information);
+      text = placeholderDissolve.dissolve(text);
+      divider = placeholderDissolve.dissolve(divider);
+      if (limit.isPresent()) {
+        limit = Optional.of(placeholderDissolve.dissolve(limit.get()));
+      }
       var limit = this.limit.map(Integer::parseInt);
       return loopAsynchronously(limit, information);
     } catch (Exception exception) {
