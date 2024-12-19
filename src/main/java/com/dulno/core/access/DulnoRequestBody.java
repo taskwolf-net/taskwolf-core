@@ -143,6 +143,24 @@ public final class DulnoRequestBody {
   }
 
   /**
+   * Is used to get a dynamic type list / array from request body
+   * @param key The key to find the content
+   * @return The value behind the key
+   */
+  public <T> List<T> getList(String key) {
+    if (!body.has(key)) {
+      failure();
+      return Lists.newArrayList();
+    }
+    var array = body.getJSONArray(key);
+    var result = Lists.<T>newArrayList();
+    for (var i = 0; i < array.length(); i++) {
+      result.add((T) array.get(i));
+    }
+    return result;
+  }
+
+  /**
    * Checks whether the body contains a certain key
    * @param key The key that should be checked
    * @return Is true if body contains key, otherwise false
