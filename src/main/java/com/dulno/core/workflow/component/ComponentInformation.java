@@ -25,7 +25,7 @@ public class ComponentInformation {
     return List.copyOf(inputVariables);
   }
 
-  public List<ComponentVariable> outputVariables() {
+  public List<OutputComponentVariable> outputVariables() {
     return List.copyOf(outputVariables);
   }
 }
