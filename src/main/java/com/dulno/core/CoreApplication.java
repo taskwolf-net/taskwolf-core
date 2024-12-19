@@ -8,6 +8,7 @@ import com.dulno.core.event.EventExecutor;
 import com.dulno.core.event.HookRegistry;
 import com.dulno.core.intro.Intro;
 import com.dulno.core.loop.LoopInformationRepository;
+import com.dulno.core.loop.type.ItemLoop;
 import com.dulno.core.loop.type.NumberLoop;
 import com.dulno.core.loop.type.TextLoop;
 import com.dulno.core.tutorial.level.bundle.BundleTutorialLevel;
@@ -69,14 +70,15 @@ public class CoreApplication {
       registerHooks(injector.getInstance(HookRegistry.class), injector);
       var eventExecutor = injector.getInstance(EventExecutor.class);
       eventExecutor.execute(CoreApplicationLaunchEvent.create());
-      registerConditions(injector.getInstance(ConditionInformationRepository.class));
-      registerLoops(injector.getInstance(LoopInformationRepository.class));
-      registerTutorialLevels(injector.getInstance(TutorialLevelRegistry.class));
       var distributionConfiguration = injector.getInstance(WorkerConfiguration.class);
       var distribution = injector.getInstance(WorkerDistribution.class);
       distribution.initialize();
       var coreModule = injector.getInstance(CoreModule.class);
       coreModule.initialize();
+      registerConditions(injector.getInstance(ConditionInformationRepository.class));
+      registerLoops(injector.getInstance(LoopInformationRepository.class),
+        coreModule);
+      registerTutorialLevels(injector.getInstance(TutorialLevelRegistry.class));
       var commandRegistry = injector.getInstance(CommandRegistry.class);
       registerCommands(commandRegistry, injector);
       var application = injector.getInstance(SpringApplication.class);
@@ -110,8 +112,11 @@ public class CoreApplication {
     repository.register(ConditionNumberSmallerThan.information());
   }
 
-  private static void registerLoops(LoopInformationRepository repository) {
+  private static void registerLoops(
+    LoopInformationRepository repository, CoreModule coreModule
+  ) {
     repository.register(NumberLoop.information());
+    repository.register(ItemLoop.information(coreModule));
     repository.register(TextLoop.information());
   }
 

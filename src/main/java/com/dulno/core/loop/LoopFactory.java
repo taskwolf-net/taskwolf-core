@@ -1,6 +1,7 @@
 package com.dulno.core.loop;
 
 import com.dulno.core.bundle.Bundle;
+import com.dulno.core.loop.type.ItemLoop;
 import com.dulno.core.loop.type.NumberLoop;
 import com.dulno.core.loop.type.TextLoop;
 import com.dulno.core.maintenance.MaintenanceSchedule;
@@ -29,6 +30,9 @@ public final class LoopFactory {
     var json = new JSONObject(content);
     if (type.equals("loop-number")) {
       return NumberLoop.of(operationDatabaseTable, maintenanceSchedule,
+        stepGenerator, bundle, json);
+    } else if (type.equals("loop-item")) {
+      return ItemLoop.of(operationDatabaseTable, maintenanceSchedule,
         stepGenerator, bundle, json);
     } else if (type.equals("loop-text")) {
       return TextLoop.of(operationDatabaseTable, maintenanceSchedule,
