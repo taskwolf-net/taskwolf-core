@@ -148,7 +148,7 @@ public final class ItemLoop extends Loop {
       var placeholderDissolve = PlaceholderDissolve.create(information);
       list = placeholderDissolve.dissolve(list);
       var list = new JSONArray(this.list).toList().stream()
-        .map(value -> (JSONObject) value).map(JSONObject::toMap).toList();
+        .map(value -> (Map<String, Object>) value).toList();
       if (limit.isPresent()) {
         limit = Optional.of(placeholderDissolve.dissolve(limit.get()));
       }
