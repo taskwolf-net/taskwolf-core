@@ -24,7 +24,10 @@ import com.dulno.core.locale.Translation;
 import com.dulno.core.workflow.throttle.WorkflowThrottle;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -45,8 +48,8 @@ public final class Workflow {
   private final List<WorkflowStep> steps;
   private final Bundle bundle;
   private int currentStepIndex = 0;
-  private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-  private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+  private DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
+  private DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
   /**
    * Triggers the workflow
@@ -99,12 +102,23 @@ public final class Workflow {
       return CompletableFuture.completedFuture(false);
     }
     var triggerInformation = Maps.newHashMap(information);
-    var time = System.currentTimeMillis();
-    triggerInformation.put("formattedTime", timeFormat.format(new Date(time)));
-    triggerInformation.put("formattedDate", dateFormat.format(time));
-    triggerInformation.put("unixTime", time);
+    triggerInformation.putAll(timeInformation());
     return checkOperationLimit(false).thenCompose(limitReached ->
       executeNextStep(triggerInformation, limitReached));
+  }
+
+  private Map<String, Object> timeInformation() {
+    var timeInformation = Maps.<String, Object>newHashMap();
+    var unixTime = System.currentTimeMillis();
+    var zone = ZoneId.of(workflowEntry.timeZone());
+    var dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(unixTime), zone);
+    var locale = Locale.of(workflowEntry.timeLocale());
+    timeFormat = timeFormat.withZone(zone).withLocale(locale);
+    dateFormat = dateFormat.withZone(zone).withLocale(locale);
+    timeInformation.put("formattedTime", dateTime.format(timeFormat));
+    timeInformation.put("formattedDate", dateTime.format(dateFormat));
+    timeInformation.put("unixTime", unixTime);
+    return timeInformation;
   }
 
   private CompletableFuture<Boolean> executeNextStep(
