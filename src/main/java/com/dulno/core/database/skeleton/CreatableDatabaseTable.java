@@ -22,17 +22,9 @@ public interface CreatableDatabaseTable extends AbstractDatabaseTable {
   }
 
   private CompletableFuture<Void> createAsync(String addition) {
-    var query = new StringBuilder("CREATE TABLE ");
-    query.append(addition);
-    query.append(fullName());
-    query.append(" (");
-    query.append(columnCompilation());
-    query.append(")");
-    query.append(clusteringOrder());
-    query.append(";");
     registerTable();
     if (isCreationAuthorised()) {
-      return connection().execute(query).thenApply(value -> null);
+      return connection().execute(creationQuery(addition)).thenApply(value -> null);
     }
     return CompletableFuture.completedFuture(null);
   }
@@ -52,6 +44,13 @@ public interface CreatableDatabaseTable extends AbstractDatabaseTable {
   }
 
   private void create(String addition) {
+    registerTable();
+    if (isCreationAuthorised()) {
+      connection().executesSynchronously(creationQuery(addition));
+    }
+  }
+
+  private String creationQuery(String addition) {
     var query = new StringBuilder("CREATE TABLE ");
     query.append(addition);
     query.append(fullName());
@@ -60,10 +59,7 @@ public interface CreatableDatabaseTable extends AbstractDatabaseTable {
     query.append(")");
     query.append(clusteringOrder());
     query.append(";");
-    registerTable();
-    if (isCreationAuthorised()) {
-      connection().executesSynchronously(query);
-    }
+    return query.toString();
   }
 
   default boolean isCreationAuthorised() {
