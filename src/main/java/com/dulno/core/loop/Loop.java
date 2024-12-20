@@ -1,5 +1,6 @@
 package com.dulno.core.loop;
 
+import com.dulno.core.action.ActionExecutor;
 import com.dulno.core.bundle.Bundle;
 import com.dulno.core.maintenance.MaintenanceSchedule;
 import com.dulno.core.workflow.operation.Operation;
@@ -43,7 +44,7 @@ public abstract class Loop implements WorkflowStep {
   ) {
     try {
       return stepGenerator.call()
-        .thenCompose(steps -> checkOperationLimit()
+        .thenCompose(steps -> checkOperationLimit(false)
           .thenCompose(limitReached -> executeNextStep(0, steps, information,
             limitReached)));
     } catch (Exception exception) {
@@ -67,13 +68,15 @@ public abstract class Loop implements WorkflowStep {
       return CompletableFuture.completedFuture(WorkflowStepResult.success());
     }
     var step = steps.get(currentIndex);
-    return step.execute(information).thenCompose(result ->
-      processStepResult(currentIndex, result, steps, information));
+    return step.execute(information)
+      .thenCompose(result -> checkOperationLimit(step)
+        .thenCompose(newLimitReached -> processStepResult(currentIndex, result,
+          steps, information, newLimitReached)));
   }
 
   private CompletableFuture<WorkflowStepResult> processStepResult(
     int currentIndex, WorkflowStepResult result, List<WorkflowStep> steps,
-    Map<String, Object> information
+    Map<String, Object> information, boolean limitReached
   ) {
     if (result.isFailure()) {
       return CompletableFuture.completedFuture(
@@ -83,18 +86,29 @@ public abstract class Loop implements WorkflowStep {
       return CompletableFuture.completedFuture(WorkflowStepResult.success());
     }
     information.putAll(result.passOnInformation());
-    return checkOperationLimit().thenCompose(limitReached ->
-      executeNextStep(currentIndex + 1, steps, information, limitReached));
+    return executeNextStep(currentIndex + 1, steps, information, limitReached);
   }
 
-  private CompletableFuture<Boolean> checkOperationLimit() {
+  private CompletableFuture<Boolean> checkOperationLimit(WorkflowStep step) {
+    if (!(step instanceof ActionExecutor)) {
+      return CompletableFuture.completedFuture(false);
+    }
+    return checkOperationLimit(true);
+  }
+
+  private CompletableFuture<Boolean> checkOperationLimit(boolean addOperation) {
     return operationDatabaseTable.findOperations(bundle.ownerId())
-      .thenCompose(this::checkOperationLimit);
+      .thenCompose(operation -> checkOperationLimit(operation, addOperation));
   }
 
-  private CompletableFuture<Boolean> checkOperationLimit(Operation operation) {
+  private CompletableFuture<Boolean> checkOperationLimit(
+    Operation operation, boolean addOperation
+  ) {
     if (operation.operations() + 1 > bundle.workflowOperationLimit()) {
       return CompletableFuture.completedFuture(true);
+    }
+    if (!addOperation) {
+      return CompletableFuture.completedFuture(false);
     }
     return operationDatabaseTable.addOperations(bundle.ownerId(), 1)
       .thenApply(value -> false);
