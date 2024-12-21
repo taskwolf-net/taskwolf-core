@@ -7,6 +7,7 @@ import com.dulno.core.workflow.operation.Operation;
 import com.dulno.core.workflow.operation.OperationDatabaseTable;
 import com.dulno.core.workflow.step.WorkflowStep;
 import com.dulno.core.workflow.step.WorkflowStepResult;
+import com.google.common.collect.Maps;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 public abstract class Loop implements WorkflowStep {
   private final OperationDatabaseTable operationDatabaseTable;
   private final MaintenanceSchedule maintenanceSchedule;
+  private final LoopEntry loopEntry;
   private final Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator;
   private final Bundle bundle;
 
@@ -85,8 +87,20 @@ public abstract class Loop implements WorkflowStep {
     if (!result.mayContinue()) {
       return CompletableFuture.completedFuture(WorkflowStepResult.success());
     }
-    information.putAll(result.passOnInformation());
+    var currentStepIndex = loopEntry.index() + 1 + currentIndex;
+    information.putAll(prepareInformation("step" + currentStepIndex,
+      result.passOnInformation()));
     return executeNextStep(currentIndex + 1, steps, information, limitReached);
+  }
+
+  private Map<String, Object> prepareInformation(
+    String prefix, Map<String, Object> information
+  ) {
+    var result = Maps.<String, Object>newHashMap();
+    for (var entry : information.entrySet()) {
+      result.put(prefix + "-" + entry.getKey(), entry.getValue());
+    }
+    return result;
   }
 
   private CompletableFuture<Boolean> checkOperationLimit(WorkflowStep step) {

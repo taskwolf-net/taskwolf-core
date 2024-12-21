@@ -168,8 +168,7 @@ public final class WorkflowFactory {
 
   private CompletableFuture<WorkflowStep> prepareAction(ActionEntry entry) {
     var module = moduleLoader.findRegisteredModuleById(entry.module()).get();
-    var action = module.module().actionRepository()
-      .findAction(entry.type()).get();
+    var action = module.module().actionRepository().findAction(entry.type()).get();
     return action.build(entry.id()).thenApply(value -> (WorkflowStep) value);
   }
 
@@ -182,9 +181,9 @@ public final class WorkflowFactory {
     LoopEntry entry, Bundle bundle, int index, List<ActionEntry> actions,
     List<ConditionEntry> conditions
   ) {
-    return CompletableFuture.completedFuture(loopFactory.create(entry.type(),
-      entry.content(), () -> assembleWorkflowSteps(actions, conditions,
-        Optional.empty(), bundle, index + 1), bundle));
+    return CompletableFuture.completedFuture(loopFactory.create(entry,
+      () -> assembleWorkflowSteps(actions, conditions, Optional.empty(),
+        bundle, index + 1), bundle));
   }
 
   private Workflow assemblyWorkflow(

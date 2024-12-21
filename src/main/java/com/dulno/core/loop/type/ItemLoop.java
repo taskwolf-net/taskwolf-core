@@ -5,6 +5,7 @@ import com.dulno.core.CoreModule;
 import com.dulno.core.action.Action;
 import com.dulno.core.bundle.Bundle;
 import com.dulno.core.loop.Loop;
+import com.dulno.core.loop.LoopEntry;
 import com.dulno.core.loop.LoopInformation;
 import com.dulno.core.maintenance.MaintenanceSchedule;
 import com.dulno.core.trigger.Trigger;
@@ -106,24 +107,24 @@ public final class ItemLoop extends Loop {
 
   public static ItemLoop of(
     OperationDatabaseTable operationDatabaseTable,
-    MaintenanceSchedule maintenanceSchedule,
+    MaintenanceSchedule maintenanceSchedule, LoopEntry loopEntry,
     Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle,
     JSONObject content
   ) {
-    return create(operationDatabaseTable, maintenanceSchedule, stepGenerator,
-      bundle, content.getString("loopList"),
+    return create(operationDatabaseTable, maintenanceSchedule, loopEntry,
+      stepGenerator, bundle, content.getString("loopList"),
       content.has("loopLimit") ? Optional.of(content.getString("loopLimit")) :
         Optional.empty());
   }
 
   public static ItemLoop create(
     OperationDatabaseTable operationDatabaseTable,
-    MaintenanceSchedule maintenanceSchedule,
+    MaintenanceSchedule maintenanceSchedule, LoopEntry loopEntry,
     Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle,
     String list, Optional<String> limit
   ) {
-    return new ItemLoop(operationDatabaseTable, maintenanceSchedule, stepGenerator,
-      bundle, list, limit);
+    return new ItemLoop(operationDatabaseTable, maintenanceSchedule, loopEntry,
+      stepGenerator, bundle, list, limit);
   }
 
   private String list;
@@ -131,11 +132,12 @@ public final class ItemLoop extends Loop {
 
   private ItemLoop(
     OperationDatabaseTable operationDatabaseTable,
-    MaintenanceSchedule maintenanceSchedule,
+    MaintenanceSchedule maintenanceSchedule, LoopEntry loopEntry,
     Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle,
     String list, Optional<String> limit
   ) {
-    super(operationDatabaseTable, maintenanceSchedule, stepGenerator, bundle);
+    super(operationDatabaseTable, maintenanceSchedule, loopEntry,
+      stepGenerator, bundle);
     this.list = list;
     this.limit = limit;
   }

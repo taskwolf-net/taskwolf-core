@@ -24,19 +24,20 @@ public final class LoopFactory {
   private final MaintenanceSchedule maintenanceSchedule;
 
   public Loop create(
-    String type, String content,
+    LoopEntry loopEntry,
     Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle
   ) {
-    var json = new JSONObject(content);
+    var json = new JSONObject(loopEntry.content());
+    var type = loopEntry.type();
     if (type.equals("loop-number")) {
       return NumberLoop.of(operationDatabaseTable, maintenanceSchedule,
-        stepGenerator, bundle, json);
+        loopEntry, stepGenerator, bundle, json);
     } else if (type.equals("loop-item")) {
       return ItemLoop.of(operationDatabaseTable, maintenanceSchedule,
-        stepGenerator, bundle, json);
+        loopEntry, stepGenerator, bundle, json);
     } else if (type.equals("loop-text")) {
       return TextLoop.of(operationDatabaseTable, maintenanceSchedule,
-        stepGenerator, bundle, json);
+        loopEntry, stepGenerator, bundle, json);
     }
     return null;
   }

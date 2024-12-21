@@ -102,8 +102,8 @@ public final class Workflow {
     }
     var triggerInformation = Maps.newHashMap(information);
     triggerInformation.putAll(timeInformation());
-    return checkOperationLimit(false).thenCompose(limitReached ->
-      executeNextStep(triggerInformation, limitReached));
+    return checkOperationLimit(false).thenCompose(limitReached -> executeNextStep(
+      prepareInformation("trigger", triggerInformation), limitReached));
   }
 
   private Map<String, Object> timeInformation() {
@@ -156,7 +156,6 @@ public final class Workflow {
       return CompletableFuture.completedFuture(true);
     }
     var step = steps.get(currentStepIndex);
-    currentStepIndex++;
     return step.execute(information)
       .thenCompose(result -> checkOperationLimit(step)
         .thenCompose(newLimitReached -> processStepResult(result, information,
@@ -175,8 +174,20 @@ public final class Workflow {
       postExecutionSuccess();
       return CompletableFuture.completedFuture(true);
     }
-    information.putAll(result.passOnInformation());
+    information.putAll(prepareInformation("step" + currentStepIndex,
+      result.passOnInformation()));
+    currentStepIndex++;
     return executeNextStep(information, limitReached);
+  }
+
+  private Map<String, Object> prepareInformation(
+    String prefix, Map<String, Object> information
+  ) {
+    var result = Maps.<String, Object>newHashMap();
+    for (var entry : information.entrySet()) {
+      result.put(prefix + "-" + entry.getKey(), entry.getValue());
+    }
+    return result;
   }
 
   private CompletableFuture<Boolean> checkOperationLimit(WorkflowStep step) {
