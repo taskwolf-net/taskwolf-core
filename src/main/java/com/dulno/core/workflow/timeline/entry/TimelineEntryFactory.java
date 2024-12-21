@@ -40,6 +40,12 @@ public final class TimelineEntryFactory {
     if (type.equals("timeline-workflow-condition-remove")) {
       return TimelineWorkflowConditionRemoveEntry.of(time, userDatabaseTable, json);
     }
+    if (type.equals("timeline-workflow-loop-add")) {
+      return TimelineWorkflowLoopAddEntry.of(time, userDatabaseTable, json);
+    }
+    if (type.equals("timeline-workflow-loop-remove")) {
+      return TimelineWorkflowLoopRemoveEntry.of(time, userDatabaseTable, json);
+    }
     return null;
   }
 }

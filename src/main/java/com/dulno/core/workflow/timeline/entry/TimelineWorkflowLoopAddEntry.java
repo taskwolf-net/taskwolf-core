@@ -8,34 +8,34 @@ import org.json.JSONObject;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public final class TimelineWorkflowCreateEntry extends TimelineEntry {
+public final class TimelineWorkflowLoopAddEntry extends TimelineEntry {
   public static CompletableFuture<TimelineEntry> of(
     long time, UserDatabaseTable userDatabaseTable, JSONObject content
   ) {
-    return userDatabaseTable.findUserIfExists(UUID.fromString(content.getString("creator")))
+    return userDatabaseTable.findUserIfExists(UUID.fromString(content.getString("actor")))
       .thenApply(user -> create(time, user.name()));
   }
 
-  public static TimelineWorkflowCreateEntry create(long time, String creator) {
-    return new TimelineWorkflowCreateEntry(time, creator);
+  public static TimelineWorkflowLoopAddEntry create(long time, String creator) {
+    return new TimelineWorkflowLoopAddEntry(time, creator);
   }
 
-  private final String creator;
+  private final String actor;
 
-  private TimelineWorkflowCreateEntry(long time, String creator) {
+  private TimelineWorkflowLoopAddEntry(long time, String actor) {
     super(time);
-    this.creator = creator;
+    this.actor = actor;
   }
 
   @Override
   public String title(CoreModule coreModule, User user) {
-    return coreModule.translate(user, "workflow.timeline.entry.created.title");
+    return coreModule.translate(user, "workflow.timeline.entry.loop.add.title");
   }
 
   @Override
   public String description(CoreModule coreModule, User user) {
-    return coreModule.translate(user, "workflow.timeline.entry.created.description")
-      .replace("%CREATOR%", creator);
+    return coreModule.translate(user, "workflow.timeline.entry.loop.add.description")
+      .replace("%ACTOR%", actor);
   }
 
   @Override

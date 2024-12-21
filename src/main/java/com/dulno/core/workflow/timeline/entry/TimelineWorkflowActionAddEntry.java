@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 public final class TimelineWorkflowActionAddEntry extends TimelineEntry {
   public static CompletableFuture<TimelineEntry> of(
-          long time, UserDatabaseTable userDatabaseTable, JSONObject content
+    long time, UserDatabaseTable userDatabaseTable, JSONObject content
   ) {
     return userDatabaseTable.findUserIfExists(UUID.fromString(content.getString("actor")))
       .thenApply(user -> create(time, user.name()));
