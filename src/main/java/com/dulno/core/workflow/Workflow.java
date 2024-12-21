@@ -28,6 +28,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -48,8 +49,6 @@ public final class Workflow {
   private final List<WorkflowStep> steps;
   private final Bundle bundle;
   private int currentStepIndex = 0;
-  private DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
-  private DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
   /**
    * Triggers the workflow
@@ -109,16 +108,41 @@ public final class Workflow {
 
   private Map<String, Object> timeInformation() {
     var timeInformation = Maps.<String, Object>newHashMap();
+    var zone = parseTimeZone();
+    var locale = parseTimeLocale();
     var unixTime = System.currentTimeMillis();
-    var zone = ZoneId.of(workflowEntry.timeZone());
     var dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(unixTime), zone);
-    var locale = Locale.of(workflowEntry.timeLocale());
-    timeFormat = timeFormat.withZone(zone).withLocale(locale);
-    dateFormat = dateFormat.withZone(zone).withLocale(locale);
+    var timeFormat = DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM)
+      .withLocale(locale).withZone(zone);
+    var dateFormat = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
+      .withLocale(locale).withZone(zone);
     timeInformation.put("formattedTime", dateTime.format(timeFormat));
     timeInformation.put("formattedDate", dateTime.format(dateFormat));
     timeInformation.put("unixTime", unixTime);
     return timeInformation;
+  }
+
+  private ZoneId parseTimeZone() {
+    try {
+      return ZoneId.of(workflowEntry.timeZone());
+    } catch (Exception exception) {
+      return ZoneId.of("Europe/Berlin");
+    }
+  }
+
+  private Locale parseTimeLocale() {
+    try {
+      var parts = workflowEntry.timeLocale().split("_");
+      if (parts.length == 2) {
+        return Locale.of(parts[0], parts[1]);
+      } else if (parts.length == 1) {
+        return Locale.of(parts[0]);
+      } else {
+        throw new Exception();
+      }
+    } catch (Exception exception) {
+      return Locale.GERMANY;
+    }
   }
 
   private CompletableFuture<Boolean> executeNextStep(
