@@ -53,21 +53,27 @@ public final class ItemLoop extends Loop {
     CoreModule coreModule
   ) {
     try {
+      if (previousComponents.isEmpty()) {
+        return Lists.newArrayList();
+      }
       var loopList = loopContent.getString("loopList").trim();
       var percentageCount = loopList.length() - loopList.replace("%", "").length();
       if (percentageCount != 2 || !loopList.startsWith("%") || !loopList.endsWith("%")) {
         return Lists.newArrayList();
       }
-      var loopListPlaceholder = loopList.replace("%", "");
-      for (var i = 0; i < previousComponents.size(); i++) {
-        var rawComponent = previousComponents.get(i);
-        var listVariableOutputs = findListVariableOutputs(loopListPlaceholder,
-          rawComponent, i == 0, coreModule);
-        if (listVariableOutputs.isPresent()) {
-          return listVariableOutputs.get();
-        }
+      var loopListPlaceholder = loopList.replace("%", "").split("-");
+      var kind = loopListPlaceholder[0];
+      var placeholderId = loopListPlaceholder[1];
+      var outputs = Optional.<List<OutputComponentVariable>>empty();
+      if (kind.equalsIgnoreCase("trigger")) {
+        outputs = findListVariableOutputs(placeholderId,
+          previousComponents.get(0), true, coreModule);
+      } else {
+        outputs = findListVariableOutputs(placeholderId,
+          previousComponents.get(Integer.parseInt(kind.replace("step", "")) + 1),
+          false, coreModule);
       }
-      return Lists.newArrayList();
+      return outputs.orElse(Lists.newArrayList());
     } catch (Exception exception) {
       return Lists.newArrayList();
     }
@@ -182,8 +188,8 @@ public final class ItemLoop extends Loop {
     var iterations = limit.map(value -> Math.min(list.size(), value))
       .orElseGet(list::size);
     for (var i = 0; i < iterations; i++) {
-      var iterationInformation = createIterationInformation(list.get(i), i + 1,
-        iterations, information);
+      var iterationInformation = prepareInformation("step" + loopEntry().index(),
+        createIterationInformation(list.get(i), i + 1, iterations, information));
       var iterationResult = iterate(iterationInformation).join();
       if (iterationResult.isFailure()) {
         return iterationResult;

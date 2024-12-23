@@ -93,7 +93,7 @@ public abstract class Loop implements WorkflowStep {
     return executeNextStep(currentIndex + 1, steps, information, limitReached);
   }
 
-  private Map<String, Object> prepareInformation(
+  protected Map<String, Object> prepareInformation(
     String prefix, Map<String, Object> information
   ) {
     var result = Maps.<String, Object>newHashMap();

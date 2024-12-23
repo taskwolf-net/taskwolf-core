@@ -114,8 +114,8 @@ public final class TextLoop extends Loop {
     var iterations = limit.map(value -> Math.min(parts.length, value))
       .orElseGet(() -> parts.length);
     for (var i = 0; i < iterations; i++) {
-      var iterationInformation = createIterationInformation(parts[i], i + 1,
-        iterations, information);
+      var iterationInformation = prepareInformation("step" + loopEntry().index(),
+        createIterationInformation(parts[i], i + 1, iterations, information));
       var iterationResult = iterate(iterationInformation).join();
       if (iterationResult.isFailure()) {
         return iterationResult;

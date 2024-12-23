@@ -111,8 +111,8 @@ public final class NumberLoop extends Loop {
     int start, int end, int limit, Map<String, Object> information
   ) {
     for (var i = start; i < Math.min(end, start + limit); i++) {
-      var iterationInformation = createIterationInformation(start, end, limit,
-        i, information);
+      var iterationInformation = prepareInformation("step" + loopEntry().index(),
+        createIterationInformation(start, end, limit, i, information));
       var iterationResult = iterate(iterationInformation).join();
       if (iterationResult.isFailure()) {
         return iterationResult;
