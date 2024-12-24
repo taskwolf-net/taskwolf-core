@@ -7,14 +7,17 @@ import com.dulno.core.bundle.Bundle;
 import com.dulno.core.condition.ConditionDatabaseTable;
 import com.dulno.core.condition.ConditionEntry;
 import com.dulno.core.condition.ConditionFactory;
+import com.dulno.core.condition.ConditionInformationRepository;
 import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.iterator.AsyncIterator;
 import com.dulno.core.loop.LoopDatabaseTable;
 import com.dulno.core.loop.LoopEntry;
 import com.dulno.core.loop.LoopFactory;
+import com.dulno.core.loop.LoopInformationRepository;
 import com.dulno.core.module.ModuleLoader;
 import com.dulno.core.organization.team.Team;
 import com.dulno.core.workflow.step.WorkflowStep;
+import com.dulno.core.workflow.step.WorkflowStepCompound;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -39,8 +42,10 @@ public final class WorkflowFactory {
   private final ActionDatabaseTable actionDatabaseTable;
   private final ConditionDatabaseTable conditionDatabaseTable;
   private final ConditionFactory conditionFactory;
+  private final ConditionInformationRepository conditionRepository;
   private final LoopDatabaseTable loopDatabaseTable;
   private final LoopFactory loopFactory;
+  private final LoopInformationRepository loopRepository;
   private final ModuleLoader moduleLoader;
   private final TimelineDatabaseTable timelineDatabaseTable;
   private final UserDatabaseTable userDatabaseTable;
@@ -60,8 +65,10 @@ public final class WorkflowFactory {
     WorkflowDatabaseTable workflowDatabaseTable,
     ActionDatabaseTable actionDatabaseTable,
     ConditionDatabaseTable conditionDatabaseTable,
-    ConditionFactory conditionFactory, ModuleLoader moduleLoader,
+    ConditionFactory conditionFactory,
+    ConditionInformationRepository conditionRepository, ModuleLoader moduleLoader,
     LoopDatabaseTable loopDatabaseTable, LoopFactory loopFactory,
+    LoopInformationRepository loopRepository,
     TimelineDatabaseTable timelineDatabaseTable,
     UserDatabaseTable userDatabaseTable,
     BundleDatabaseTable bundleDatabaseTable,
@@ -78,8 +85,10 @@ public final class WorkflowFactory {
     this.actionDatabaseTable = actionDatabaseTable;
     this.conditionDatabaseTable = conditionDatabaseTable;
     this.conditionFactory = conditionFactory;
+    this.conditionRepository = conditionRepository;
     this.loopDatabaseTable = loopDatabaseTable;
     this.loopFactory = loopFactory;
+    this.loopRepository = loopRepository;
     this.moduleLoader = moduleLoader;
     this.timelineDatabaseTable = timelineDatabaseTable;
     this.userDatabaseTable = userDatabaseTable;
@@ -102,7 +111,7 @@ public final class WorkflowFactory {
           .thenApply(steps -> assemblyWorkflow(workflowEntry, steps, bundle))));
   }
 
-  private CompletableFuture<List<WorkflowStep>> assembleWorkflowSteps(
+  private CompletableFuture<List<WorkflowStepCompound>> assembleWorkflowSteps(
     WorkflowEntry workflowEntry, Bundle bundle
   ) {
     return actionDatabaseTable.findActionsByWorkflow(workflowEntry.id())
@@ -114,7 +123,7 @@ public final class WorkflowFactory {
                 loop, bundle, 0))));
   }
 
-  private CompletableFuture<List<WorkflowStep>> assembleWorkflowSteps(
+  private CompletableFuture<List<WorkflowStepCompound>> assembleWorkflowSteps(
     List<ActionEntry> actions, List<ConditionEntry> conditions,
     Optional<LoopEntry> loop, Bundle bundle, int startingIndex
   ) {
@@ -127,12 +136,12 @@ public final class WorkflowFactory {
         .map(AbstractMap.SimpleEntry::getValue).toList());
   }
 
-  private List<Map.Entry<Integer, CompletableFuture<WorkflowStep>>> collateWorkflowSteps(
+  private List<Map.Entry<Integer, CompletableFuture<WorkflowStepCompound>>> collateWorkflowSteps(
     List<ActionEntry> actions, List<ConditionEntry> conditions,
     Optional<LoopEntry> loop, Bundle bundle, int startingIndex
   ) {
     var steps = Lists.<Map.Entry<Integer,
-      CompletableFuture<WorkflowStep>>>newArrayList();
+      CompletableFuture<WorkflowStepCompound>>>newArrayList();
     var index = startingIndex;
     var currentStep = findWorkflowStep(actions, conditions, loop, bundle, index);
     while (currentStep != null) {
@@ -146,7 +155,7 @@ public final class WorkflowFactory {
     return steps;
   }
 
-  private CompletableFuture<WorkflowStep> findWorkflowStep(
+  private CompletableFuture<WorkflowStepCompound> findWorkflowStep(
     List<ActionEntry> actions, List<ConditionEntry> conditions,
     Optional<LoopEntry> loop, Bundle bundle, int index
   ) {
@@ -166,28 +175,37 @@ public final class WorkflowFactory {
     return null;
   }
 
-  private CompletableFuture<WorkflowStep> prepareAction(ActionEntry entry) {
+  private CompletableFuture<WorkflowStepCompound> prepareAction(ActionEntry entry) {
     var module = moduleLoader.findRegisteredModuleById(entry.module()).get();
     var action = module.module().actionRepository().findAction(entry.type()).get();
-    return action.build(entry.id()).thenApply(value -> (WorkflowStep) value);
+    return action.build(entry.id()).thenApply(value ->
+      WorkflowStepCompound.create(value, module.module().moduleInformation().name(),
+        action.information().name()));
   }
 
-  private CompletableFuture<WorkflowStep> prepareCondition(ConditionEntry entry) {
-    return CompletableFuture.completedFuture(conditionFactory.create(
-      entry.type(), entry.content()));
+  private CompletableFuture<WorkflowStepCompound> prepareCondition(
+    ConditionEntry entry
+  ) {
+    var condition = conditionRepository.findByIdentifier(entry.type()).get();
+    return CompletableFuture.completedFuture(
+      WorkflowStepCompound.create(conditionFactory.create(
+        entry.type(), entry.content()), "condition", condition.name()));
   }
 
-  private CompletableFuture<WorkflowStep> prepareLoop(
+  private CompletableFuture<WorkflowStepCompound> prepareLoop(
     LoopEntry entry, Bundle bundle, int index, List<ActionEntry> actions,
     List<ConditionEntry> conditions
   ) {
-    return CompletableFuture.completedFuture(loopFactory.create(entry,
-      () -> assembleWorkflowSteps(actions, conditions, Optional.empty(),
-        bundle, index + 1), bundle));
+    var loop = loopRepository.findByIdentifier(entry.type()).get();
+    return CompletableFuture.completedFuture(
+      WorkflowStepCompound.create(loopFactory.create(entry,
+        () -> assembleWorkflowSteps(actions, conditions, Optional.empty(),
+          bundle, index + 1), bundle),
+        "condition", loop.name()));
   }
 
   private Workflow assemblyWorkflow(
-    WorkflowEntry workflowEntry, List<WorkflowStep> steps, Bundle bundle
+    WorkflowEntry workflowEntry, List<WorkflowStepCompound> steps, Bundle bundle
   ) {
     return Workflow.create(workflowDatabaseTable, timelineDatabaseTable,
       userDatabaseTable, operationDatabaseTable, workflowThrottleDatabaseTable,

@@ -15,6 +15,7 @@ import com.dulno.core.workflow.notification.WorkflowFailureNotification;
 import com.dulno.core.workflow.operation.Operation;
 import com.dulno.core.workflow.operation.OperationDatabaseTable;
 import com.dulno.core.workflow.step.WorkflowStep;
+import com.dulno.core.workflow.step.WorkflowStepCompound;
 import com.dulno.core.workflow.step.WorkflowStepResult;
 import com.dulno.core.workflow.throttle.WorkflowThrottleDatabaseTable;
 import com.dulno.core.workflow.timeline.TimelineDatabaseTable;
@@ -46,7 +47,7 @@ public final class Workflow {
   private final ErrorRepository errorRepository;
   private final Mail notificationMail;
   private final WorkflowEntry workflowEntry;
-  private final List<WorkflowStep> steps;
+  private final List<WorkflowStepCompound> steps;
   private final Bundle bundle;
   private int currentStepIndex = 0;
 
@@ -155,7 +156,7 @@ public final class Workflow {
       postExecutionSuccess();
       return CompletableFuture.completedFuture(true);
     }
-    var step = steps.get(currentStepIndex);
+    var step = steps.get(currentStepIndex).step();
     return step.execute(information)
       .thenCompose(result -> checkOperationLimit(step)
         .thenCompose(newLimitReached -> processStepResult(result, information,
@@ -167,7 +168,7 @@ public final class Workflow {
     boolean limitReached
   ) {
     if (result.isFailure()) {
-      postExecutionFailure(result.failureMessage());
+      postExecutionFailure(result.failureMessage(), result.failureStepIndex());
       return CompletableFuture.completedFuture(false);
     }
     if (!result.mayContinue()) {
@@ -227,14 +228,22 @@ public final class Workflow {
   }
 
   private void postExecutionFailure(String failureMessage) {
+    postExecutionFailure(failureMessage, -1);
+  }
+
+  private void postExecutionFailure(String failureMessage, int failureStepIndex) {
     long currentTime = System.currentTimeMillis();
     if (workflowEntry.state().isOperational()) {
       workflowDatabaseTable.updateWorkflowState(workflowEntry, WorkflowState.FAILING);
     }
+    var currentStep = steps.get(currentStepIndex);
+    var timelineContent = Map.of("moduleName", currentStep.moduleName(),
+      "stepName", currentStep.stepName(), "stepIndex",
+      failureStepIndex < 0 ? currentStepIndex : failureStepIndex,
+      "message", failureMessage);
     timelineDatabaseTable.generateAvailableEntryId().thenAccept(id ->
       timelineDatabaseTable.insertEntry(id, workflowEntry.id(), currentTime,
-        "timeline-workflow-failure", new JSONObject(Map.of("message",
-          failureMessage)).toString()));
+        "timeline-workflow-failure", new JSONObject(timelineContent).toString()));
     findNotificationTarget().thenAccept(target -> notificationDatabaseTable
       .findNotificationSettings(target.id()).thenAccept(setting ->
         sendExecutionFailureNotification(target, setting, failureMessage)));

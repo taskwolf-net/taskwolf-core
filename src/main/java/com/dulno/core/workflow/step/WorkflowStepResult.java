@@ -43,7 +43,21 @@ public class WorkflowStepResult {
    * @return The result
    */
   public static WorkflowStepResult failure(String failureMessage) {
-    return new WorkflowStepResult(WorkflowStepStatus.FAILURE, failureMessage);
+    return failure(failureMessage, -1);
+  }
+
+  /**
+   * Creates a new failure workflow step result
+   * @param failureMessage The failure message that is displayed in the
+   *                      workflow timeline (It is best to pass the locales key)
+   * @param failureStepIndex The index of the step where the failure occurred
+   * @return The result
+   */
+  public static WorkflowStepResult failure(
+    String failureMessage, int failureStepIndex
+  ) {
+    return new WorkflowStepResult(WorkflowStepStatus.FAILURE, failureMessage,
+      failureStepIndex);
   }
 
   private final WorkflowStepStatus status;
@@ -52,6 +66,8 @@ public class WorkflowStepResult {
   private Map<String, Object> passOnInformation;
   @Getter
   private String failureMessage;
+  @Getter
+  private int failureStepIndex;
 
   protected WorkflowStepResult(
     WorkflowStepStatus status, boolean mayContinue,
@@ -63,10 +79,13 @@ public class WorkflowStepResult {
     this.failureMessage = "";
   }
 
-  protected WorkflowStepResult(WorkflowStepStatus status, String failureMessage) {
+  protected WorkflowStepResult(
+    WorkflowStepStatus status, String failureMessage, int failureStepIndex
+  ) {
     this.status = status;
     this.mayContinue = false;
     this.failureMessage = failureMessage;
+    this.failureStepIndex = failureStepIndex;
   }
 
   public boolean isSuccess() {

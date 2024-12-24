@@ -113,12 +113,15 @@
 
   "workflow.duplicated": "Dupliziert",
 
+  "condition": "Bedingung",
   "condition.text.equals": "Ist gleich",
   "condition.text.ends.with": "Endet mit",
   "condition.text.starts.with": "Startet mit",
   "condition.number.greater.than": "Ist größer",
   "condition.number.smaller.than": "Ist kleiner",
   "condition.not.a.number": "Bei der Überprüfung einer Bedingung ist ein Fehler aufgetreten. Der Fehler trat auf, weil der Eingabe- oder Vergleichswert keiner Zahl entsprachen.",
+
+  "loop": "Schleife",
 
   "loop.number.name": "Zahlenschleife",
   "loop.number.description": "Ermöglicht Iteration von einem Startwert zu einem Endwert",

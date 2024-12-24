@@ -19,6 +19,7 @@ import com.dulno.core.workflow.component.output.OutputComponentVariable;
 import com.dulno.core.workflow.operation.OperationDatabaseTable;
 import com.dulno.core.workflow.placeholder.PlaceholderDissolve;
 import com.dulno.core.workflow.step.WorkflowStep;
+import com.dulno.core.workflow.step.WorkflowStepCompound;
 import com.dulno.core.workflow.step.WorkflowStepResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -114,8 +115,8 @@ public final class ItemLoop extends Loop {
   public static ItemLoop of(
     OperationDatabaseTable operationDatabaseTable,
     MaintenanceSchedule maintenanceSchedule, LoopEntry loopEntry,
-    Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle,
-    JSONObject content
+    Callable<CompletableFuture<List<WorkflowStepCompound>>> stepGenerator,
+    Bundle bundle, JSONObject content
   ) {
     return create(operationDatabaseTable, maintenanceSchedule, loopEntry,
       stepGenerator, bundle, content.getString("loopList"),
@@ -126,8 +127,8 @@ public final class ItemLoop extends Loop {
   public static ItemLoop create(
     OperationDatabaseTable operationDatabaseTable,
     MaintenanceSchedule maintenanceSchedule, LoopEntry loopEntry,
-    Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle,
-    String list, Optional<String> limit
+    Callable<CompletableFuture<List<WorkflowStepCompound>>> stepGenerator,
+    Bundle bundle, String list, Optional<String> limit
   ) {
     return new ItemLoop(operationDatabaseTable, maintenanceSchedule, loopEntry,
       stepGenerator, bundle, list, limit);
@@ -139,8 +140,8 @@ public final class ItemLoop extends Loop {
   private ItemLoop(
     OperationDatabaseTable operationDatabaseTable,
     MaintenanceSchedule maintenanceSchedule, LoopEntry loopEntry,
-    Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle,
-    String list, Optional<String> limit
+    Callable<CompletableFuture<List<WorkflowStepCompound>>> stepGenerator,
+    Bundle bundle, String list, Optional<String> limit
   ) {
     super(operationDatabaseTable, maintenanceSchedule, loopEntry,
       stepGenerator, bundle);

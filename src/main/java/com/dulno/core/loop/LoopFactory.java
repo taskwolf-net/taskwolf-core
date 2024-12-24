@@ -7,6 +7,7 @@ import com.dulno.core.loop.type.TextLoop;
 import com.dulno.core.maintenance.MaintenanceSchedule;
 import com.dulno.core.workflow.operation.OperationDatabaseTable;
 import com.dulno.core.workflow.step.WorkflowStep;
+import com.dulno.core.workflow.step.WorkflowStepCompound;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
@@ -25,7 +26,7 @@ public final class LoopFactory {
 
   public Loop create(
     LoopEntry loopEntry,
-    Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle
+    Callable<CompletableFuture<List<WorkflowStepCompound>>> stepGenerator, Bundle bundle
   ) {
     var json = new JSONObject(loopEntry.content());
     var type = loopEntry.type();

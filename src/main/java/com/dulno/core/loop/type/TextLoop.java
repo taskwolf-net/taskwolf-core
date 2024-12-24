@@ -11,6 +11,7 @@ import com.dulno.core.workflow.component.output.OutputComponentVariable;
 import com.dulno.core.workflow.operation.OperationDatabaseTable;
 import com.dulno.core.workflow.placeholder.PlaceholderDissolve;
 import com.dulno.core.workflow.step.WorkflowStep;
+import com.dulno.core.workflow.step.WorkflowStepCompound;
 import com.dulno.core.workflow.step.WorkflowStepResult;
 import org.json.JSONObject;
 
@@ -43,8 +44,8 @@ public final class TextLoop extends Loop {
   public static TextLoop of(
     OperationDatabaseTable operationDatabaseTable,
     MaintenanceSchedule maintenanceSchedule, LoopEntry loopEntry,
-    Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle,
-    JSONObject content
+    Callable<CompletableFuture<List<WorkflowStepCompound>>> stepGenerator,
+    Bundle bundle, JSONObject content
   ) {
     return create(operationDatabaseTable, maintenanceSchedule, loopEntry,
       stepGenerator, bundle, content.getString("loopText"),
@@ -55,8 +56,8 @@ public final class TextLoop extends Loop {
   public static TextLoop create(
     OperationDatabaseTable operationDatabaseTable,
     MaintenanceSchedule maintenanceSchedule, LoopEntry loopEntry,
-    Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle,
-    String text, String divider, Optional<String> limit
+    Callable<CompletableFuture<List<WorkflowStepCompound>>> stepGenerator,
+    Bundle bundle, String text, String divider, Optional<String> limit
   ) {
     return new TextLoop(operationDatabaseTable, maintenanceSchedule, loopEntry,
       stepGenerator, bundle, text, divider, limit);
@@ -69,8 +70,8 @@ public final class TextLoop extends Loop {
   private TextLoop(
     OperationDatabaseTable operationDatabaseTable,
     MaintenanceSchedule maintenanceSchedule, LoopEntry loopEntry,
-    Callable<CompletableFuture<List<WorkflowStep>>> stepGenerator, Bundle bundle,
-    String text, String divider, Optional<String> limit
+    Callable<CompletableFuture<List<WorkflowStepCompound>>> stepGenerator,
+    Bundle bundle, String text, String divider, Optional<String> limit
   ) {
     super(operationDatabaseTable, maintenanceSchedule, loopEntry,
       stepGenerator, bundle);
