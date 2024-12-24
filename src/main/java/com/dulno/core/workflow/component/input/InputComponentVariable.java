@@ -6,7 +6,7 @@ import com.dulno.core.workflow.component.ComponentVariable;
 
 @Getter
 @Accessors(fluent = true)
-public final class InputComponentVariable extends ComponentVariable {
+public class InputComponentVariable extends ComponentVariable {
   public static InputComponentVariable createSelect(
     String displayName, String identifier, String description,
     InputComponentSelect select
@@ -61,7 +61,7 @@ public final class InputComponentVariable extends ComponentVariable {
   private final InputComponentType type;
   private final InputComponentSelect select;
 
-  private InputComponentVariable(
+  protected InputComponentVariable(
     String displayName, String identifier, String description, String placeholder,
     InputComponentDataType dataType, InputComponentType type, InputComponentSelect select
   ) {
