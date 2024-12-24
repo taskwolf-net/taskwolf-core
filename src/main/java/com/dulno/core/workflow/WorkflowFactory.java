@@ -201,7 +201,7 @@ public final class WorkflowFactory {
       WorkflowStepCompound.create(loopFactory.create(entry,
         () -> assembleWorkflowSteps(actions, conditions, Optional.empty(),
           bundle, index + 1), bundle),
-        "condition", loop.name()));
+        "loop", loop.name()));
   }
 
   private Workflow assemblyWorkflow(
