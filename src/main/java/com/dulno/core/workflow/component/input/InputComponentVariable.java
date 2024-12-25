@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import com.dulno.core.workflow.component.ComponentVariable;
 
+import java.util.List;
+
 @Getter
 @Accessors(fluent = true)
 public class InputComponentVariable extends ComponentVariable {
@@ -11,8 +13,16 @@ public class InputComponentVariable extends ComponentVariable {
     String displayName, String identifier, String description,
     InputComponentSelect select
   ) {
-    return new InputComponentVariable(displayName, identifier, description,
-      "", InputComponentDataType.SELECT, InputComponentType.REQUIRED, select);
+    return SelectableInputComponentVariable.create(displayName, identifier,
+      description, select);
+  }
+
+  public static InputComponentVariable createDynamic(
+    String identifier, List<String> requiredPredecessor,
+    DynamicInputComponentVariableFunction variableFunction
+  ) {
+    return DynamicInputComponentVariable.create(identifier, requiredPredecessor,
+      variableFunction);
   }
 
   public static InputComponentVariable createRequired(
@@ -20,7 +30,7 @@ public class InputComponentVariable extends ComponentVariable {
     InputComponentDataType dataType
   ) {
     return new InputComponentVariable(displayName, identifier, description,
-      displayName, dataType, InputComponentType.REQUIRED, null);
+      displayName, dataType, InputComponentType.REQUIRED);
   }
 
   public static InputComponentVariable createRequired(
@@ -28,7 +38,7 @@ public class InputComponentVariable extends ComponentVariable {
     InputComponentDataType dataType
   ) {
     return new InputComponentVariable(displayName, identifier, description,
-      placeholder, dataType, InputComponentType.REQUIRED, null);
+      placeholder, dataType, InputComponentType.REQUIRED);
   }
 
   public static InputComponentVariable createOptional(
@@ -36,7 +46,7 @@ public class InputComponentVariable extends ComponentVariable {
     InputComponentDataType dataType
   ) {
     return new InputComponentVariable(displayName, identifier, description,
-      displayName, dataType, InputComponentType.OPTIONAL, null);
+      displayName, dataType, InputComponentType.OPTIONAL);
   }
 
   public static InputComponentVariable createOptional(
@@ -44,7 +54,7 @@ public class InputComponentVariable extends ComponentVariable {
     InputComponentDataType dataType
   ) {
     return new InputComponentVariable(displayName, identifier, description,
-      placeholder, dataType, InputComponentType.OPTIONAL, null);
+      placeholder, dataType, InputComponentType.OPTIONAL);
   }
 
   public static InputComponentVariable create(
@@ -52,24 +62,22 @@ public class InputComponentVariable extends ComponentVariable {
     InputComponentDataType dataType, InputComponentType type
   ) {
     return new InputComponentVariable(displayName, identifier, description,
-      placeholder, dataType, type, null);
+      placeholder, dataType, type);
   }
 
   private final String description;
   private final String placeholder;
   private final InputComponentDataType dataType;
   private final InputComponentType type;
-  private final InputComponentSelect select;
 
   protected InputComponentVariable(
     String displayName, String identifier, String description, String placeholder,
-    InputComponentDataType dataType, InputComponentType type, InputComponentSelect select
+    InputComponentDataType dataType, InputComponentType type
   ) {
     super(displayName, identifier);
     this.description = description;
     this.placeholder = placeholder;
     this.dataType = dataType;
     this.type = type;
-    this.select = select;
   }
 }
