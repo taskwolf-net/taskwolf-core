@@ -12,6 +12,7 @@ public enum InputComponentDataType {
   UUID,
   DATE,
   SELECT,
+  DYNAMIC,
   FILE,
   TIME;
 }

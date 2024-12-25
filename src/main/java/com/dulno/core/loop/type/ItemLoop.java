@@ -18,7 +18,6 @@ import com.dulno.core.workflow.component.output.ListOutputComponentVariable;
 import com.dulno.core.workflow.component.output.OutputComponentVariable;
 import com.dulno.core.workflow.operation.OperationDatabaseTable;
 import com.dulno.core.workflow.placeholder.PlaceholderDissolve;
-import com.dulno.core.workflow.step.WorkflowStep;
 import com.dulno.core.workflow.step.WorkflowStepCompound;
 import com.dulno.core.workflow.step.WorkflowStepResult;
 import org.json.JSONArray;
@@ -41,8 +40,9 @@ public final class ItemLoop extends Loop {
         "loopList", "loop.item.input.list.description", InputComponentDataType.TEXT))
       .withInputVariable(InputComponentVariable.createOptional("loop.item.input.limit.name",
         "loopLimit", "loop.item.input.limit.description", InputComponentDataType.TEXT))
-      .withOutputVariable(DynamicOutputComponentVariable.create(input ->
-        findListOutputs(input.currentContent(), input.previousActions(), coreModule)))
+      .withOutputVariable(DynamicOutputComponentVariable.create(
+        (currentContent, previousActions) -> findListOutputs(currentContent,
+          previousActions, coreModule)))
       .withOutputVariable(OutputComponentVariable.create("loop.item.output.index", "loopIndex"))
       .withOutputVariable(OutputComponentVariable.create("loop.item.output.iterations", "loopIterations"))
       .withOutputVariable(OutputComponentVariable.create("loop.item.output.list", "loopList"))

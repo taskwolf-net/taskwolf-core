@@ -3,25 +3,28 @@ package com.dulno.core.workflow.component.input;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 @Getter
 @Accessors(fluent = true)
 public final class DynamicInputComponentVariable extends InputComponentVariable {
   public static DynamicInputComponentVariable create(
-    String requiredPredecessor,
+    String identifier, List<String> requiredPredecessors,
     DynamicInputComponentVariableFunction variableFunction
   ) {
-    return new DynamicInputComponentVariable(requiredPredecessor, variableFunction);
+    return new DynamicInputComponentVariable(identifier, requiredPredecessors,
+      variableFunction);
   }
 
-  private final String requiredPredecessor;
+  private final List<String> requiredPredecessors;
   private final DynamicInputComponentVariableFunction variableFunction;
 
   private DynamicInputComponentVariable(
-    String requiredPredecessor,
+    String identifier, List<String> requiredPredecessors,
     DynamicInputComponentVariableFunction variableFunction
   ) {
-    super("", "", "", "", null, null, null);
-    this.requiredPredecessor = requiredPredecessor;
+    super("", identifier, "", "", InputComponentDataType.DYNAMIC, null);
+    this.requiredPredecessors = requiredPredecessors;
     this.variableFunction = variableFunction;
   }
 }
