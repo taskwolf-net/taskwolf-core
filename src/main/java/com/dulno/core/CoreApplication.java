@@ -1,16 +1,12 @@
 package com.dulno.core;
 
 import com.dulno.core.command.implementation.*;
-import com.dulno.core.condition.ConditionInformationRepository;
 import com.dulno.core.database.DatabaseConnection;
 import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.event.EventExecutor;
 import com.dulno.core.event.HookRegistry;
 import com.dulno.core.intro.Intro;
-import com.dulno.core.loop.LoopInformationRepository;
-import com.dulno.core.loop.type.ItemLoop;
-import com.dulno.core.loop.type.NumberLoop;
-import com.dulno.core.loop.type.TextLoop;
+import com.dulno.core.module.ModuleLoader;
 import com.dulno.core.tutorial.level.bundle.BundleTutorialLevel;
 import com.dulno.core.tutorial.level.organization.OrganizationMembersTutorialLevel;
 import com.dulno.core.tutorial.level.organization.OrganizationTeamsTutorialLevel;
@@ -23,11 +19,6 @@ import com.dulno.core.application.CoreApplicationPostRunEvent;
 import com.dulno.core.application.CoreApplicationPreRunEvent;
 import com.dulno.core.command.CommandRegistry;
 import com.dulno.core.command.CommandTask;
-import com.dulno.core.condition.number.ConditionNumberGreaterThan;
-import com.dulno.core.condition.number.ConditionNumberSmallerThan;
-import com.dulno.core.condition.text.ConditionTextEndsWith;
-import com.dulno.core.condition.text.ConditionTextEquals;
-import com.dulno.core.condition.text.ConditionTextStartsWith;
 import com.dulno.core.database.transformation.DatabaseDiscrepancyHook;
 import com.dulno.core.log.Log;
 import com.dulno.core.maintenance.MaintenanceSchedule;
@@ -73,11 +64,7 @@ public class CoreApplication {
       var distributionConfiguration = injector.getInstance(WorkerConfiguration.class);
       var distribution = injector.getInstance(WorkerDistribution.class);
       distribution.initialize();
-      var coreModule = injector.getInstance(CoreModule.class);
-      coreModule.initialize();
-      registerConditions(injector.getInstance(ConditionInformationRepository.class));
-      registerLoops(injector.getInstance(LoopInformationRepository.class),
-        coreModule);
+      injector.getInstance(ModuleLoader.class).loadModules();
       registerTutorialLevels(injector.getInstance(TutorialLevelRegistry.class));
       var commandRegistry = injector.getInstance(CommandRegistry.class);
       registerCommands(commandRegistry, injector);
@@ -104,22 +91,6 @@ public class CoreApplication {
     registry.register(injector.getInstance(DatabaseDiscrepancyHook.class));
   }
 
-  private static void registerConditions(ConditionInformationRepository repository) {
-    repository.register(ConditionTextEquals.information());
-    repository.register(ConditionTextStartsWith.information());
-    repository.register(ConditionTextEndsWith.information());
-    repository.register(ConditionNumberGreaterThan.information());
-    repository.register(ConditionNumberSmallerThan.information());
-  }
-
-  private static void registerLoops(
-    LoopInformationRepository repository, CoreModule coreModule
-  ) {
-    repository.register(NumberLoop.information());
-    repository.register(ItemLoop.information(coreModule));
-    repository.register(TextLoop.information());
-  }
-
   private static void registerTutorialLevels(TutorialLevelRegistry registry) {
     registry.registerLevel(DashboardTutorialLevel.create());
     registry.registerLevel(WorkflowsTutorialLevel.create());
@@ -143,7 +114,6 @@ public class CoreApplication {
     registry.register(injector.getInstance(ClearCommand.class));
     registry.register(injector.getInstance(HelpCommand.class));
     registry.register(injector.getInstance(UserCommand.class));
-    registry.register(injector.getInstance(BundleCommand.class));
     registry.register(injector.getInstance(ExitCommand.class));
   }
 }

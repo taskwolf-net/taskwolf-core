@@ -15,9 +15,9 @@ public final class ModuleInjectionModule extends AbstractModule {
   @Provides
   @Singleton
   ModuleLoader provideModuleLoader(
-          Log log, WorkerDistribution distribution,
-          @Named("englishLocale") Locale englishLocale,
-          @Named("germanLocale") Locale germanLocale, Injector injector
+    Log log, WorkerDistribution distribution,
+    @Named("englishLocale") Locale englishLocale,
+    @Named("germanLocale") Locale germanLocale, Injector injector
   ) {
     return ModuleLoader.create(log, System.getProperty("user.dir") +
       "/modules/", distribution, englishLocale, germanLocale, injector);

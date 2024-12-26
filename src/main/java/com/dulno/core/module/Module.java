@@ -1,12 +1,10 @@
 package com.dulno.core.module;
 
 import com.dulno.core.account.AccountLink;
-import com.dulno.core.action.ActionRepository;
 import com.dulno.core.command.Command;
 import com.dulno.core.command.CommandRegistry;
 import com.dulno.core.event.Hook;
 import com.dulno.core.event.HookRegistry;
-import com.dulno.core.trigger.TriggerRepository;
 import com.google.inject.Injector;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -46,22 +44,6 @@ public abstract class Module {
    * @return The module information
    */
   public abstract ModuleInformation moduleInformation();
-
-  /**
-   * Is used to store the triggers of the module
-   * @return The trigger repository
-   */
-  public TriggerRepository triggerRepository() {
-    return TriggerRepository.create();
-  }
-
-  /**
-   * Is used to store the actions of the module
-   * @return The action repository
-   */
-  public ActionRepository actionRepository() {
-    return ActionRepository.create();
-  }
 
   /**
    * Can be called to register a new dulno command line command

@@ -1,9 +1,7 @@
 package com.dulno.core.module;
 
-import com.dulno.core.action.Action;
 import com.dulno.core.locale.Locale;
 import com.dulno.core.log.Log;
-import com.dulno.core.trigger.Trigger;
 import com.dulno.core.worker.WorkerDistribution;
 import com.google.common.collect.Lists;
 import com.google.inject.Injector;
@@ -27,8 +25,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ModuleLoader {
   public static ModuleLoader create(
-          Log log, String directory, WorkerDistribution distribution,
-          com.dulno.core.locale.Locale englishLocale, com.dulno.core.locale.Locale germanLocale, Injector injector
+    Log log, String directory, WorkerDistribution distribution,
+    com.dulno.core.locale.Locale englishLocale, com.dulno.core.locale.Locale germanLocale, Injector injector
   ) {
     var jars = findJarsInDirectory(directory);
     var urls = jars.stream().map(ModuleLoader::findFileUrl).toArray(URL[]::new);
@@ -75,8 +73,6 @@ public final class ModuleLoader {
     for (var module : modules) {
       log.info("Start loading module " + module.name());
       module.module().enable();
-      module.module().triggerRepository().allTriggers().forEach(Trigger::initialize);
-      module.module().actionRepository().allActions().forEach(Action::initialize);
       applyModuleLocales(module.name());
       log.info("Successfully loaded module " + module.name());
     }
@@ -217,6 +213,19 @@ public final class ModuleLoader {
     return Arrays.stream(suspect.getAnnotations())
       .filter(annotation -> annotation.annotationType()
         .equals(ModuleDescription.class)).findFirst();
+  }
+
+  /**
+   * Is used to find module information
+   * @param moduleName The name of the module
+   * @return The information of the module
+   */
+  public Optional<ModuleInformation> findModuleInformation(String moduleName) {
+    var moduleOptional = findRegisteredModuleById(moduleName);
+    if (moduleOptional.isEmpty()) {
+      return Optional.empty();
+    }
+    return moduleOptional.map(RegisteredModule::module).map(Module::moduleInformation);
   }
 
   /**
