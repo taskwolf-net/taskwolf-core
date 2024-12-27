@@ -26,7 +26,9 @@ public final class ExitCommand extends Command {
     log().info("Ending Dulno - Core");
     distribution.disconnect();
     for (var module : moduleLoader.allRegisteredModules()) {
+      module.module().preDisable();
       module.module().disable();
+      module.module().postDisable();
     }
     System.exit(0);
     return true;

@@ -18,6 +18,13 @@ public abstract class Module {
   private final Injector injector;
 
   /**
+   * Is called before the enable function is called
+   * @throws Exception
+   */
+  public void preEnable() throws Exception {
+  }
+
+  /**
    * Is called up when the module is to be loaded.
    * Used to initialize the module.
    * @throws Exception
@@ -25,11 +32,32 @@ public abstract class Module {
   public abstract void enable() throws Exception;
 
   /**
+   * Is called after the enable function is called
+   * @throws Exception
+   */
+  public void postEnable() throws Exception {
+  }
+
+  /**
+   * Is called before the disable function is called
+   * @throws Exception
+   */
+  public void preDisable() throws Exception {
+  }
+
+  /**
    * Is called up when a module is to be unloaded.
    * It is intended to reset the status of the module and release used resources
    * @throws Exception
    */
   public abstract void disable() throws Exception;
+
+  /**
+   * Is called after the disable function is called
+   * @throws Exception
+   */
+  public void postDisable() throws Exception {
+  }
 
   /**
    * Is there to manage the accounts of the module

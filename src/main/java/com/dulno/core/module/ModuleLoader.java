@@ -72,7 +72,9 @@ public final class ModuleLoader {
     Collections.reverse(modules);
     for (var module : modules) {
       log.info("Start loading module " + module.name());
+      module.module().preEnable();
       module.module().enable();
+      module.module().postEnable();
       applyModuleLocales(module.name());
       log.info("Successfully loaded module " + module.name());
     }
