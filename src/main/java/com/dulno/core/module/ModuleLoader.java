@@ -4,6 +4,7 @@ import com.dulno.core.locale.Locale;
 import com.dulno.core.log.Log;
 import com.dulno.core.worker.WorkerDistribution;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 public final class ModuleLoader {
   public static ModuleLoader create(
     Log log, String directory, WorkerDistribution distribution,
-    com.dulno.core.locale.Locale englishLocale, com.dulno.core.locale.Locale germanLocale, Injector injector
+    Locale englishLocale, Locale germanLocale, Injector injector
   ) {
     var jars = findJarsInDirectory(directory);
     var urls = jars.stream().map(ModuleLoader::findFileUrl).toArray(URL[]::new);
@@ -56,8 +57,8 @@ public final class ModuleLoader {
   private final ClassLoader classLoader;
   private final List<RegisteredModule> modules = Lists.newArrayList();
   private final WorkerDistribution distribution;
-  private final com.dulno.core.locale.Locale englishLocale;
-  private final com.dulno.core.locale.Locale germanLocale;
+  private final Locale englishLocale;
+  private final Locale germanLocale;
   private Injector injector;
 
   /**
@@ -65,10 +66,9 @@ public final class ModuleLoader {
    * @throws Exception
    */
   public void loadModules() throws Exception {
-    for (var moduleFile : jars) {
-      loadModule(moduleFile, classLoader);
+    for (var moduleClass : findAllModuleClasses()) {
+      modules.add(createRegisteredModule(moduleClass));
     }
-    modules.sort(Comparator.comparingInt(module -> module.priority().value()));
     Collections.reverse(modules);
     for (var module : modules) {
       log.info("Start loading module " + module.name());
@@ -83,49 +83,69 @@ public final class ModuleLoader {
   }
 
   /**
-   * Is used to load specific module
-   * @param file The file of the module
-   * @param classLoader The class loader that is use to load the module
+   * Is used to collected and sort the module classes of all jar files
+   * @return The module classes
    * @throws Exception
    */
-  private void loadModule(
+  private List<Class<?>> findAllModuleClasses() throws Exception {
+    var moduleClassPriorities = Maps.<Class<?>, ModuleLoadPriority>newHashMap();
+    for (var moduleFile : jars) {
+      for (var moduleClass : findJarModuleClasses(moduleFile, classLoader)) {
+        ModuleLoadPriority priority = findAnnotationField(
+          findModuleAnnotation(moduleClass).get(), "priority");
+        moduleClassPriorities.put(moduleClass, priority);
+      }
+    }
+    List<Class<?>> moduleClasses = moduleClassPriorities.entrySet().stream()
+      .sorted(Comparator.comparingInt(entry -> entry.getValue().value()))
+      .map(Map.Entry::getKey)
+      .collect(Collectors.toList());
+    Collections.reverse(moduleClasses);
+    return moduleClasses;
+  }
+
+  /**
+   * Is used to find the module classes of a single jar file
+   * @param file The jar file
+   * @param classLoader The class loader that should be used
+   * @return The module classes of the jar
+   * @throws Exception
+   */
+  private List<Class<?>> findJarModuleClasses(
     File file, ClassLoader classLoader
   ) throws Exception {
     var jarFile = new JarFile(file);
     var entries = jarFile.entries();
-    var newModules = Lists.<RegisteredModule>newArrayList();
+    var moduleClasses = Lists.<Class<?>>newArrayList();
     while (entries.hasMoreElements()) {
       var entry = entries.nextElement();
       var optionalModuleClass = findModuleClass(entry, classLoader);
       if (optionalModuleClass.isEmpty()) {
         continue;
       }
-      var registeredModule = createRegisteredModule(optionalModuleClass.get(), file);
-      newModules.add(registeredModule);
+      moduleClasses.add(optionalModuleClass.get());
     }
-    if (newModules.isEmpty()) {
+    if (moduleClasses.isEmpty()) {
       log.log(Level.SEVERE, "Could not find module class for " + file.getName());
-      return;
     }
-    modules.addAll(newModules);
+    return moduleClasses;
   }
 
   /**
    * Creates a new registered module
    * @param moduleClass The class of the module
-   * @param file The file where the module can be found
    * @return The new registered module
    * @throws Exception
    */
   private RegisteredModule createRegisteredModule(
-    Class<?> moduleClass, File file
+    Class<?> moduleClass
   ) throws Exception {
     var module = createModule(moduleClass);
     injector = module.injector();
     var annotation = findModuleAnnotation(moduleClass).get();
     return RegisteredModule.create(module, findAnnotationField(annotation, "name"),
       findAnnotationField(annotation, "version"),
-      findAnnotationField(annotation, "priority"), file);
+      findAnnotationField(annotation, "priority"));
   }
 
   /**
