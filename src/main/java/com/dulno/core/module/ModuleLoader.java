@@ -6,8 +6,8 @@ import com.dulno.core.worker.WorkerDistribution;
 import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.File;
@@ -22,7 +22,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 @Accessors(fluent = true)
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ModuleLoader {
   public static ModuleLoader create(
     Log log, String directory, WorkerDistribution distribution,
@@ -58,7 +58,7 @@ public final class ModuleLoader {
   private final WorkerDistribution distribution;
   private final com.dulno.core.locale.Locale englishLocale;
   private final com.dulno.core.locale.Locale germanLocale;
-  private final Injector injector;
+  private Injector injector;
 
   /**
    * Loads all modules that are contained in the module folder
@@ -121,6 +121,7 @@ public final class ModuleLoader {
     Class<?> moduleClass, File file
   ) throws Exception {
     var module = createModule(moduleClass);
+    injector = module.injector();
     var annotation = findModuleAnnotation(moduleClass).get();
     return RegisteredModule.create(module, findAnnotationField(annotation, "name"),
       findAnnotationField(annotation, "version"),
