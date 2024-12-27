@@ -167,7 +167,7 @@ public final class ModuleLoader {
     if (suspect.getSuperclass() == null) {
       return false;
     }
-    return suspect.getSuperclass().equals(Module.class);
+    return Module.class.isAssignableFrom(suspect.getSuperclass());
   }
 
   private void applyModuleLocales(String module) throws Exception {
