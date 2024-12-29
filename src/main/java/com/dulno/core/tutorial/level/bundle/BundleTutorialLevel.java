@@ -11,7 +11,7 @@ import java.util.List;
 public final class BundleTutorialLevel implements TutorialLevel {
   @Override
   public String page() {
-    return "/package/";
+    return "/package/general/";
   }
 
   @Override

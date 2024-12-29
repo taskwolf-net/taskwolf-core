@@ -22,12 +22,12 @@ public final class ProcessTutorialLevel implements TutorialLevel {
     steps.add(TutorialStep.create("tutorial.process.step.2.title",
       "tutorial.process.step.2.description", "", "bottom-end", false));
     steps.add(TutorialStep.create("tutorial.process.step.3.title",
-      "tutorial.process.step.2.description", "", "bottom-end", false));
+      "tutorial.process.step.3.description", "", "bottom-end", false));
     steps.add(TutorialStep.create("tutorial.process.step.4.title",
-      "tutorial.process.step.2.description", "#process-run-wrapper",
+      "tutorial.process.step.4.description", "#process-run-wrapper",
       "bottom-end", false));
     steps.add(TutorialStep.create("tutorial.process.step.5.title",
-      "tutorial.process.step.2.description", "#process-publish",
+      "tutorial.process.step.5.description", "#process-publish",
       "bottom-end", false));
     return steps;
   }
