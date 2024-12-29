@@ -69,7 +69,6 @@ public final class ModuleLoader {
     for (var moduleClass : findAllModuleClasses()) {
       modules.add(createRegisteredModule(moduleClass));
     }
-    Collections.reverse(modules);
     for (var module : modules) {
       log.info("Start loading module " + module.name());
       module.module().preEnable();
