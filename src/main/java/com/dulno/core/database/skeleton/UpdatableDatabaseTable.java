@@ -3,9 +3,7 @@ package com.dulno.core.database.skeleton;
 import com.dulno.core.database.DatabaseRow;
 import com.dulno.core.database.condition.DatabaseCondition;
 
-import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
 
 public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
   TransformableDatabaseTable
@@ -61,14 +59,15 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
 
   private String buildUpdateChange() {
     var pairs = new StringBuilder();
-    for (var i = 0; i < columns().size(); i++) {
-      var column = columns().get(i);
+    var columns = columns();
+    for (var i = 0; i < columns.size(); i++) {
+      var column = columns.get(i);
       if (!column.type().isRegular()) {
         continue;
       }
       pairs.append(column.name());
       pairs.append(" = ?");
-      if (i < columns().size() - 1) {
+      if (i < columns.size() - 1) {
         pairs.append(", ");
       }
     }
@@ -105,8 +104,9 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
 
   private String buildUpdateCounterChange(DatabaseRow row) {
     var pairs = new StringBuilder();
-    for (var i = 0; i < columns().size(); i++) {
-      var column = columns().get(i);
+    var columns = columns();
+    for (var i = 0; i < columns.size(); i++) {
+      var column = columns.get(i);
       if (!column.type().isRegular()) {
         continue;
       }
@@ -116,7 +116,7 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
       var value = row.findCell(i).longValue();
       pairs.append(value >= 0 ? " + " : " - ");
       pairs.append("?");
-      if (i < columns().size() - 1) {
+      if (i < columns.size() - 1) {
         pairs.append(", ");
       }
     }
@@ -179,10 +179,27 @@ public interface UpdatableDatabaseTable extends AbstractDatabaseTable,
     }
     query.append(condition.filteringAddition());
     query.append(";");
-    var conditionValues = condition.values();
-    return connection().execute(query,
-        Stream.concat(Arrays.stream(row.values()), Arrays.stream(conditionValues))
-          .skip(conditionValues.length).toArray(Object[]::new))
+    return connection().execute(query, buildUpdateValues(condition, row))
       .thenApply(value -> null);
+  }
+
+  private Object[] buildUpdateValues(DatabaseCondition condition, DatabaseRow row) {
+    var columns = columns();
+    var values = new Object[columns.size()];
+    var valueIndex = 0;
+    var comparisons = condition.comparisons();
+    for (var i = 0; i < columns.size(); i++) {
+      var column = columns.get(i).name();
+      if (comparisons.stream().anyMatch(entry -> entry.column().equals(column))) {
+        continue;
+      }
+      values[valueIndex] = row.values()[i];
+      valueIndex++;
+    }
+    for (var comparison : comparisons) {
+      values[valueIndex] = comparison.value();
+      valueIndex++;
+    }
+    return values;
   }
 }
