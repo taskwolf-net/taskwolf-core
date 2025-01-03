@@ -1,24 +1,36 @@
 package com.dulno.core.sale;
 
+import com.dulno.core.database.DatabaseColumn;
+import com.dulno.core.database.DatabaseTable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import com.dulno.core.database.DatabaseRow;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
 @Accessors(fluent = true)
 @AllArgsConstructor(staticName = "create")
 public final class Sale {
-  public static Sale of(DatabaseRow row) {
-    return create(row.findCell(0).uuidValue(), row.findCell(1).stringValue(),
-      row.findCell(2).stringValue(), row.findCell(3).stringValue(),
-      row.findCell(4).stringValue(), row.findCell(5).stringValue(),
-      row.findCell(6).stringValue(), row.findCell(7).stringValue(),
-      row.findCell(8).stringValue(), row.findCell(9).stringValue(),
-      Status.valueOf(row.findCell(10).stringValue()),
-      row.findCell(11).longValue());
+  public static Sale of(DatabaseRow row, DatabaseTable table) {
+    return of(row, table.columns().stream().map(DatabaseColumn::name).toList());
+  }
+
+  public static Sale of(DatabaseRow row, List<String> columns) {
+    return create(row.findCell(columns.indexOf("id")).uuidValue(),
+      row.findCell(columns.indexOf("sender")).stringValue(),
+      row.findCell(columns.indexOf("firstName")).stringValue(),
+      row.findCell(columns.indexOf("lastName")).stringValue(),
+      row.findCell(columns.indexOf("phoneNumber")).stringValue(),
+      row.findCell(columns.indexOf("country")).stringValue(),
+      row.findCell(columns.indexOf("companyName")).stringValue(),
+      row.findCell(columns.indexOf("companySize")).stringValue(),
+      row.findCell(columns.indexOf("companyRole")).stringValue(),
+      row.findCell(columns.indexOf("title")).stringValue(),
+      Status.valueOf(row.findCell(columns.indexOf("status")).stringValue()),
+      row.findCell(columns.indexOf("expirationTime")).longValue());
   }
 
   public enum Status {

@@ -9,7 +9,6 @@ import com.dulno.core.database.condition.DatabaseCondition;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public final class QuestionDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "question";
@@ -27,12 +26,12 @@ public final class QuestionDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT));
     var table = new QuestionDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
-    table.createIndexIfNotExists("sender");
     table.createIndexIfNotExists("status");
     table.initializeViews();
     return table;
   }
 
+  private DatabaseTable senderView;
   private DatabaseTable statusExpirationView;
 
   private QuestionDatabaseTable(
@@ -43,6 +42,8 @@ public final class QuestionDatabaseTable extends DatabaseTable {
   }
 
   private void initializeViews() {
+    senderView = createMaterializedViewIfNotExists("sender_view", "sender",
+      DatabaseColumn.Type.PARTITION_KEY);
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT,
       DatabaseColumn.Type.PARTITION_KEY));
@@ -130,17 +131,19 @@ public final class QuestionDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Question> findQuestion(UUID id) {
-    return selectRow(DatabaseCondition.of("id", id)).thenApply(Question::of);
+    return selectRow(DatabaseCondition.of("id", id))
+      .thenApply(row -> Question.of(row, this));
   }
 
   public CompletableFuture<List<Question>> findQuestionsBySender(String sender) {
-    return selectRows(DatabaseCondition.of("sender", sender))
-      .thenApply(rows -> rows.stream().map(Question::of).toList());
+    return senderView.selectRows(DatabaseCondition.of("sender", sender))
+      .thenApply(rows -> rows.stream().map(row -> Question.of(row, senderView))
+        .toList());
   }
 
   public CompletableFuture<List<Question>> findOpenQuestions() {
     return selectRows(DatabaseCondition.of("status", Question.Status.OPEN.toString()))
-      .thenApply(rows -> rows.stream().map(Question::of).collect(Collectors.toList()));
+      .thenApply(rows -> rows.stream().map(row -> Question.of(row, this)).toList());
   }
 
   public CompletableFuture<Long> countPendingQuestions() {

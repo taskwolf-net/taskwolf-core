@@ -1,21 +1,29 @@
 package com.dulno.core.question;
 
+import com.dulno.core.database.DatabaseColumn;
+import com.dulno.core.database.DatabaseTable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import com.dulno.core.database.DatabaseRow;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
 @Accessors(fluent = true)
 @AllArgsConstructor(staticName = "create")
 public final class Question {
-  public static Question of(DatabaseRow row) {
-    return create(row.findCell(0).uuidValue(), row.findCell(1).stringValue(),
-      row.findCell(2).stringValue(),
-      Status.valueOf(row.findCell(3).stringValue()),
-      row.findCell(4).longValue());
+  public static Question of(DatabaseRow row, DatabaseTable table) {
+    return of(row, table.columns().stream().map(DatabaseColumn::name).toList());
+  }
+
+  public static Question of(DatabaseRow row, List<String> columns) {
+    return create(row.findCell(columns.indexOf("id")).uuidValue(),
+      row.findCell(columns.indexOf("sender")).stringValue(),
+      row.findCell(columns.indexOf("title")).stringValue(),
+      Status.valueOf(row.findCell(columns.indexOf("status")).stringValue()),
+      row.findCell(columns.indexOf("expirationTime")).longValue());
   }
 
   public enum Status {

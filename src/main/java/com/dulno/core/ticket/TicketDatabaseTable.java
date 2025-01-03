@@ -33,7 +33,6 @@ public final class TicketDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("lastMessageSeen", DatabaseDataType.BOOLEAN));
     var table = new TicketDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
-    table.createIndexIfNotExists("id");
     table.createIndexIfNotExists("status");
     table.createIndexIfNotExists("lastMessageSeen");
     table.createIndexIfNotExists("title",
@@ -45,6 +44,7 @@ public final class TicketDatabaseTable extends DatabaseTable {
     return table;
   }
 
+  private DatabaseTable idView;
   private DatabaseTable titleView;
   private DatabaseTable typeView;
   private DatabaseTable statusView;
@@ -58,6 +58,8 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   private void initializeViews() {
+    idView = createMaterializedViewIfNotExists("id_view", "id",
+      DatabaseColumn.Type.PARTITION_KEY);
     titleView = createMaterializedViewIfNotExists("title_view", "title");
     typeView = createMaterializedViewIfNotExists("type_view", "type");
     statusView = createMaterializedViewIfNotExists("status_view", "status");
@@ -74,75 +76,84 @@ public final class TicketDatabaseTable extends DatabaseTable {
       "status_expiration_view", columns);
   }
 
-  public void insertTicket(Ticket ticket) {
-    insertTicket(ticket.id(), ticket.creator(), ticket.title(),
+  public CompletableFuture<Void> insertTicket(Ticket ticket) {
+    return insertTicket(ticket.id(), ticket.creator(), ticket.title(),
       ticket.type().toString(), ticket.status().toString(),
       ticket.expirationTime(), ticket.messages(), ticket.lastMessageSeen());
   }
 
-  public void insertTicket(
+  public CompletableFuture<Void> insertTicket(
     UUID id, UUID creator, String title, String type, String status,
     long expirationTime, List<UUID> messageIds, boolean lastMessageSeen
   ) {
-    insert(DatabaseRow.of(creator, id, title, type, status, expirationTime,
+    return insert(DatabaseRow.of(creator, id, title, type, status, expirationTime,
       messageIds, lastMessageSeen));
   }
 
-  public void addTicketMessage(UUID ticketId, UUID messageId) {
-    findTicket(ticketId).thenAccept(ticket ->
+  public CompletableFuture<Void> addTicketMessage(UUID ticketId, UUID messageId) {
+    return findTicket(ticketId).thenCompose(ticket ->
       addTicketMessage(ticket, messageId));
   }
 
-  private void addTicketMessage(Ticket ticket, UUID messageId) {
+  private CompletableFuture<Void> addTicketMessage(Ticket ticket, UUID messageId) {
     ticket.addMessage(messageId);
-    updateTicket(ticket);
+    return updateTicket(ticket);
   }
 
-  public void removeTicketMessage(UUID ticketId, UUID messageId) {
-    findTicket(ticketId).thenAccept(ticket ->
+  public CompletableFuture<Void> removeTicketMessage(UUID ticketId, UUID messageId) {
+    return findTicket(ticketId).thenCompose(ticket ->
       removeTicketMessage(ticket, messageId));
   }
 
-  private void removeTicketMessage(Ticket ticket, UUID messageId) {
+  private CompletableFuture<Void> removeTicketMessage(Ticket ticket, UUID messageId) {
     ticket.removeMessage(messageId);
-    updateTicket(ticket);
+    return updateTicket(ticket);
   }
 
-  public void updateTicketStatus(UUID ticketId, Ticket.Status title) {
-    findTicket(ticketId).thenAccept(ticket ->
+  public CompletableFuture<Void> updateTicketStatus(
+    UUID ticketId, Ticket.Status title
+  ) {
+    return findTicket(ticketId).thenCompose(ticket ->
       updateTicketStatus(ticket, title));
   }
 
-  private void updateTicketStatus(Ticket ticket, Ticket.Status title) {
+  private CompletableFuture<Void> updateTicketStatus(
+    Ticket ticket, Ticket.Status title
+  ) {
     ticket.updateStatus(title);
-    updateTicket(ticket);
+    return updateTicket(ticket);
   }
 
-  public void renameTicket(UUID ticketId, String title) {
-    findTicket(ticketId).thenAccept(ticket ->
+  public CompletableFuture<Void> renameTicket(UUID ticketId, String title) {
+    return findTicket(ticketId).thenCompose(ticket ->
       renameTicket(ticket, title));
   }
 
-  private void renameTicket(Ticket ticket, String title) {
+  private CompletableFuture<Void> renameTicket(Ticket ticket, String title) {
     ticket.rename(title);
-    updateTicket(ticket);
+    return updateTicket(ticket);
   }
 
-  public void updateTicketLastMessageSeen(UUID ticketId, boolean lastMessageSeen) {
-    findTicket(ticketId).thenAccept(ticket ->
+  public CompletableFuture<Void> updateTicketLastMessageSeen(
+    UUID ticketId, boolean lastMessageSeen
+  ) {
+    return findTicket(ticketId).thenCompose(ticket ->
       updateTicketLastMessageSeen(ticket, lastMessageSeen));
   }
 
-  private void updateTicketLastMessageSeen(Ticket ticket, boolean lastMessageSeen) {
+  private CompletableFuture<Void> updateTicketLastMessageSeen(
+    Ticket ticket, boolean lastMessageSeen
+  ) {
     ticket.updateLastMessageSeen(lastMessageSeen);
-    updateTicket(ticket);
+    return updateTicket(ticket);
   }
 
-  public void updateTicket(Ticket ticket) {
-    update(DatabaseCondition.of("creator", ticket.creator(), "id", ticket.id()),
-      DatabaseRow.of(ticket.creator(), ticket.id(), ticket.title(),
-        ticket.type().toString(), ticket.status().toString(),
-        ticket.expirationTime(), ticket.messages(), ticket.lastMessageSeen()));
+  private CompletableFuture<Void> updateTicket(Ticket ticket) {
+    var condition = DatabaseCondition.of("creator", ticket.creator(),
+      "id", ticket.id(), "expirationTime", ticket.expirationTime());
+    return update(condition, DatabaseRow.of(ticket.creator(), ticket.id(),
+      ticket.title(), ticket.type().toString(), ticket.status().toString(),
+      ticket.expirationTime(), ticket.messages(), ticket.lastMessageSeen()));
   }
 
   public CompletableFuture<UUID> generateAvailableTicketId() {
@@ -155,17 +166,18 @@ public final class TicketDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Boolean> ticketExists(UUID ticketId) {
-    return exists(DatabaseCondition.of("id", ticketId));
+    return idView.exists(DatabaseCondition.of("id", ticketId));
   }
 
-  public void deleteTicket(UUID ticketId) {
-    findTicket(ticketId).thenAccept(ticket ->
-      delete(DatabaseCondition.of("creator", ticket.creator(), "id", ticket.id())));
+  public CompletableFuture<Void> deleteTicket(UUID ticketId) {
+    return findTicket(ticketId).thenCompose(ticket ->
+      delete(DatabaseCondition.of("creator", ticket.creator(), "id", ticket.id(),
+        "expirationTime", ticket.expirationTime())));
   }
 
   public CompletableFuture<Ticket> findTicket(UUID ticketId) {
-    return selectRow(DatabaseCondition.of("id", ticketId))
-      .thenApply(row -> Ticket.of(row, this));
+    return idView.selectRow(DatabaseCondition.of("id", ticketId))
+      .thenApply(row -> Ticket.of(row, idView));
   }
 
   private static final int PAGE_SIZE = 5;

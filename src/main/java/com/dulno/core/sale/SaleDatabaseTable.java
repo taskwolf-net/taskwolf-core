@@ -10,7 +10,6 @@ import com.dulno.core.database.condition.DatabaseCondition;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public final class SaleDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "sale";
@@ -35,11 +34,13 @@ public final class SaleDatabaseTable extends DatabaseTable {
     columns.add(DatabaseColumn.create("expirationTime", DatabaseDataType.BIGINT));
     var table = new SaleDatabaseTable(connection, keyspace, TABLE_NAME, columns);
     table.createIfNotExists();
-    table.createIndexIfNotExists("sender");
     table.createIndexIfNotExists("status");
     table.initializeViews();
     return table;
   }
+
+  private DatabaseTable senderView;
+  private DatabaseTable statusExpirationView;
 
   private SaleDatabaseTable(
     DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
@@ -48,9 +49,9 @@ public final class SaleDatabaseTable extends DatabaseTable {
     super(connection, keyspace, name, columns);
   }
 
-  private DatabaseTable statusExpirationView;
-
   private void initializeViews() {
+    senderView = createMaterializedViewIfNotExists("sender_view", "sender",
+      DatabaseColumn.Type.PARTITION_KEY);
     var columns = Lists.<DatabaseColumn>newArrayList();
     columns.add(DatabaseColumn.create("status", DatabaseDataType.TEXT,
       DatabaseColumn.Type.PARTITION_KEY));
@@ -141,17 +142,18 @@ public final class SaleDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Sale> findSale(UUID id) {
-    return selectRow(DatabaseCondition.of("id", id)).thenApply(Sale::of);
+    return selectRow(DatabaseCondition.of("id", id))
+      .thenApply(row -> Sale.of(row, this));
   }
 
   public CompletableFuture<List<Sale>> findSalesBySender(String sender) {
-    return selectRows(DatabaseCondition.of("sender", sender))
-      .thenApply(rows -> rows.stream().map(Sale::of).toList());
+    return senderView.selectRows(DatabaseCondition.of("sender", sender))
+      .thenApply(rows -> rows.stream().map(row -> Sale.of(row, senderView)).toList());
   }
 
   public CompletableFuture<List<Sale>> findOpenSales() {
     return selectRows(DatabaseCondition.of("status", Question.Status.OPEN.toString()))
-      .thenApply(rows -> rows.stream().map(Sale::of).collect(Collectors.toList()));
+      .thenApply(rows -> rows.stream().map(row -> Sale.of(row, this)).toList());
   }
 
   public CompletableFuture<Long> countPendingSales() {
