@@ -10,6 +10,7 @@ import com.dulno.core.database.condition.DatabaseCondition;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public final class SaleDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "sale";
@@ -89,7 +90,8 @@ public final class SaleDatabaseTable extends DatabaseTable {
 
   private CompletableFuture<Void> updateSaleStatus(Sale sale, Sale.Status status) {
     sale.updateStatus(status);
-    return updateSale(sale);
+    return deleteSale(sale.id())
+      .thenCompose(value -> insertSale(sale));
   }
 
   public CompletableFuture<Void> resetSaleExpirationTime(UUID id) {
@@ -117,7 +119,8 @@ public final class SaleDatabaseTable extends DatabaseTable {
   }
 
   public CompletableFuture<Void> updateSale(Sale sale) {
-    var condition = DatabaseCondition.of("id", sale.id(), "status", sale.status());
+    var condition = DatabaseCondition.of("id", sale.id(),
+      "status", sale.status().toString());
     return update(condition, DatabaseRow.of(sale.id(), sale.sender(),
       sale.firstName(), sale.lastName(), sale.phoneNumber(), sale.country(),
       sale.companyName(), sale.companySize(), sale.companyRole(), sale.title(),
@@ -148,12 +151,14 @@ public final class SaleDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<List<Sale>> findSalesBySender(String sender) {
     return senderView.selectRows(DatabaseCondition.of("sender", sender))
-      .thenApply(rows -> rows.stream().map(row -> Sale.of(row, senderView)).toList());
+      .thenApply(rows -> rows.stream().map(row -> Sale.of(row, senderView))
+        .collect(Collectors.toList()));
   }
 
   public CompletableFuture<List<Sale>> findOpenSales() {
     return selectRows(DatabaseCondition.of("status", Question.Status.OPEN.toString()))
-      .thenApply(rows -> rows.stream().map(row -> Sale.of(row, this)).toList());
+      .thenApply(rows -> rows.stream().map(row -> Sale.of(row, this))
+        .collect(Collectors.toList()));
   }
 
   public CompletableFuture<Long> countPendingSales() {

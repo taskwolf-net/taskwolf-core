@@ -9,6 +9,7 @@ import com.dulno.core.database.condition.DatabaseCondition;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public final class QuestionDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "question";
@@ -79,7 +80,8 @@ public final class QuestionDatabaseTable extends DatabaseTable {
     Question question, Question.Status status
   ) {
     question.updateStatus(status);
-    return updateQuestion(question);
+    return deleteQuestion(question.id())
+      .thenCompose(value -> insertQuestion(question));
   }
 
   public CompletableFuture<Void> resetQuestionExpirationTime(UUID id) {
@@ -108,7 +110,7 @@ public final class QuestionDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<Void> updateQuestion(Question question) {
     var condition = DatabaseCondition.of("id", question.id(), "status",
-      question.status());
+      question.status().toString());
     return update(condition, DatabaseRow.of(question.id(), question.sender(),
       question.title(), question.status().toString(), question.expirationTime()));
   }
@@ -138,12 +140,13 @@ public final class QuestionDatabaseTable extends DatabaseTable {
   public CompletableFuture<List<Question>> findQuestionsBySender(String sender) {
     return senderView.selectRows(DatabaseCondition.of("sender", sender))
       .thenApply(rows -> rows.stream().map(row -> Question.of(row, senderView))
-        .toList());
+        .collect(Collectors.toList()));
   }
 
   public CompletableFuture<List<Question>> findOpenQuestions() {
     return selectRows(DatabaseCondition.of("status", Question.Status.OPEN.toString()))
-      .thenApply(rows -> rows.stream().map(row -> Question.of(row, this)).toList());
+      .thenApply(rows -> rows.stream().map(row -> Question.of(row, this))
+        .collect(Collectors.toList()));
   }
 
   public CompletableFuture<Long> countPendingQuestions() {

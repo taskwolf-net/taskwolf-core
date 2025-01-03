@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public final class TicketDatabaseTable extends DatabaseTable {
   private static final String TABLE_NAME = "ticket";
@@ -268,7 +269,8 @@ public final class TicketDatabaseTable extends DatabaseTable {
 
   public CompletableFuture<List<Ticket>> findOpenTickets() {
     return selectRows(DatabaseCondition.of("status", Question.Status.OPEN.toString()))
-      .thenApply(rows -> rows.stream().map(row -> Ticket.of(row, this)).toList());
+      .thenApply(rows -> rows.stream().map(row -> Ticket.of(row, this))
+        .collect(Collectors.toList()));
   }
 
   public CompletableFuture<Long> countPendingTickets() {
