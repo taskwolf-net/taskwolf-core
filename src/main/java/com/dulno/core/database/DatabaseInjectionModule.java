@@ -28,7 +28,7 @@ public final class DatabaseInjectionModule extends AbstractModule {
   @Singleton
   DatabaseKeyspace provideDatabaseKeyspace(DatabaseConnection connection) {
     var databaseKeyspace = DatabaseKeyspace.create(connection, "dulno",
-      "SimpleStrategy", 1);
+      "SimpleStrategy", 2);
     databaseKeyspace.createIfNotExists().join();
     databaseKeyspace.use();
     return databaseKeyspace;
