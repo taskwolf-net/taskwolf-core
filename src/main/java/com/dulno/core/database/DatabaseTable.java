@@ -12,10 +12,12 @@ import java.util.concurrent.CompletableFuture;
 
 @Accessors(fluent = true)
 public class DatabaseTable implements CreatableDatabaseTable,
-        DroppableDatabaseTable, InsertableDatabaseTable, DeletableDatabaseTable,
-        ExistableDatabaseTable, SelectableDatabaseTable, UpdatableDatabaseTable,
+  DroppableDatabaseTable, InsertableDatabaseTable, DeletableDatabaseTable,
+  ExistableDatabaseTable, SelectableDatabaseTable, UpdatableDatabaseTable,
   CountableDatabaseTable, IndexableDatabaseTable, PageableDatabaseTable,
-  ViewableDatabaseTable, TransformableDatabaseTable, AbstractDatabaseTable {
+  ViewableDatabaseTable, TransformableDatabaseTable, AbstractDatabaseTable,
+  TruncatableDatabaseTable
+{
   private final DatabaseConnection connection;
   private final DatabaseKeyspace keyspace;
   private final String name;
