@@ -112,6 +112,19 @@ public final class DulnoRequestBody {
   }
 
   /**
+   * Is used to get a {@link Object} from request body
+   * @param key The key to find the content
+   * @return The value behind the key
+   */
+  public Object getAny(String key) {
+    if (!body.has(key)) {
+      failure();
+      return false;
+    }
+    return body.get(key);
+  }
+
+  /**
    * Is used to get a sub object from request body
    * @param key The key to find the content
    * @return The value behind the key
