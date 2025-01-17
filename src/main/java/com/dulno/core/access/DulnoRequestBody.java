@@ -119,7 +119,7 @@ public final class DulnoRequestBody {
   public Object getAny(String key) {
     if (!body.has(key)) {
       failure();
-      return false;
+      return null;
     }
     return body.get(key);
   }
