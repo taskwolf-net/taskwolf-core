@@ -1,14 +1,10 @@
 package com.dulno.core.bundle;
 
 public enum BundleRuntime {
-  WEEKLY,
   MONTHLY,
   YEARLY,
+  INFINITE,
   UNBOUND;
-
-  public boolean isWeekly() {
-    return this == WEEKLY;
-  }
 
   public boolean isMonthly() {
     return this == MONTHLY;
@@ -16,6 +12,10 @@ public enum BundleRuntime {
 
   public boolean isYearly() {
     return this == YEARLY;
+  }
+
+  public boolean isInfinite() {
+    return this == INFINITE;
   }
 
   public boolean isUnbound() {

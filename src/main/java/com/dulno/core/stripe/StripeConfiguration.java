@@ -73,7 +73,7 @@ public final class StripeConfiguration extends Configuration {
     var runtimeString = switch(bundleRuntime) {
       case MONTHLY -> "Monthly";
       case YEARLY -> "Yearly";
-      case WEEKLY, UNBOUND -> "";
+      case INFINITE, UNBOUND -> "";
     };
     priceIds.put(bundleType.toString() + "-" + bundleClass.toString() + "-" +
         bundleRuntime.toString(),

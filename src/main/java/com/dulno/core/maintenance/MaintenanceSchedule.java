@@ -24,7 +24,7 @@ public final class MaintenanceSchedule {
   private ScheduledFuture<?> scheduler;
   private Maintenance maintenance;
 
-  private static final int RESET_INTERVAL = 1000 * 60;
+  private static final long RESET_INTERVAL = 1000L * 60;
   private static final TimeUnit RESET_TIME_UNIT = TimeUnit.MILLISECONDS;
 
   public void start() {

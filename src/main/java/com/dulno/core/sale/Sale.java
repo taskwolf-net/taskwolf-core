@@ -55,7 +55,7 @@ public final class Sale {
     status = newStatus;
   }
 
-  private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 14;
+  private static final long EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 14;
 
   public void resetExpirationTime() {
     expirationTime = System.currentTimeMillis() + EXPIRATION_TIME;

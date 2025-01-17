@@ -5,8 +5,8 @@ import com.dulno.core.database.DatabaseRow;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import com.dulno.core.bundle.*;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Getter
@@ -89,11 +89,18 @@ public final class Offer {
   }
 
   private long calculateBundleExpiration(BundleRuntime runtime) {
-    return System.currentTimeMillis() + 1000L * 60 * 60 * 24 * switch (runtime) {
-      case WEEKLY -> 7;
-      case MONTHLY -> 30;
-      case YEARLY -> 360;
-      case UNBOUND -> 0;
-    };
+    if (runtime.isUnbound()) {
+      return 0;
+    }
+    if (runtime.isInfinite()) {
+      return -1;
+    }
+    var current = ZonedDateTime.now();
+    var next = current.plusMonths(runtime.isMonthly() ? 1 : 12);
+    if (next.getDayOfMonth() != current.getDayOfMonth()) {
+      next = next.withDayOfMonth(next.getMonth().length(
+        next.toLocalDate().isLeapYear()));
+    }
+    return next.toInstant().toEpochMilli();
   }
 }
