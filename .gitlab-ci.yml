@@ -9,13 +9,13 @@ variables:
 
 test:
   stage: test
-  image: gradle:8.12.0-jdk21
+  image: gradle:8.12.1-jdk21
   script:
     - gradle test
 
 build:
   stage: build
-  image: gradle:8.12.0-jdk21
+  image: gradle:8.12.1-jdk21
   script:
     - gradle bootJar
     - gradle javadoc
