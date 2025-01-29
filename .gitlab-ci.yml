@@ -1,7 +1,11 @@
 stages:
   - test
   - build
+  - publish
   - deploy
+
+variables:
+  DOCKER_IMAGE: "dulno-core-base"
 
 test:
   stage: test
@@ -12,20 +16,39 @@ test:
 build:
   stage: build
   image: gradle:8.12.0-jdk21
+  script:
+    - gradle bootJar
+    - gradle javadoc
+    - gradle downloadGeoLite2Database
   artifacts:
     paths:
-      - build/libs/core-1.0.0-SNAPSHOT.jar
-      - build/docs/javadoc
+      - build/libs/
+      - build/docs/javadoc/
+      - geo/
     expire_in: 1 day
+
+publish:
+  stage: publish
+  image: docker:cli
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
+  dependencies:
+    - build
   script:
-    - gradle assemble
-    - gradle javadoc
+    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin $DOCKER_REGISTRY
+    - docker build -t $DOCKER_REGISTRY/$DOCKER_IMAGE:latest .
+    - docker push $DOCKER_REGISTRY/$DOCKER_IMAGE:latest
+  only:
+    - master
 
 deploy:
   stage: deploy
-  image: alpine:latest
-  when: manual
-  script:
-    - chmod og= $ID_RSA
-    - apk update && apk add openssh-client
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "/home/taskwolf/deployment/fetch-core.sh && /home/taskwolf/deployment/deploy-core.sh && /home/taskwolf/deployment/deploy-nginx.sh"
+  trigger:
+    project: $CORE_PIPELINE_PROJECT
+    branch: $CORE_PIPELINE_BRANCH
+  only:
+    - master
