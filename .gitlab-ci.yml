@@ -6,6 +6,7 @@ stages:
 
 variables:
   DOCKER_IMAGE: "dulno-core-base"
+  DOCKER_DOCS_IMAGE: "dulno-core-base-docs"
 
 test:
   stage: test
@@ -42,13 +43,23 @@ publish:
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin $DOCKER_REGISTRY
     - docker build -t $DOCKER_REGISTRY/$DOCKER_IMAGE:latest .
     - docker push $DOCKER_REGISTRY/$DOCKER_IMAGE:latest
+    - docker buildx build -t $DOCKER_REGISTRY/$DOCKER_DOCS_IMAGE:latest -f docs/Dockerfile .
+    - docker push $DOCKER_REGISTRY/$DOCKER_DOCS_IMAGE:latest
   only:
     - master
 
-deploy:
+deploy_core:
   stage: deploy
   trigger:
     project: $CORE_PIPELINE_PROJECT
     branch: $CORE_PIPELINE_BRANCH
+  only:
+    - master
+
+deploy_nginx:
+  stage: deploy
+  trigger:
+    project: $NGINX_PIPELINE_PROJECT
+    branch: $NGINX_PIPELINE_BRANCH
   only:
     - master
