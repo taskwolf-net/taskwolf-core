@@ -7,7 +7,6 @@ plugins {
   id("maven-publish")
   id("org.springframework.boot") version "3.4.1"
   id("io.freefair.lombok") version "8.12.1"
-  id("com.github.ben-manes.versions") version "0.51.0"
 }
 
 group = "com.dulno"
