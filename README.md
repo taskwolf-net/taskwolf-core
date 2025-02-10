@@ -233,7 +233,7 @@ dependencies {
 Although the Core module offers the basic structure and skeleton of Dulno, the entire system has been developed to be extremely modular. This is how the module system was brought to life, which is based on calling up jar files at runtime when the service is started.
 
 The following demonstrates how a module can be defined:
-```
+```java
 @ModuleDescription(name = "test", version = "1.0.0-SNAPSHOT",
   priority = ModuleLoadPriority.NEUTRAL)
 public final class TestModule extends Module {
@@ -290,7 +290,7 @@ public final class TestModule extends Module {
 ## Trigger
 The triggers are a core component of the Dulno system. They are used to trigger workflows. To implement a trigger, we provide the following example class:
 
-```
+```java
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public final class TestTrigger implements Trigger {
   public static TestTrigger create(
@@ -362,7 +362,7 @@ public final class TestTrigger implements Trigger {
 Actions are also an important part of most modules in Dulno. This is because they ensure that the workflows have any use at all. They react to the triggering of a workflow and execute tasks.
 
 Actions are implemented in two separate classes. The action itself, which defines the basic parameters, and the ActionExecutor, which implements the actual execution. The structure of an action class is shown below:
-```
+```java
 @AllArgsConstructor(staticName = "create")
 public final class ChannelMessageAction implements Action<TestActionExecutor> {
   public static TestAction create(
@@ -429,7 +429,7 @@ public final class ChannelMessageAction implements Action<TestActionExecutor> {
 ```
 
 Now follows an example of an ActionExecutor implementation:
-```
+```java
 @AllArgsConstructor(staticName = "create")
 public final class TestActionExecutor implements ActionExecutor {
   private final String value;
