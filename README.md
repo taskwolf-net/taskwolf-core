@@ -205,7 +205,7 @@ Core of the backend of Dulno. Each module relies on the core. It bundles central
 This module can be integrated into a submodule.
 
 To do this, the repository must first be included in *build.gradle.kts*. This looks as follows:
-```
+```kotlin
 repositories {
   mavenCentral()
   maven {
@@ -223,7 +223,7 @@ repositories {
 ```
 
 The repository can then be added and used like a regular dependency. This is done in the following way:
-```
+```kotlin
 dependencies {
   compileOnly("com.dulno:core:1.0.0-SNAPSHOT")
 }
