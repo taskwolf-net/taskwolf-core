@@ -19,6 +19,7 @@ build:
   image: gradle:8.12.1-jdk21
   script:
     - gradle bootJar
+    - gradle publish
     - gradle javadoc
     - gradle downloadGeoLite2Database
   artifacts:
