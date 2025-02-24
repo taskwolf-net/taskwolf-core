@@ -73,6 +73,8 @@ dependencies {
   implementation("com.maxmind.geoip2:geoip2:4.2.1") {
     exclude(group = "commons-logging", module = "commons-logging")
   }
+
+  implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20240325.1")
 }
 
 tasks.test {

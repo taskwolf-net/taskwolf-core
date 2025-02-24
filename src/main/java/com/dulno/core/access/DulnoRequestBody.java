@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +20,7 @@ public final class DulnoRequestBody {
 
   private final JSONObject body;
   private final HttpServletResponse response;
+  private final PolicyFactory sanitizerPolicy = new HtmlPolicyBuilder().toFactory();
 
   /**
    * Is used to get a string from request body
@@ -42,6 +45,36 @@ public final class DulnoRequestBody {
   public String getString(String key, int maxLength) {
     var value = getString(key);
     return value.substring(0, Math.min(maxLength, value.length()));
+  }
+
+  /**
+   * Is used to get a sanitized string from request body
+   * @param key The key to find the content
+   * @return The value behind the key
+   */
+  public String getSanitizedString(String key) {
+    return sanitizerPolicy.sanitize(getString(key));
+  }
+
+  /**
+   * Is used to get a sanitized string from request body
+   * @param key The key to find the content
+   * @param policy The sanitization policy
+   * @return The value behind the key
+   */
+  public String getSanitizedString(String key, PolicyFactory policy) {
+    return policy.sanitize(getString(key));
+  }
+
+  /**
+   * Is used to get a sanitized string from request body
+   * @param key The key to find the content
+   * @param maxLength The maximum length of the content (if the content is longer,
+   *                 it is split, so it matches the maximum length)
+   * @return The value behind the key
+   */
+  public String getSanitizedString(String key, int maxLength) {
+    return sanitizerPolicy.sanitize(getString(key, maxLength));
   }
 
   /**
