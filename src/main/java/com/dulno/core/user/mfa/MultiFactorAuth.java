@@ -49,7 +49,7 @@ public final class MultiFactorAuth {
       .label(user.email())
       .secret(secret)
       .issuer("Dulno")
-      .algorithm(HashingAlgorithm.SHA1)
+      .algorithm(HashingAlgorithm.SHA256)
       .digits(6)
       .period(30)
       .build();
