@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.List;
 import java.util.UUID;
@@ -53,7 +54,7 @@ public final class DulnoRequestBody {
    * @return The value behind the key
    */
   public String getSanitizedString(String key) {
-    return sanitizerPolicy.sanitize(getString(key));
+    return HtmlUtils.htmlUnescape(sanitizerPolicy.sanitize(getString(key)));
   }
 
   /**
@@ -63,7 +64,7 @@ public final class DulnoRequestBody {
    * @return The value behind the key
    */
   public String getSanitizedString(String key, PolicyFactory policy) {
-    return policy.sanitize(getString(key));
+    return HtmlUtils.htmlUnescape(policy.sanitize(getString(key)));
   }
 
   /**
@@ -74,7 +75,7 @@ public final class DulnoRequestBody {
    * @return The value behind the key
    */
   public String getSanitizedString(String key, int maxLength) {
-    return sanitizerPolicy.sanitize(getString(key, maxLength));
+    return HtmlUtils.htmlUnescape(sanitizerPolicy.sanitize(getString(key, maxLength)));
   }
 
   /**
