@@ -15,7 +15,7 @@ public final class Hashing {
   public String hash(String input) {
     var password = input.toCharArray();
     try {
-      return argon2.hash(10, 65536, 1, password);
+      return argon2.hash(3, 65536, 1, password);
     } finally {
       argon2.wipeArray(password);
     }
