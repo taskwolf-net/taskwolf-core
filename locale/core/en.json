@@ -115,5 +115,10 @@
   "activity.ticket.close.description": "You have closed one of your tickets",
 
   "organization.default.name": "Organization of %s",
-  "organization.team.target.global": "Entire organization"
+  "organization.team.target.global": "Entire organization",
+
+  "mail.template.rights": "All rights reserved",
+  "mail.template.imprint": "Imprint",
+  "mail.template.privacy": "Privacy policy",
+  "mail.template.contact": "Contact"
 }

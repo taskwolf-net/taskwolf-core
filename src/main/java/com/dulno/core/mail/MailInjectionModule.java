@@ -16,4 +16,10 @@ public final class MailInjectionModule extends AbstractModule {
   ) {
     return OutgoingMailDatabaseTable.create(databaseConnection, databaseKeyspace);
   }
+
+  @Provides
+  @Singleton
+  MailTemplate provideMailTemplate() throws Exception {
+    return MailTemplate.createAndLoad();
+  }
 }
