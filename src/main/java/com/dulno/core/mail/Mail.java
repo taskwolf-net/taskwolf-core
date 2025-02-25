@@ -1,6 +1,8 @@
 package com.dulno.core.mail;
 
 import com.dulno.core.error.ErrorRepository;
+import com.dulno.core.locale.Translation;
+import com.dulno.core.user.User;
 import com.google.common.collect.Lists;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.time.Year;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -23,17 +26,19 @@ import java.util.concurrent.CompletableFuture;
 public class Mail {
   public static Mail create(
     OutgoingMailDatabaseTable outgoingMailDatabaseTable,
-    ErrorRepository errorRepository, String mail, String smtpMailHost,
-    int smtpMailPort, String imapMailHost, int imapMailPort, String mailUser,
-    String mailPassword
+    ErrorRepository errorRepository, MailTemplate mailTemplate,
+    Translation translation, String mail, String smtpMailHost, int smtpMailPort,
+    String imapMailHost, int imapMailPort, String mailUser, String mailPassword
   ) {
-    return new Mail(outgoingMailDatabaseTable, errorRepository, mail,
-      smtpMailHost, smtpMailPort, imapMailHost, imapMailPort, mailUser,
-      mailPassword);
+    return new Mail(outgoingMailDatabaseTable, errorRepository, mailTemplate,
+      translation, mail, smtpMailHost, smtpMailPort, imapMailHost,
+      imapMailPort, mailUser, mailPassword);
   }
 
   private final OutgoingMailDatabaseTable outgoingMailDatabaseTable;
   private final ErrorRepository errorRepository;
+  private final MailTemplate mailTemplate;
+  private final Translation translation;
   private final String mail;
   private final String smtpMailHost;
   private final int smtpMailPort;
@@ -81,42 +86,40 @@ public class Mail {
     }
   }
 
-  public CompletableFuture<String> send(String target, String title, String body) {
-    return send(target, title, body, Lists.newArrayList());
+  public CompletableFuture<String> send(User user, String title, String body) {
+    return send(user.email(), user.language(), title, body);
   }
 
   public CompletableFuture<String> send(
-    String target, String title, String body, String dataType
+    String target, String language, String title, String body
   ) {
-    return send(target, title, body, dataType, Lists.newArrayList());
+    return send(target, language, title, body, Lists.newArrayList());
   }
 
   public CompletableFuture<String> send(
-    String target, String title, String body,
-    List<MailAttachment> attachments
+    User user, String title, String body, List<MailAttachment> attachments
   ) {
-    return send(target, title, body, "", attachments);
+    return send(user.email(), user.language(), title, body, attachments);
   }
 
   public CompletableFuture<String> send(
-    String target, String title, String body, String dataType,
+    String target, String language, String title, String body,
     List<MailAttachment> attachments
   ) {
     var futureResponse = new CompletableFuture<String>();
-    new Thread(() -> sendEmail(target, title, body, dataType,
-      attachments, futureResponse)).start();
+    new Thread(() -> sendEmail(target, language, title, body, attachments,
+      futureResponse)).start();
     return futureResponse;
   }
 
   private void sendEmail(
-    String target, String title, String body, String dataType,
-    List<MailAttachment> attachments,
-    CompletableFuture<String> futureResponse
+    String target, String language, String title, String body,
+    List<MailAttachment> attachments, CompletableFuture<String> futureResponse
   ) {
     try {
       var session = createSession("smtp", smtpMailHost, smtpMailPort);
       var message = createMessage(session, new Address[] {createAddress(target)},
-        title, body, dataType, attachments);
+        language, title, body, attachments);
       var transport = session.getTransport("smtp");
       transport.connect(smtpMailHost, mailUser, mailPassword);
       transport.sendMessage(message, message.getAllRecipients());
@@ -153,32 +156,39 @@ public class Mail {
   }
 
   private MimeMessage createMessage(
-    Session session, Address[] addresses, String title, String body,
-    String dataType, List<MailAttachment> attachments
+    Session session, Address[] addresses, String language, String title,
+    String body, List<MailAttachment> attachments
   ) throws Exception {
     var message = new MimeMessage(session);
     message.setFrom(new InternetAddress(mail, "Dulno"));
     message.setRecipients(Message.RecipientType.TO, addresses);
     message.setSentDate(new Date());
     message.setSubject(title);
+    var content = buildMessageContent(language, body);
     if (attachments.isEmpty()) {
-      if (dataType.isEmpty()) {
-        message.setText(body);
-      } else {
-        message.setContent(body, dataType);
-      }
+      message.setContent(content, "text/html; charset=utf-8");
     } else {
-      message.setContent(createMultipartBody(body, attachments));
+      message.setContent(createMultipartBody(content, attachments));
     }
     return message;
   }
 
+  private String buildMessageContent(String language, String body) {
+    return mailTemplate.mailTemplate()
+      .replaceAll("%YEAR%", String.valueOf(Year.now().getValue()))
+      .replaceAll("%RIGHTS%", translation.translate(language, "mail.template.rights"))
+      .replaceAll("%IMPRINT%", translation.translate(language, "mail.template.imprint"))
+      .replaceAll("%PRIVACY%", translation.translate(language, "mail.template.privacy"))
+      .replaceAll("%CONTACT%", translation.translate(language, "mail.template.contact"))
+      .replaceAll("%CONTENT%", body.replaceAll("\n", "<br>"));
+  }
+
   private MimeMultipart createMultipartBody(
-    String body, List<MailAttachment> attachments
+    String content, List<MailAttachment> attachments
   ) throws Exception {
     var multipart = new MimeMultipart();
     var textBodyPart = new MimeBodyPart();
-    textBodyPart.setText(body);
+    textBodyPart.setContent(content, "text/html; charset=utf-8");
     multipart.addBodyPart(textBodyPart);
     for (var attachment : attachments) {
       addAttachmentPart(attachment, multipart);
