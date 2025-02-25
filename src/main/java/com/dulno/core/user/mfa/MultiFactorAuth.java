@@ -76,7 +76,7 @@ public final class MultiFactorAuth {
       return verifyRecoveryCode(code);
     }
     var timeProvider = new SystemTimeProvider();
-    var codeGenerator = new DefaultCodeGenerator();
+    var codeGenerator = new DefaultCodeGenerator(HashingAlgorithm.SHA256);
     var verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
     return multiFactorAuthDatabaseTable.findAuth(userId)
       .thenApplyAsync(auth -> verifier.isValidCode(auth.secret(), code));
