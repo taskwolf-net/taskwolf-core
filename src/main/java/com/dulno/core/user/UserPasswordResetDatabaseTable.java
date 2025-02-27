@@ -28,7 +28,7 @@ public final class UserPasswordResetDatabaseTable extends DatabaseTable {
   }
 
   public void insertResetToken(UUID id, String token) {
-    insert(DatabaseRow.of(id, token));
+    insert(DatabaseRow.of(id, token), "USING TTL " + (60 * 60 * 24));
   }
 
   public CompletableFuture<Boolean> resetTokenExists(UUID userId) {

@@ -31,11 +31,11 @@ public final class UserEmailChangeDatabaseTable extends DatabaseTable {
   }
 
   public void insertChange(UUID id, String newEmail, String token) {
-    insert(DatabaseRow.of(id, newEmail, token));
+    insert(DatabaseRow.of(id, newEmail, token), "USING TTL " + (60 * 60 * 24));
   }
 
   public void updateChange(UUID id, String newEmail, String token) {
-    update(id, DatabaseRow.of(id, newEmail, token));
+    update(id, DatabaseRow.of(id, newEmail, token), "USING TTL " + (60 * 60 * 24));
   }
 
   public CompletableFuture<Boolean> changeExists(UUID userId) {
