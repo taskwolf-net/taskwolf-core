@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class Mail {
@@ -180,7 +181,22 @@ public class Mail {
       .replaceAll("%IMPRINT%", translation.translate(language, "mail.template.imprint"))
       .replaceAll("%PRIVACY%", translation.translate(language, "mail.template.privacy"))
       .replaceAll("%CONTACT%", translation.translate(language, "mail.template.contact"))
-      .replaceAll("%CONTENT%", body.replaceAll("\n", "<br>"));
+      .replaceAll("%CONTENT%", formatMailBodyLinks(body).replaceAll("\n", "<br>"));
+  }
+
+  private static final Pattern MAIL_LINK_PATTERN =
+    Pattern.compile("(https?://[a-zA-Z0-9\\-._~:/?#@!$&'()*+,;=%]+)");
+
+  private String formatMailBodyLinks(String text) {
+    var matcher = MAIL_LINK_PATTERN.matcher(text);
+    var result = new StringBuilder();
+    while (matcher.find()) {
+      var url = matcher.group(1);
+      var replacement = "<a href=\"" + url + "\" target=\"_blank\">" + url + "</a>";
+      matcher.appendReplacement(result, replacement);
+    }
+    matcher.appendTail(result);
+    return result.toString();
   }
 
   private MimeMultipart createMultipartBody(
