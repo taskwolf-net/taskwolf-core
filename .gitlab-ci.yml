@@ -42,7 +42,7 @@ publish_staging:
   dependencies:
     - build
   script:
-    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin $STAGING_DOCKER_REGISTRY
+    - echo $STAGING_DOCKER_PASSWORD | docker login -u $STAGING_DOCKER_USERNAME --password-stdin $STAGING_DOCKER_REGISTRY
     - docker build -t $STAGING_DOCKER_REGISTRY/$DOCKER_IMAGE:latest .
     - docker push $STAGING_DOCKER_REGISTRY/$DOCKER_IMAGE:latest
     - docker buildx build -t $STAGING_DOCKER_REGISTRY/$DOCKER_DOCS_IMAGE:latest -f docs/Dockerfile .
@@ -62,7 +62,7 @@ publish_productive:
   dependencies:
     - build
   script:
-    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin $PRODUCTIVE_DOCKER_REGISTRY
+    - echo $PRODUCTIVE_DOCKER_PASSWORD | docker login -u $PRODUCTIVE_DOCKER_USERNAME --password-stdin $PRODUCTIVE_DOCKER_REGISTRY
     - docker build -t $PRODUCTIVE_DOCKER_REGISTRY/$DOCKER_IMAGE:latest .
     - docker push $PRODUCTIVE_DOCKER_REGISTRY/$DOCKER_IMAGE:latest
     - docker buildx build -t $PRODUCTIVE_DOCKER_REGISTRY/$DOCKER_DOCS_IMAGE:latest -f docs/Dockerfile .
