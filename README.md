@@ -9,9 +9,10 @@ Core of the backend of Dulno. Each module relies on the core. It bundles central
 
 ## Status
 
-|             | Pipeline status                                                                             |
-|-------------|---------------------------------------------------------------------------------------------|
-| Master      | ![](https://git.dulno.com/dulno/dulno-core/badges/master/pipeline.svg)                      |
+|      | Pipeline status                                                       |
+|------|-----------------------------------------------------------------------|
+| main | ![](https://git.dulno.com/dulno/dulno-core/badges/main/pipeline.svg)  |
+| dev  | ![](https://git.dulno.com/dulno/dulno-core/badges/dev/pipeline.svg)   |
 
 ## Architecture
 
