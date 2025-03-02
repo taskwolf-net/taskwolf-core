@@ -45,4 +45,11 @@ public final class DulnoEnvironment {
     }
     return "dulno.dev";
   }
+
+  public String publicEndpoint() {
+    if (isProductive()) {
+      return "api.dulno.com";
+    }
+    return "pub.dulno.dev";
+  }
 }
