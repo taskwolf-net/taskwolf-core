@@ -4,6 +4,7 @@ import com.dulno.core.access.AccessInjectionModule;
 import com.dulno.core.bundle.BundleInjectionModule;
 import com.dulno.core.command.CommandInjectionModule;
 import com.dulno.core.database.DatabaseInjectionModule;
+import com.dulno.core.environment.EnvironmentInjectionModule;
 import com.dulno.core.error.ErrorInjectionModule;
 import com.dulno.core.intro.IntroInjectionModule;
 import com.dulno.core.locale.LocaleInjectionModule;
@@ -68,6 +69,7 @@ public class CoreInjectionModule extends AbstractModule {
     install(OfferInjectionModule.create());
     install(MaintenanceInjectionModule.create());
     install(ErrorInjectionModule.create());
+    install(EnvironmentInjectionModule.create());
   }
 
   @Provides
