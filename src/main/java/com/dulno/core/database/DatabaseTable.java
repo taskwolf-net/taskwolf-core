@@ -16,7 +16,7 @@ public class DatabaseTable implements CreatableDatabaseTable,
   ExistableDatabaseTable, SelectableDatabaseTable, UpdatableDatabaseTable,
   CountableDatabaseTable, IndexableDatabaseTable, PageableDatabaseTable,
   ViewableDatabaseTable, TransformableDatabaseTable, AbstractDatabaseTable,
-  TruncatableDatabaseTable
+  TruncatableDatabaseTable, AggregatableDatabaseTable
 {
   private final DatabaseConnection connection;
   private final DatabaseKeyspace keyspace;
