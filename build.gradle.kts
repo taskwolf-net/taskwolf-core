@@ -6,7 +6,7 @@ plugins {
   id("java")
   id("maven-publish")
   id("org.springframework.boot") version "3.4.3"
-  id("io.freefair.lombok") version "8.12.2"
+  id("io.freefair.lombok") version "8.12.2.1"
 }
 
 group = "com.dulno"
@@ -60,7 +60,7 @@ dependencies {
 
   implementation("org.springframework.boot:spring-boot-starter-web:3.4.3")
 
-  implementation("de.mkammerer:argon2-jvm:2.11")
+  implementation("de.mkammerer:argon2-jvm:2.12")
 
   implementation("io.jsonwebtoken:jjwt:0.12.6")
 
