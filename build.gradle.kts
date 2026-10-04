@@ -5,8 +5,8 @@ import java.util.zip.GZIPInputStream
 plugins {
   id("java")
   id("maven-publish")
-  id("org.springframework.boot") version "3.4.3"
-  id("io.freefair.lombok") version "8.13"
+  id("org.springframework.boot") version "4.1.1"
+  id("io.freefair.lombok") version "9.8.0"
 }
 
 group = "net.taskwolf"
@@ -25,43 +25,43 @@ repositories {
 }
 
 dependencies {
-  testImplementation(platform("org.junit:junit-bom:5.12.0"))
-  testImplementation("org.junit.jupiter:junit-jupiter:5.12.0")
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.12.0")
+  testImplementation(platform("org.junit:junit-bom:6.1.3"))
+  testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.3")
 
   implementation("com.google.inject:guice:7.0.0")
 
-  implementation("com.google.guava:guava:33.4.0-jre")
+  implementation("com.google.guava:guava:33.7.2-jre")
 
-  implementation("org.projectlombok:lombok:1.18.36")
-  annotationProcessor("org.projectlombok:lombok:1.18.36")
-  testImplementation("org.projectlombok:lombok:1.18.36")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.36")
+  implementation("org.projectlombok:lombok:1.18.48")
+  annotationProcessor("org.projectlombok:lombok:1.18.48")
+  testImplementation("org.projectlombok:lombok:1.18.48")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.48")
 
   implementation("com.datastax.oss:java-driver-core:4.17.0")
 
-  implementation("org.json:json:20250107")
-  implementation("commons-io:commons-io:2.18.0")
+  implementation("org.json:json:20260814")
+  implementation("commons-io:commons-io:2.22.0")
 
-  implementation("io.netty:netty-all:4.1.119.Final")
+  implementation("io.netty:netty-all:4.2.18.Final")
 
-  implementation("org.springframework.boot:spring-boot-starter-web:3.4.3")
+  implementation("org.springframework.boot:spring-boot-starter-web:4.1.1")
 
   implementation("de.mkammerer:argon2-jvm:2.12")
 
-  implementation("io.jsonwebtoken:jjwt:0.12.6")
+  implementation("io.jsonwebtoken:jjwt:0.13.0")
 
   implementation("com.sun.mail:javax.mail:1.6.2")
 
-  implementation("com.stripe:stripe-java:28.4.0")
+  implementation("com.stripe:stripe-java:34.0.0")
 
   implementation("dev.samstevens.totp:totp:1.7.1")
 
-  implementation("com.maxmind.geoip2:geoip2:4.2.1") {
+  implementation("com.maxmind.geoip2:geoip2:5.2.0") {
     exclude(group = "commons-logging", module = "commons-logging")
   }
 
-  implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20240325.1")
+  implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20260924.2")
 }
 
 tasks.test {
