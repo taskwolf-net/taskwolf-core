@@ -1,0 +1,45 @@
+package net.taskwolf.core.user;
+
+import net.taskwolf.core.database.*;
+import com.google.common.collect.Lists;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+public final class UserPasswordResetDatabaseTable extends DatabaseTable {
+  private static final String TABLE_NAME = "user_password_reset";
+
+  public static UserPasswordResetDatabaseTable create(
+    DatabaseConnection connection, DatabaseKeyspace keyspace
+  ) {
+    var columns = Lists.<DatabaseColumn>newArrayList();
+    columns.add(DatabaseColumn.create("id", DatabaseDataType.UUID,
+      DatabaseColumn.Type.PRIMARY_KEY));
+    columns.add(DatabaseColumn.create("resetToken", DatabaseDataType.TEXT));
+    return new UserPasswordResetDatabaseTable(connection, keyspace, TABLE_NAME, columns);
+  }
+
+  private UserPasswordResetDatabaseTable(
+    DatabaseConnection connection, DatabaseKeyspace keyspace, String name,
+    List<DatabaseColumn> columns
+  ) {
+    super(connection, keyspace, name, columns);
+  }
+
+  public void insertResetToken(UUID id, String token) {
+    insert(DatabaseRow.of(id, token), "USING TTL " + (60 * 60 * 24));
+  }
+
+  public CompletableFuture<Boolean> resetTokenExists(UUID userId) {
+    return exists(userId);
+  }
+
+  public void deleteResetToken(UUID userId) {
+    delete(userId);
+  }
+
+  public CompletableFuture<String> findResetToken(UUID userId) {
+    return selectRow(userId).thenApply(row -> row.findCell(1).stringValue());
+  }
+}

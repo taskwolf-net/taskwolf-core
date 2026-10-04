@@ -8,7 +8,7 @@ plugins {
   id("io.freefair.lombok") version "8.13"
 }
 
-group = "com.dulno"
+group = "net.taskwolf"
 version = "1.0.0-SNAPSHOT"
 
 repositories {
@@ -60,7 +60,7 @@ tasks.test {
 }
 
 tasks.bootJar {
-  mainClass = "com.dulno.core.CoreApplication"
+  mainClass = "net.taskwolf.core.CoreApplication"
 }
 
 tasks.register("downloadGeoLite2Database") {
