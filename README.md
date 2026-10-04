@@ -1,18 +1,8 @@
-<div align="center">
-  <img src="https://dulno.com/static/img/logo-light.webp" alt="logo" width="128"  height="auto" />
+# Dulno - Core
 
-  <h1><b>Dulno - Core</b><br><br></h1>
-
-</div>
+[![CI](https://github.com/taskwolf-net/taskwolf-core/actions/workflows/ci.yml/badge.svg)](https://github.com/taskwolf-net/taskwolf-core/actions/workflows/ci.yml)
 
 Core of the backend of Dulno. Each module relies on the core. It bundles central functionalities and forms the framework of the entire application.
-
-## Status
-
-|      | Pipeline status                                                       |
-|------|-----------------------------------------------------------------------|
-| main | ![](https://git.dulno.com/dulno/dulno-core/badges/main/pipeline.svg)  |
-| dev  | ![](https://git.dulno.com/dulno/dulno-core/badges/dev/pipeline.svg)   |
 
 ## Architecture
 
@@ -25,17 +15,7 @@ To do this, the repository must first be included in *build.gradle.kts*. This lo
 ```kotlin
 repositories {
   mavenCentral()
-  maven {
-    url = uri("https://git.dulno.com/api/v4/projects/8/packages/maven")
-    credentials(HttpHeaderCredentials::class) {
-      name = "Private-Token"
-      value = System.getenv("DULNO_GITLAB_PRIVATE_TOKEN") ?:
-        findProperty("dulnoGitlabPrivateToken") as String?
-    }
-    authentication {
-      create("header", HttpHeaderAuthentication::class)
-    }
-  }
+  mavenLocal()
 }
 ```
 
@@ -93,7 +73,6 @@ public final class TestModule extends Module {
     //Register your triggers here
     return repository;
   }
-
 
   @Override
   public ActionRepository actionRepository() {

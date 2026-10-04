@@ -4,34 +4,12 @@ import java.util.zip.GZIPInputStream
 
 plugins {
   id("java")
-  id("maven-publish")
   id("org.springframework.boot") version "3.4.3"
   id("io.freefair.lombok") version "8.13"
 }
 
 group = "com.dulno"
 version = "1.0.0-SNAPSHOT"
-
-publishing {
-  publications {
-    create<MavenPublication>("library") {
-      from(components["java"])
-    }
-  }
-  repositories {
-    maven {
-      url = uri("https://git.dulno.com/api/v4/projects/8/packages/maven")
-      credentials(HttpHeaderCredentials::class) {
-        name = "Private-Token"
-        value = System.getenv("DULNO_GITLAB_PRIVATE_TOKEN") ?:
-          findProperty("dulnoGitlabPrivateToken") as String?
-      }
-      authentication {
-        create("header", HttpHeaderAuthentication::class)
-      }
-    }
-  }
-}
 
 repositories {
   mavenCentral()
@@ -86,7 +64,7 @@ tasks.bootJar {
 }
 
 tasks.register("downloadGeoLite2Database") {
-  val licenseKey = "***REMOVED***"
+  val licenseKey = System.getenv("MAXMIND_LICENSE_KEY") ?: ""
   val databaseUrl = "https://download.maxmind.com/app/geoip_download?" +
     "edition_id=GeoLite2-City&license_key=$licenseKey&suffix=tar.gz"
   val resourcesDir = File("geo")
