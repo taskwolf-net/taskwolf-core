@@ -4,12 +4,21 @@ import java.util.zip.GZIPInputStream
 
 plugins {
   id("java")
+  id("maven-publish")
   id("org.springframework.boot") version "3.4.3"
   id("io.freefair.lombok") version "8.13"
 }
 
 group = "net.taskwolf"
 version = "1.0.0-SNAPSHOT"
+
+publishing {
+  publications {
+    create<MavenPublication>("library") {
+      from(components["java"])
+    }
+  }
+}
 
 repositories {
   mavenCentral()

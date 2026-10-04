@@ -35,7 +35,14 @@ flowchart TB
 ## Integration
 This module can be integrated into a submodule.
 
-To do this, the repository must first be included in *build.gradle.kts*. This looks as follows:
+There is no public package registry, so the core has to be installed into the local Maven repository first:
+```bash
+git clone https://github.com/taskwolf-net/taskwolf-core.git
+cd taskwolf-core
+./gradlew publishToMavenLocal
+```
+
+Afterwards the local Maven repository must be included in *build.gradle.kts*:
 ```kotlin
 repositories {
   mavenCentral()
@@ -43,12 +50,14 @@ repositories {
 }
 ```
 
-The repository can then be added and used like a regular dependency. This is done in the following way:
+The core can then be added and used like a regular dependency:
 ```kotlin
 dependencies {
   compileOnly("net.taskwolf:core:1.0.0-SNAPSHOT")
 }
 ```
+
+Inside a Taskwolf module, `bash .github/build-dependencies.sh https://github.com/taskwolf-net` builds and installs all Taskwolf modules it depends on in one step. The CI uses the same script.
 
 ## Module
 Although the Core module offers the basic structure and skeleton of Taskwolf, the entire system has been developed to be extremely modular. This is how the module system was brought to life, which is based on calling up jar files at runtime when the service is started.
