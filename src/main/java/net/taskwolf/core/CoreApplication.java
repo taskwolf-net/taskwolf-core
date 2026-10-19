@@ -41,8 +41,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.Collections;
 
-@SpringBootApplication(scanBasePackages = {"net.taskwolf"},
-  exclude = {org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration.class})
+@SpringBootApplication(scanBasePackages = {"net.taskwolf"})
 public class CoreApplication {
   /**
    * The starting point where the application is executed
