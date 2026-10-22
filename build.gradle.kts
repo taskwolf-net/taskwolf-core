@@ -6,7 +6,7 @@ plugins {
   id("java")
   id("maven-publish")
   id("org.springframework.boot") version "4.1.1"
-  id("io.freefair.lombok") version "9.8.0"
+  id("io.freefair.lombok") version "9.8.2"
 }
 
 group = "net.taskwolf"
@@ -43,7 +43,7 @@ dependencies {
   implementation("org.json:json:20260814")
   implementation("commons-io:commons-io:2.22.0")
 
-  implementation("io.netty:netty-all:4.2.18.Final")
+  implementation("io.netty:netty-all:4.2.19.Final")
 
   implementation("org.springframework.boot:spring-boot-starter-web:4.1.1")
 
@@ -61,7 +61,7 @@ dependencies {
     exclude(group = "commons-logging", module = "commons-logging")
   }
 
-  implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20260924.2")
+  implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20261011.1")
 }
 
 tasks.test {
